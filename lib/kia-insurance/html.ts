@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import fs from 'fs'
 import path from 'path'
+import { validateToken } from '@/lib/kia-insurance/auth'
 
 export function transformHtml(content: string): string {
   content = content.replace(/location\.href\s*=\s*['"]#?['"]/g, `location.href='/performance'`)
@@ -33,6 +34,14 @@ function injectNav(content: string): string {
   return content.replace('<body>', '<body>' + navHtml)
 }
 
+function getTokenFromRequest(req: Request): string | null {
+  const cookie = req.headers.get('cookie') || ''
+  const match = cookie.match(/kia_admin_token=([^;]+)/)
+  if (match) return decodeURIComponent(match[1])
+  const url = new URL(req.url)
+  return url.searchParams.get('token')
+}
+
 export function serveHtml(relativePath: string): NextResponse {
   const filePath = path.join(process.cwd(), relativePath)
   const content = fs.readFileSync(filePath, 'utf8')
@@ -40,6 +49,15 @@ export function serveHtml(relativePath: string): NextResponse {
   return new NextResponse(transformed, {
     headers: { 'Content-Type': 'text/html; charset=utf-8' },
   })
+}
+
+export function serveProtectedHtml(relativePath: string, req: Request): NextResponse {
+  const token = getTokenFromRequest(req)
+  if (!token || !validateToken(token).valid) {
+    const url = new URL('/login', req.url)
+    return NextResponse.redirect(url)
+  }
+  return serveHtml(relativePath)
 }
 
 export function serveLandingHtml(): NextResponse {
