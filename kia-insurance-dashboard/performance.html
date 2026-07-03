@@ -841,8 +841,8 @@ function renderTable(stats, totals, ly, cy, typeFilter, minMonth, maxMonth) {
         const cyVal = r.cy[t] || 0;
 html += `<td style="padding:2px 3px;${growthBorder}" colspan="3"><span class="val-box" style="font-size:8px;min-width:32px;padding:1px 3px;background:#fee2e2;color:#dc2626;border:1px solid #000">${fmt(cyVal)}</span></td>`;
       } else if (t === 'overall') {
-        const lyGrowth = (r.ly ? r.ly.rollover || 0 : 0);
-        const cyVal = (r.cy.renewal || 0) + (r.cy.rollover || 0) + (r.cy.rolloverRenew || 0);
+        const lyGrowth = (r.ly ? (r.ly.new || 0) + (r.ly.renewal || 0) + (r.ly.rollover || 0) : 0);
+        const cyVal = (r.cy.new || 0) + (r.cy.renewal || 0) + (r.cy.rollover || 0) + (r.cy.rolloverRenew || 0);
         html += `<td style="padding:2px 3px;${growthBorder}"><span class="val-box val-ly" style="font-size:8px;min-width:22px;padding:1px 2px">${fmt(lyGrowth)}</span></td>`;
         html += `<td style="padding:2px 3px;${growthBorder}"><span class="val-box val-cy" style="font-size:8px;min-width:22px;padding:1px 2px">${fmt(cyVal)}</span></td>`;
         html += `<td style="padding:2px 3px;${growthBorder}">${r.month > currentMonth ? '<span class="growth-box">&nbsp;</span>' : growthBox(cyVal, lyGrowth)}</td>`;
@@ -850,7 +850,7 @@ html += `<td style="padding:2px 3px;${growthBorder}" colspan="3"><span class="va
         const cyVal = r.cy[t] || 0;
         const cyDisplay = t === 'rolloverRenew' && cyVal === 0 ? '\u00A0' : fmt(cyVal);
         const lyGrowth = t === 'renewal' ? (r.ly ? r.ly.new || 0 : 0) : (t === 'rolloverRenew' ? (r.ly ? r.ly.rollover || 0 : 0) : (r.ly ? r.ly[t] || 0 : 0));
-        const lyDisplay = t === 'renewal' || t === 'rolloverRenew' ? '\u00A0' : fmt(lyGrowth);
+        const lyDisplay = fmt(lyGrowth);
         html += `<td style="padding:2px 3px;${growthBorder}"><span class="val-box val-ly" style="font-size:8px;min-width:22px;padding:1px 2px">${lyDisplay}</span></td>`;
         html += `<td style="padding:2px 3px;${growthBorder}"><span class="val-box val-cy" style="font-size:8px;min-width:22px;padding:1px 2px">${cyDisplay}</span></td>`;
         html += `<td style="padding:2px 3px;${growthBorder}">${r.month > currentMonth ? '<span class="growth-box">&nbsp;</span>' : growthBox(cyVal, lyGrowth)}</td>`;
@@ -871,8 +871,8 @@ html += `<td style="padding:2px 3px;${growthBorder}" colspan="3"><span class="va
       const cyVal = ttl.cy[t] || 0;
       html += `<td style="padding:5px 4px;${growthBorder}" colspan="3"><span class="val-box" style="font-size:10px;min-width:32px;padding:2px 4px;background:#fee2e2;color:#dc2626;border:1px solid #000;font-weight:800">${fmt(cyVal)}</span></td>`;
     } else if (t === 'overall') {
-      const lyGrowth = (ttl.ly.rollover || 0);
-      const cyVal = (ttl.cy.renewal || 0) + (ttl.cy.rollover || 0) + (ttl.cy.rolloverRenew || 0);
+      const lyGrowth = (ttl.ly.new || 0) + (ttl.ly.renewal || 0) + (ttl.ly.rollover || 0);
+      const cyVal = (ttl.cy.new || 0) + (ttl.cy.renewal || 0) + (ttl.cy.rollover || 0) + (ttl.cy.rolloverRenew || 0);
       html += `<td style="padding:5px 4px;${growthBorder}"><span class="val-box val-ly" style="font-size:10px;font-weight:800;min-width:22px;padding:2px 3px">${fmt(lyGrowth)}</span></td>`;
       html += `<td style="padding:5px 4px;${growthBorder}"><span class="val-box val-cy" style="font-size:10px;font-weight:800;min-width:22px;padding:2px 3px">${fmt(cyVal)}</span></td>`;
       html += `<td style="padding:5px 4px;${growthBorder}">${growthBox(cyVal, lyGrowth)}</td>`;
@@ -880,7 +880,7 @@ html += `<td style="padding:2px 3px;${growthBorder}" colspan="3"><span class="va
       const cyVal = ttl.cy[t] || 0;
       const cyDisplay = t === 'rolloverRenew' && cyVal === 0 ? '\u00A0' : fmt(cyVal);
       const lyGrowth = t === 'renewal' ? (ttl.ly.new || 0) : (t === 'rolloverRenew' ? (ttl.ly.rollover || 0) : (ttl.ly[t] || 0));
-      const lyDisplay = t === 'renewal' || t === 'rolloverRenew' ? '\u00A0' : fmt(lyGrowth);
+      const lyDisplay = fmt(lyGrowth);
       html += `<td style="padding:5px 4px;${growthBorder}"><span class="val-box val-ly" style="font-size:10px;font-weight:800;min-width:22px;padding:2px 3px">${lyDisplay}</span></td>`;
       html += `<td style="padding:5px 4px;${growthBorder}"><span class="val-box val-cy" style="font-size:10px;font-weight:800;min-width:22px;padding:2px 3px">${cyDisplay}</span></td>`;
       html += `<td style="padding:5px 4px;${growthBorder}">${growthBox(cyVal, lyGrowth)}</td>`;
