@@ -927,29 +927,30 @@ function buildDailyTable(data, filter, label, yesterday, yyy, yesterdayLabel) {
         <th style="padding:2px 8px;text-align:left;font-size:7px;text-transform:uppercase;letter-spacing:0.3px;color:#fff;border:1px solid #000">Insurance Company</th>
         <th style="padding:2px 8px;text-align:center;font-size:7px;text-transform:uppercase;letter-spacing:0.3px;color:#fff;border:1px solid #000;white-space:nowrap">Yesterday<div style="font-weight:400;font-size:6px;color:rgba(255,255,255,0.7);text-transform:none">${yesterdayLabel}</div></th>
         <th style="padding:2px 8px;text-align:center;font-size:7px;text-transform:uppercase;letter-spacing:0.3px;color:#fff;border:1px solid #000">MTD</th>
-        <th style="padding:2px 8px;text-align:center;font-size:7px;text-transform:uppercase;letter-spacing:0.3px;color:#fff;border:1px solid #000;white-space:nowrap">Premium (₹L)</th>
+        <th style="padding:2px 8px;text-align:right;font-size:7px;text-transform:uppercase;letter-spacing:0.3px;color:#fff;border:1px solid #000;white-space:nowrap">Premium (₹)</th>
         <th style="padding:2px 8px;text-align:center;font-size:7px;text-transform:uppercase;letter-spacing:0.3px;color:#fff;border:1px solid #000">Share %</th>
       </tr></thead><tbody>`;
   sorted.forEach(([comp, vals], i) => {
     const pct = (vals.mtd / maxMtd * 100);
     const share = uniqueMtdSum ? (vals.mtd / uniqueMtdSum * 100).toFixed(1) : 0;
-    const premL = (vals.premium / 100000).toFixed(1);
+    const premFmt = Math.round(vals.premium).toLocaleString('en-IN') + ' rs';
     h += `<tr style="border-bottom:1px solid #000">
       <td style="padding:2px 8px;font-weight:600;color:#000;font-size:8px;border:1px solid #000">${comp}</td>
       <td style="padding:2px 8px;text-align:center;border:1px solid #000"><span style="background:#dbeafe;color:#1e40af;padding:2px 8px;border-radius:6px;font-weight:700;font-size:9px">${fmt(vals.yesterday)}</span></td>
       <td style="padding:2px 8px;text-align:center;border:1px solid #000"><span style="font-weight:700;font-size:9px;color:#000">${fmt(vals.mtd)}</span><div style="width:30px;height:2px;background:#e5e7eb;border-radius:2px;overflow:hidden;display:inline-block;margin-left:3px"><div style="height:100%;width:${Math.max(pct,3)}%;background:linear-gradient(90deg,#3b82f6,#1e40af);border-radius:2px"></div></div></td>
-      <td style="padding:2px 8px;text-align:center;border:1px solid #000;font-weight:600;color:#000;font-size:8px">₹${premL}</td>
+      <td style="padding:2px 8px;text-align:right;border:1px solid #000;font-weight:600;color:#000;font-size:8px;white-space:nowrap">${premFmt}</td>
       <td style="padding:2px 8px;text-align:center;border:1px solid #000"><span style="color:#000;font-size:8px">${share}%</span></td>
     </tr>`;
   });
   const totalYesterday = sorted.reduce((s,[_,v]) => s + v.yesterday, 0);
   const totalMtd = sorted.reduce((s,[_,v]) => s + v.mtd, 0);
   const totalPremium = sorted.reduce((s,[_,v]) => s + v.premium, 0);
+  const totalPremFmt = Math.round(totalPremium).toLocaleString('en-IN') + ' rs';
   h += `<tr style="background:#e8f0fe;font-weight:700;border-top:1px solid #000">
     <td style="padding:2px 8px;color:#1e40af;font-size:8px;border:1px solid #000">Total</td>
     <td style="padding:2px 8px;text-align:center;border:1px solid #000"><span style="background:#1e40af;color:#fff;padding:2px 8px;border-radius:6px;font-size:9px">${fmt(totalYesterday)}</span></td>
     <td style="padding:2px 8px;text-align:center;border:1px solid #000;font-size:9px;color:#000">${fmt(totalMtd)}</td>
-    <td style="padding:2px 8px;text-align:center;border:1px solid #000;font-size:8px;color:#000">₹${(totalPremium/100000).toFixed(1)}L</td>
+    <td style="padding:2px 8px;text-align:right;border:1px solid #000;font-size:8px;color:#000;white-space:nowrap;font-weight:700">${totalPremFmt}</td>
     <td style="padding:2px 8px;text-align:center;border:1px solid #000;font-size:8px;color:#000">100%</td>
   </tr>`;
   h += '</tbody></table></div></div>';
