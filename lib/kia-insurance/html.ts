@@ -3,6 +3,13 @@ import fs from 'fs'
 import path from 'path'
 import { validateToken } from '@/lib/kia-insurance/auth'
 
+const noCacheHeaders = {
+  'Content-Type': 'text/html; charset=utf-8',
+  'Cache-Control': 'private, no-cache, no-store, max-age=0, must-revalidate',
+  'Pragma': 'no-cache',
+  'Expires': '0',
+}
+
 export function transformHtml(content: string): string {
   content = content.replace(/location\.href\s*=\s*['"]#?['"]/g, `location.href='/performance'`)
   content = content.replace(/location\.href\s*=\s*['"](?!\/\/|\/api|http)[^'"]*['"]/g, (m) => {
@@ -46,9 +53,7 @@ export function serveHtml(relativePath: string): NextResponse {
   const filePath = path.join(process.cwd(), relativePath)
   const content = fs.readFileSync(filePath, 'utf8')
   const transformed = transformHtml(content)
-  return new NextResponse(transformed, {
-    headers: { 'Content-Type': 'text/html; charset=utf-8' },
-  })
+  return new NextResponse(transformed, { headers: noCacheHeaders })
 }
 
 export function serveProtectedHtml(relativePath: string, req: Request): NextResponse {
@@ -65,7 +70,5 @@ export function serveLandingHtml(): NextResponse {
   let content = fs.readFileSync(filePath, 'utf8')
   content = content.replace(/const API = ''/g, 'const API = ""')
   content = content.replace(/if\(!t\)\s*\{[^}]*location\.href\s*=\s*['"]#?['"][^}]*\}/g, '')
-  return new NextResponse(content, {
-    headers: { 'Content-Type': 'text/html; charset=utf-8' },
-  })
+  return new NextResponse(content, { headers: noCacheHeaders })
 }
