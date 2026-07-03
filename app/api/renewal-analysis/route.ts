@@ -11,9 +11,16 @@ export async function GET() {
       if (r.cancelled === 'Yes') continue
       const d = r.create_date
       if (!d) continue
-      const parts = d.split('/')
-      if (parts.length < 2) continue
-      const key = parts[2] + '-' + parts[1].padStart(2, '0')
+      let year: string, month: string
+      if (d.includes('/')) {
+        const p = d.split('/')
+        year = p[2]; month = p[1].padStart(2, '0')
+      } else {
+        const p = d.split('-')
+        year = p[0]; month = p[1].padStart(2, '0')
+      }
+      if (!year || !month) continue
+      const key = year + '-' + month
       if (!months[key]) months[key] = { new: 0, renewal: 0 }
       if (r.is_new === 'Yes') months[key].new++
       else months[key].renewal++

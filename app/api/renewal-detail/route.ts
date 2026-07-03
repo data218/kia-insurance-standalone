@@ -8,7 +8,7 @@ export async function GET() {
     const rows = await fetchAll('kia_insurance')
     const vinMap: Record<string, { customer: string; model: string; lastPremium: number; lastDate: string; status: string }> = {}
     for (const r of rows) {
-      const vin = r.vin
+      const vin = r.vinno
       if (!vin) continue
       const d = r.create_date
       if (!d) continue

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { supabaseAdmin } from '@/lib/supabase/admin'
+import { getSupabaseAdmin } from '@/lib/supabase/admin'
 
 export const dynamic = 'force-dynamic'
 
@@ -18,7 +18,7 @@ export async function POST(req: Request) {
       call_date: new Date().toISOString(),
     }
     if (mobile_no) payload.mobile_no = mobile_no
-    let { data, error } = await supabaseAdmin.from('call_logs').insert(payload).select().single()
+    let { data, error } = await getSupabaseAdmin().from('call_logs').insert(payload).select().single()
     if (error) {
       if (error.message?.includes('relation') || error.code === '42P01') {
         return NextResponse.json({

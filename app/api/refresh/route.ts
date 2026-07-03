@@ -4,8 +4,9 @@ export const dynamic = 'force-dynamic'
 
 export async function POST() {
   try {
-    const SUPABASE_URL = process.env.SUPABASE_URL!
+    const SUPABASE_URL = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
     const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!
+    if (!SUPABASE_URL || !SUPABASE_KEY) throw new Error('Missing Supabase env vars')
     const sql = 'REFRESH MATERIALIZED VIEW CONCURRENTLY workshop_performance_jc_summary_v1; REFRESH MATERIALIZED VIEW CONCURRENTLY workshop_operation_addon_summary_v1;'
     const r = await fetch(`${SUPABASE_URL}/pg-meta/v1/query`, {
       method: 'POST',
