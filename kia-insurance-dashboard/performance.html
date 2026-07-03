@@ -892,16 +892,26 @@ html += `<td style="padding:2px 3px;${growthBorder}" colspan="3"><span class="va
   document.getElementById('tableContainer').innerHTML = html;
 }
 
+function fmtRs(v) { return Math.round(v).toLocaleString('en-IN') + ' rs'; }
+
 function buildDailyTable(data, filter, label, yesterday, yyy, yesterdayLabel) {
   let tblData = data;
   if (filter !== 'all') tblData = data.filter(r => r.policytype === filter);
-  const compMap = {}, compVins = {};
+  const now = new Date();
+  const curYear = now.getFullYear();
+  const curMonth = String(now.getMonth() + 1).padStart(2, '0');
+  const curMonthPrefix = curYear + '-' + curMonth;
+  const curMonthMdy = '/' + curMonth + '/' + curYear;
+  const compMap = {};
   tblData.forEach(r => {
     if (!r.vinno) return;
     const comp = r.insurancecompany || 'Unknown';
-    if (!compMap[comp]) { compMap[comp] = { mtd: 0, yesterday: 0, premium: 0 }; compVins[comp] = new Set(); }
-    if (!compVins[comp].has(r.vinno)) { compVins[comp].add(r.vinno); compMap[comp].mtd++; }
-    compMap[comp].premium += Number(r.grosspremium) || 0;
+    if (!compMap[comp]) { compMap[comp] = { mtd: 0, yesterday: 0, premium: 0 }; }
+    const cd = (r.create_date || '').trim();
+    if (cd.startsWith(curMonthPrefix) || cd.includes(curMonthMdy)) {
+      compMap[comp].mtd += Number(r.netodpremiuma) || 0;
+    }
+    compMap[comp].premium += Number(r.netodpremiuma) || 0;
   });
   const yDateStr = String(yyy) + '-' + String(yesterday.getMonth()+1).padStart(2,'0') + '-' + String(yesterday.getDate()).padStart(2,'0');
   const yMdyStr = String(yesterday.getMonth()+1) + '/' + String(yesterday.getDate()) + '/' + String(yyy);
@@ -917,7 +927,7 @@ function buildDailyTable(data, filter, label, yesterday, yyy, yesterdayLabel) {
   const sorted = Object.entries(compMap).sort((a,b) => b[1].mtd - a[1].mtd);
   if (!sorted.length) return '';
   const maxMtd = sorted[0][1].mtd;
-  const uniqueMtdSum = sorted.reduce((s,[_,v]) => s + v.mtd, 0);
+  const mtdSum = sorted.reduce((s,[_,v]) => s + v.mtd, 0);
   const labelColors = { all:'#1e40af', New:'#1e40af', Renewal:'#1e40af' };
   const color = labelColors[filter] || '#1e40af';
   let h = `<div style="margin-top:${label==='All'?'0':'6px'};border:1px solid #000;overflow:hidden">
@@ -926,31 +936,29 @@ function buildDailyTable(data, filter, label, yesterday, yyy, yesterdayLabel) {
       <thead><tr style="background:${color}">
         <th style="padding:2px 8px;text-align:left;font-size:7px;text-transform:uppercase;letter-spacing:0.3px;color:#fff;border:1px solid #000">Insurance Company</th>
         <th style="padding:2px 8px;text-align:center;font-size:7px;text-transform:uppercase;letter-spacing:0.3px;color:#fff;border:1px solid #000;white-space:nowrap">Yesterday<div style="font-weight:400;font-size:6px;color:rgba(255,255,255,0.7);text-transform:none">${yesterdayLabel}</div></th>
-        <th style="padding:2px 8px;text-align:center;font-size:7px;text-transform:uppercase;letter-spacing:0.3px;color:#fff;border:1px solid #000">MTD</th>
-        <th style="padding:2px 8px;text-align:right;font-size:7px;text-transform:uppercase;letter-spacing:0.3px;color:#fff;border:1px solid #000;white-space:nowrap">Premium (₹)</th>
+        <th style="padding:2px 8px;text-align:right;font-size:7px;text-transform:uppercase;letter-spacing:0.3px;color:#fff;border:1px solid #000;white-space:nowrap">MTD Premium (₹)</th>
+        <th style="padding:2px 8px;text-align:right;font-size:7px;text-transform:uppercase;letter-spacing:0.3px;color:#fff;border:1px solid #000;white-space:nowrap">Total Premium (₹)</th>
         <th style="padding:2px 8px;text-align:center;font-size:7px;text-transform:uppercase;letter-spacing:0.3px;color:#fff;border:1px solid #000">Share %</th>
       </tr></thead><tbody>`;
   sorted.forEach(([comp, vals], i) => {
-    const pct = (vals.mtd / maxMtd * 100);
-    const share = uniqueMtdSum ? (vals.mtd / uniqueMtdSum * 100).toFixed(1) : 0;
-    const premFmt = Math.round(vals.premium).toLocaleString('en-IN') + ' rs';
+    const pct = maxMtd ? (vals.mtd / maxMtd * 100) : 0;
+    const share = mtdSum ? (vals.mtd / mtdSum * 100).toFixed(1) : 0;
     h += `<tr style="border-bottom:1px solid #000">
       <td style="padding:2px 8px;font-weight:600;color:#000;font-size:8px;border:1px solid #000">${comp}</td>
       <td style="padding:2px 8px;text-align:center;border:1px solid #000"><span style="background:#dbeafe;color:#1e40af;padding:2px 8px;border-radius:6px;font-weight:700;font-size:9px">${fmt(vals.yesterday)}</span></td>
-      <td style="padding:2px 8px;text-align:center;border:1px solid #000"><span style="font-weight:700;font-size:9px;color:#000">${fmt(vals.mtd)}</span><div style="width:30px;height:2px;background:#e5e7eb;border-radius:2px;overflow:hidden;display:inline-block;margin-left:3px"><div style="height:100%;width:${Math.max(pct,3)}%;background:linear-gradient(90deg,#3b82f6,#1e40af);border-radius:2px"></div></div></td>
-      <td style="padding:2px 8px;text-align:right;border:1px solid #000;font-weight:600;color:#000;font-size:8px;white-space:nowrap">${premFmt}</td>
+      <td style="padding:2px 8px;text-align:right;border:1px solid #000;font-weight:600;color:#000;font-size:8px;white-space:nowrap">${fmtRs(vals.mtd)}</td>
+      <td style="padding:2px 8px;text-align:right;border:1px solid #000;font-weight:600;color:#000;font-size:8px;white-space:nowrap">${fmtRs(vals.premium)}</td>
       <td style="padding:2px 8px;text-align:center;border:1px solid #000"><span style="color:#000;font-size:8px">${share}%</span></td>
     </tr>`;
   });
   const totalYesterday = sorted.reduce((s,[_,v]) => s + v.yesterday, 0);
   const totalMtd = sorted.reduce((s,[_,v]) => s + v.mtd, 0);
   const totalPremium = sorted.reduce((s,[_,v]) => s + v.premium, 0);
-  const totalPremFmt = Math.round(totalPremium).toLocaleString('en-IN') + ' rs';
   h += `<tr style="background:#e8f0fe;font-weight:700;border-top:1px solid #000">
     <td style="padding:2px 8px;color:#1e40af;font-size:8px;border:1px solid #000">Total</td>
     <td style="padding:2px 8px;text-align:center;border:1px solid #000"><span style="background:#1e40af;color:#fff;padding:2px 8px;border-radius:6px;font-size:9px">${fmt(totalYesterday)}</span></td>
-    <td style="padding:2px 8px;text-align:center;border:1px solid #000;font-size:9px;color:#000">${fmt(totalMtd)}</td>
-    <td style="padding:2px 8px;text-align:right;border:1px solid #000;font-size:8px;color:#000;white-space:nowrap;font-weight:700">${totalPremFmt}</td>
+    <td style="padding:2px 8px;text-align:right;border:1px solid #000;font-size:8px;white-space:nowrap;font-weight:700">${fmtRs(totalMtd)}</td>
+    <td style="padding:2px 8px;text-align:right;border:1px solid #000;font-size:8px;white-space:nowrap;font-weight:700">${fmtRs(totalPremium)}</td>
     <td style="padding:2px 8px;text-align:center;border:1px solid #000;font-size:8px;color:#000">100%</td>
   </tr>`;
   h += '</tbody></table></div></div>';
