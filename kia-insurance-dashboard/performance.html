@@ -902,14 +902,15 @@ function buildDailyTable(data, filter, label, yesterday, yyy, yesterdayLabel) {
   const curMonth = String(now.getMonth() + 1).padStart(2, '0');
   const curMonthPrefix = curYear + '-' + curMonth;
   const curMonthMdy = '/' + curMonth + '/' + curYear;
-  const compMap = {};
+  const compMap = {}, mtdVins = {};
   tblData.forEach(r => {
     if (!r.vinno) return;
     const comp = r.insurancecompany || 'Unknown';
-    if (!compMap[comp]) { compMap[comp] = { mtd: 0, yesterday: 0, premium: 0 }; }
+    if (!compMap[comp]) { compMap[comp] = { mtd: 0, mtdCount: 0, yesterday: 0, premium: 0 }; mtdVins[comp] = new Set(); }
     const cd = (r.create_date || '').trim();
     if (cd.startsWith(curMonthPrefix) || cd.includes(curMonthMdy)) {
       compMap[comp].mtd += Number(r.netodpremiuma) || 0;
+      if (!mtdVins[comp].has(r.vinno)) { mtdVins[comp].add(r.vinno); compMap[comp].mtdCount++; }
     }
     compMap[comp].premium += Number(r.netodpremiuma) || 0;
   });
@@ -936,6 +937,7 @@ function buildDailyTable(data, filter, label, yesterday, yyy, yesterdayLabel) {
       <thead><tr style="background:${color}">
         <th style="padding:2px 8px;text-align:left;font-size:7px;text-transform:uppercase;letter-spacing:0.3px;color:#fff;border:1px solid #000">Insurance Company</th>
         <th style="padding:2px 8px;text-align:center;font-size:7px;text-transform:uppercase;letter-spacing:0.3px;color:#fff;border:1px solid #000;white-space:nowrap">Yesterday<div style="font-weight:400;font-size:6px;color:rgba(255,255,255,0.7);text-transform:none">${yesterdayLabel}</div></th>
+        <th style="padding:2px 8px;text-align:center;font-size:7px;text-transform:uppercase;letter-spacing:0.3px;color:#fff;border:1px solid #000;white-space:nowrap">MTD Count</th>
         <th style="padding:2px 8px;text-align:right;font-size:7px;text-transform:uppercase;letter-spacing:0.3px;color:#fff;border:1px solid #000;white-space:nowrap">MTD Premium (₹)</th>
         <th style="padding:2px 8px;text-align:right;font-size:7px;text-transform:uppercase;letter-spacing:0.3px;color:#fff;border:1px solid #000;white-space:nowrap">Total Premium (₹)</th>
         <th style="padding:2px 8px;text-align:center;font-size:7px;text-transform:uppercase;letter-spacing:0.3px;color:#fff;border:1px solid #000">Share %</th>
@@ -946,17 +948,20 @@ function buildDailyTable(data, filter, label, yesterday, yyy, yesterdayLabel) {
     h += `<tr style="border-bottom:1px solid #000">
       <td style="padding:2px 8px;font-weight:600;color:#000;font-size:8px;border:1px solid #000">${comp}</td>
       <td style="padding:2px 8px;text-align:center;border:1px solid #000"><span style="background:#dbeafe;color:#1e40af;padding:2px 8px;border-radius:6px;font-weight:700;font-size:9px">${fmt(vals.yesterday)}</span></td>
+      <td style="padding:2px 8px;text-align:center;border:1px solid #000;font-weight:600;color:#000;font-size:9px">${fmt(vals.mtdCount)}</td>
       <td style="padding:2px 8px;text-align:right;border:1px solid #000;font-weight:600;color:#000;font-size:8px;white-space:nowrap">${fmtRs(vals.mtd)}</td>
       <td style="padding:2px 8px;text-align:right;border:1px solid #000;font-weight:600;color:#000;font-size:8px;white-space:nowrap">${fmtRs(vals.premium)}</td>
       <td style="padding:2px 8px;text-align:center;border:1px solid #000"><span style="color:#000;font-size:8px">${share}%</span></td>
     </tr>`;
   });
   const totalYesterday = sorted.reduce((s,[_,v]) => s + v.yesterday, 0);
+  const totalMtdCount = sorted.reduce((s,[_,v]) => s + v.mtdCount, 0);
   const totalMtd = sorted.reduce((s,[_,v]) => s + v.mtd, 0);
   const totalPremium = sorted.reduce((s,[_,v]) => s + v.premium, 0);
   h += `<tr style="background:#e8f0fe;font-weight:700;border-top:1px solid #000">
     <td style="padding:2px 8px;color:#1e40af;font-size:8px;border:1px solid #000">Total</td>
     <td style="padding:2px 8px;text-align:center;border:1px solid #000"><span style="background:#1e40af;color:#fff;padding:2px 8px;border-radius:6px;font-size:9px">${fmt(totalYesterday)}</span></td>
+    <td style="padding:2px 8px;text-align:center;border:1px solid #000;font-size:9px;font-weight:700;color:#1e40af">${fmt(totalMtdCount)}</td>
     <td style="padding:2px 8px;text-align:right;border:1px solid #000;font-size:8px;white-space:nowrap;font-weight:700">${fmtRs(totalMtd)}</td>
     <td style="padding:2px 8px;text-align:right;border:1px solid #000;font-size:8px;white-space:nowrap;font-weight:700">${fmtRs(totalPremium)}</td>
     <td style="padding:2px 8px;text-align:center;border:1px solid #000;font-size:8px;color:#000">100%</td>
