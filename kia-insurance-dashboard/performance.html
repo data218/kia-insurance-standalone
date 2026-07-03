@@ -192,6 +192,196 @@ tr.total td { font-weight:800; background:#e8f0fe; border-top:3px solid #000; pa
   </div>
 </div>
 
+<div class="main">
+  <div class="info-bar" id="infoBar"></div>
+  <div class="main-split">
+    <div class="main-left" id="panelLeft">
+      <div class="table-container" id="tableContainer"><div class="loader"><div class="spin"></div>Loading...</div></div>
+    </div>
+    <div class="main-right" id="panelRight">
+      <div class="daily-container" id="dailyContainer"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Duplicate VINs Modal -->
+<div class="modal-overlay" id="dupModal" onclick="if(event.target===this)closeDuplicates()">
+  <div class="modal-box" style="max-width:900px">
+    <button class="close-btn" onclick="closeDuplicates()">&#x2715;</button>
+    <h2>&#x26A0; Duplicate Policies &mdash; Same Policy + Same Year</h2>
+    <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center">
+      <span style="font-size:11px;color:#000" id="dupCount">Loading...</span>
+      <button onclick="downloadDupCSV()" style="margin-left:auto;padding:4px 12px;border:1px solid #000;border-radius:4px;background:#1e40af;color:#fff;font-size:10px;font-weight:600;cursor:pointer">&#x2913; Download CSV</button>
+    </div>
+    <div style="max-height:55vh;overflow:auto">
+      <table>
+        <thead><tr><th>Policy No</th><th>Year</th><th>Count</th><th>Customer</th><th>VINs</th><th>Companies</th><th>Dates</th></tr></thead>
+        <tbody id="dupBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Calculations Modal -->
+<div class="modal-overlay" id="calcModal" onclick="if(event.target===this)closeCalculations()">
+  <div class="modal-box">
+    <button class="close-btn" onclick="closeCalculations()">&#x2715;</button>
+    <h2>&#x1F9EE; Dashboard Calculations &amp; Logic</h2>
+    <table>
+      <thead><tr><th>Metric</th><th>Logic</th></tr></thead>
+      <tbody>
+        <tr><td>New (LY)</td><td>VINs with <b>policytype="New"</b> in the LY month.</td></tr>
+        <tr><td>New (CY)</td><td>VINs with <b>policytype="New"</b> in the CY month.</td></tr>
+        <tr><td>Renewal (LY)</td><td>VINs present in <b>both</b> the LY month and the same LY-1 month (<b>VIN overlap</b>).</td></tr>
+        <tr><td>Renewal (CY)</td><td>A VIN is classified as <b>CY Renewal</b> if it had <b>policytype="New"</b> in LY months <b>M, M-1, or M-2</b> (same month + 2 months back, wrapping to Nov/Dec of LY year for Jan/Feb) AND has <b>policytype="Renewal"</b> in the CY month.</td></tr>
+        <tr><td>Rollover (LY)</td><td>LY VINs with <b>policytype="Renewal"</b> that are <b>not</b> in the same LY-1 month (= previously-renewed policies).</td></tr>
+        <tr><td>Rollover (CY)</td><td>Remaining CY VINs with <b>policytype="Renewal"</b> that are <b>not</b> CY Renewal and <b>not</b> LY Rollover VINs that came back. Formula: <code>Total CY Renewal-type &#8722; CY Renewal &#8722; LY Rollover in CY</code>.</td></tr>
+        <tr><td>Rollover&#8594;Renew</td><td>LY Rollover VINs that <b>came to CY</b> in the same month. Shows how many previously-renewed policies returned.</td></tr>
+        <tr><td>Not Visited</td><td>LY VINs that <b>do not appear</b> in any CY month within the selected range.</td></tr>
+        <tr><td>LY #</td><td>Count of unique VINs in the <b>Previous Year (LY = CY &#8722; 1)</b> for the given month.</td></tr>
+        <tr><td>CY #</td><td>Count of unique VINs in the <b>Current Year</b> for the given month.</td></tr>
+        <tr><td>Growth</td><td><code>((CY &#8722; LY) / LY) &#215; 100</code>. Shows &#9650; for positive, &#9660; for negative, &#9670; for flat. For Renewal, the base is <b>LY New</b> (not LY Renewal) since New policies are the pool that become Renewal.</td></tr>
+        <tr><td>Unique VINs (Annual)</td><td>Each VIN is counted <b>only once per year</b>, regardless of how many months it appears. Info bar shows the true unique count.</td></tr>
+        <tr><td>Sum of Months vs Unique</td><td>Monthly columns count unique VINs <b>per month</b>. A VIN in Jan AND Feb gets counted in both. The total row shows the correct unique count across all months.</td></tr>
+        <tr><td>Duplicate Policy Check</td><td>Detects rows where the <b>same policy number</b> appears more than once in the <b>same year</b>.</td></tr>
+        <tr><td>Gross Premium (&#x20B9;L)</td><td>Sum of <code>grosspremium</code> for <b>all rows</b>, divided by 100,000.</td></tr>
+        <tr><td>Avg Premium</td><td><code>grosspremium / policy count</code> for the selected period.</td></tr>
+        <tr><td>Premium Share %</td><td>Each company's gross premium as a percentage of total.</td></tr>
+        <tr><td style="color:#dc2626;font-weight:600">Cancelled / Dead</td><td>Policies where <b>cancelled=Yes</b> are <b style="color:#dc2626">excluded</b> from all dashboard calculations. View them in <b>Export Data &#8594; Cancelled</b>.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- VIN Track Modal -->
+<div class="modal-overlay" id="vinTrackModal" onclick="if(event.target===this)closeVinTrack()">
+  <div class="modal-box" style="max-width:1000px">
+    <button class="close-btn" onclick="closeVinTrack()">&#x2715;</button>
+    <h2>&#x1F50D; VIN Crossover: LY &rarr; CY</h2>
+    <div style="font-size:9px;color:#000;margin-bottom:6px">Shows LY VINs that came to CY in a <b>different</b> month (excludes same-month crossovers &amp; Not Visited)</div>
+    <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center">
+      <span style="font-size:11px;color:#000" id="vinTrackCount">Loading...</span>
+      <div style="margin-left:auto;display:flex;gap:4px;align-items:center">
+        <span class="g-label" style="font-size:8px;color:#1e40af;text-transform:uppercase;letter-spacing:.5px;font-weight:600">LY Month</span>
+        <select id="vinTrackMonth" onchange="showVinTrack()" style="padding:3px 5px;border:1px solid #000;border-radius:4px;font-size:9px">
+          <option value="all">All Months</option>
+        </select>
+      </div>
+    </div>
+    <div style="max-height:55vh;overflow:auto">
+      <table>
+        <thead><tr><th>LY Month</th><th>VIN</th><th>CY Month(s)</th><th>CY Policy</th><th>Status</th></tr></thead>
+        <tbody id="vinTrackBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Export Data Modal -->
+<div class="modal-overlay" id="exportModal" onclick="if(event.target===this)closeExport()">
+  <div class="modal-box" style="max-width:1100px">
+    <button class="close-btn" onclick="closeExport()">&#x2715;</button>
+    <h2>&#x2913; Export Data</h2>
+    <div style="display:flex;gap:8px;margin-bottom:6px;align-items:center;flex-wrap:wrap">
+      <span class="g-label" style="font-size:8px;color:#1e40af;text-transform:uppercase;letter-spacing:.5px;font-weight:600">Category</span>
+      <select id="exportCategory" onchange="loadExportData()" style="padding:3px 5px;border:1px solid #000;border-radius:4px;font-size:9px">
+        <option value="cyNew" data-year="CY">CY New</option>
+        <option value="cyRenewal" data-year="CY">CY Renewal</option>
+        <option value="cyRollover" data-year="CY">CY Rollover</option>
+        <option value="rolloverRenew" data-year="CY">Rollover&rarr;Renew</option>
+        <option value="lyNew" data-year="LY">LY New</option>
+        <option value="lyRenewal" data-year="LY">LY Renewal</option>
+          <option value="lyRollover" data-year="LY">LY Rollover</option>
+        <option value="notVisited" data-year="LY">Not Visited</option>
+        <option value="cancelled" data-year="Other" style="color:#dc2626;font-weight:600">&#x2716; Cancelled</option>
+      </select>
+      <span class="g-label" style="font-size:8px;color:#1e40af;text-transform:uppercase;letter-spacing:.5px;font-weight:600">Month</span>
+      <select id="exportMonth" onchange="loadExportData()" style="padding:3px 5px;border:1px solid #000;border-radius:4px;font-size:9px">
+        <option value="all">All Months</option>
+        <option value="1">Jan</option><option value="2">Feb</option><option value="3">Mar</option>
+        <option value="4">Apr</option><option value="5">May</option><option value="6">Jun</option>
+        <option value="7">Jul</option><option value="8">Aug</option><option value="9">Sep</option>
+        <option value="10">Oct</option><option value="11">Nov</option><option value="12">Dec</option>
+      </select>
+      <span style="font-size:10px;color:#000;font-weight:700" id="exportCount"></span>
+      <button onclick="downloadExportCSV()" style="margin-left:auto;padding:4px 12px;border:1px solid #000;border-radius:4px;background:#059669;color:#fff;font-size:10px;font-weight:600;cursor:pointer">&#x2913; Download CSV</button>
+    </div>
+    <div id="exportDesc" style="font-size:9px;color:#000;background:#f0fdf4;border:1px solid #059669;border-radius:4px;padding:4px 8px;margin-bottom:6px"></div>
+    <div style="max-height:55vh;overflow:auto">
+      <table id="exportTable">
+        <thead><tr>
+          <th style="min-width:30px">#</th>
+          <th style="min-width:80px">Created Date</th>
+          <th style="min-width:130px">VIN</th>
+          <th style="min-width:70px">Policy Type</th>
+          <th style="min-width:100px">Insurance Company</th>
+          <th style="min-width:100px">Customer</th>
+          <th style="min-width:70px;text-align:right">Premium (&#x20B9;)</th>
+        </tr></thead>
+        <tbody id="exportBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Delete All Data Confirmation Modal -->
+<div class="modal-overlay" id="deleteConfirmModal">
+  <div class="modal-box" style="max-width:360px">
+    <button class="close-btn" onclick="closeDeleteConfirm()">&times;</button>
+    <h2 style="color:#dc2626">&#x26A0; Delete All Data</h2>
+    <p style="font-size:12px;color:#475569;margin-bottom:12px">This action is irreversible. Enter admin credentials to confirm.</p>
+    <div id="delAdminError" style="color:#dc2626;font-size:11px;margin-bottom:6px"></div>
+    <div style="margin-bottom:8px">
+      <label style="font-size:10px;font-weight:600;color:#475569;display:block;margin-bottom:2px">Admin Username</label>
+      <input type="text" id="delAdminUser" style="width:100%;padding:6px 8px;border:1px solid #cbd5e1;border-radius:4px;font-size:12px" placeholder="Enter admin username" autocomplete="off">
+    </div>
+    <div style="margin-bottom:12px">
+      <label style="font-size:10px;font-weight:600;color:#475569;display:block;margin-bottom:2px">Password</label>
+      <input type="password" id="delAdminPass" style="width:100%;padding:6px 8px;border:1px solid #cbd5e1;border-radius:4px;font-size:12px" placeholder="Enter admin password" onkeydown="if(event.key==='Enter')confirmDeleteAll()">
+    </div>
+    <div style="display:flex;gap:6px;justify-content:flex-end">
+      <button class="btn-fetch" onclick="closeDeleteConfirm()" style="background:#64748b">Cancel</button>
+      <button class="btn-fetch" onclick="confirmDeleteAll()" id="delConfirmBtn" style="background:#dc2626">Delete All Data</button>
+    </div>
+  </div>
+</div>
+
+<!-- Fetch KIA Data Modal -->
+<div class="modal-overlay" id="fetchModal">
+  <div class="modal-box" style="max-width:400px">
+    <button class="close-btn" onclick="closeFetchModal()">&times;</button>
+    <h2>&#x21BB; Fetch KIA Data</h2>
+    <div style="margin-bottom:12px">
+      <label style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;cursor:pointer;margin-bottom:6px">
+        <input type="radio" name="fetchMode" value="d1" checked onchange="toggleFetchMode()">
+        <span style="font-size:13px;font-weight:600;color:#0f172a">D-1 (Yesterday)</span>
+        <span style="font-size:11px;color:#64748b">Fetch previous day data</span>
+      </label>
+      <label style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;cursor:pointer">
+        <input type="radio" name="fetchMode" value="custom" onchange="toggleFetchMode()">
+        <span style="font-size:13px;font-weight:600;color:#0f172a">Custom Date Range</span>
+        <span style="font-size:11px;color:#64748b">Fetch month-by-month historical data</span>
+      </label>
+    </div>
+    <div id="customDateFields" style="display:none;margin-bottom:12px">
+      <div style="display:flex;gap:8px;align-items:center">
+        <div style="flex:1">
+          <label style="font-size:10px;font-weight:600;color:#475569;display:block;margin-bottom:2px">From</label>
+          <input type="date" id="fetchFromDate" style="width:100%;padding:6px 8px;border:1px solid #cbd5e1;border-radius:4px;font-size:12px">
+        </div>
+        <div style="flex:1">
+          <label style="font-size:10px;font-weight:600;color:#475569;display:block;margin-bottom:2px">To</label>
+          <input type="date" id="fetchToDate" style="width:100%;padding:6px 8px;border:1px solid #cbd5e1;border-radius:4px;font-size:12px">
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;gap:6px;justify-content:flex-end">
+      <button class="btn-fetch" onclick="closeFetchModal()" style="background:#64748b">Cancel</button>
+      <button class="btn-fetch" onclick="startFetch()" id="fetchStartBtn">Fetch Now</button>
+    </div>
+  </div>
+</div>
+
 <!-- Toast Notification Container -->
 <div id="toastContainer" style="position:fixed;top:60px;right:16px;z-index:2000;display:flex;flex-direction:column;gap:8px;pointer-events:none;"></div>
 
