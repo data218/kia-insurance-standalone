@@ -2,6 +2,15 @@ import { NextResponse } from 'next/server'
 import { fetchAll } from '@/lib/kia-insurance/supabase'
 import { extractMobileFromRemarks, sanitizeRemarks } from '@/lib/kia-insurance/utils'
 
+function calcExpiryDate(policyExpiryDate: string, createDate: string): string {
+  if (policyExpiryDate && policyExpiryDate.trim()) return policyExpiryDate
+  if (!createDate || !createDate.trim()) return ''
+  const parts = createDate.trim().split('-')
+  if (parts.length !== 3) return ''
+  const y = parseInt(parts[0])
+  return String(y + 1) + '-' + parts[1] + '-' + parts[2]
+}
+
 export const dynamic = 'force-dynamic'
 
 export async function GET(req: Request) {
@@ -67,7 +76,7 @@ export async function GET(req: Request) {
         model: r.model || '-',
         insurancecompany: r.insurancecompany || '-',
         grosspremium: Number(r.grosspremium) || 0,
-        policy_expiry_date: r.policy_expiry_date || '',
+        policy_expiry_date: calcExpiryDate(r.policy_expiry_date, r.create_date),
         policy_effective_date: r.policy_effective_date || '',
         state: r.state || '', location: r.location || '', dealer: r.dealer || '',
         mobile: lastLog ? (lastLog.mobile_no || extractMobileFromRemarks(lastLog.remarks || '')) : '',
