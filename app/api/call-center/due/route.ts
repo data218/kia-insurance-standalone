@@ -30,14 +30,18 @@ export async function GET(req: Request) {
     const [selYear, selMonth] = month.split('-').map(Number)
     const lastYear = selYear - 1
     const lastYearMonthPrefix = `${lastYear}-${String(selMonth).padStart(2, '0')}`
-    const currentYearPrefix = String(selYear)
-    const vinsByYear: Record<string, Set<string>> = {}
+
+    // 1. Newest create_date per VIN across ALL data (to detect renewals)
+    const vinNewestDate: Record<string, string> = {}
     for (const r of rows) {
       if (!r.vinno || !r.create_date) continue
-      const yr = r.create_date.substring(0, 4)
-      if (!vinsByYear[yr]) vinsByYear[yr] = new Set()
-      vinsByYear[yr].add(r.vinno)
+      if (r.cancelled === 'Yes') continue
+      if (!vinNewestDate[r.vinno] || r.create_date > vinNewestDate[r.vinno]) {
+        vinNewestDate[r.vinno] = r.create_date
+      }
     }
+
+    // 2. Candidate VINs: policies in last year's same month
     const candidateVins = new Set<string>()
     const vinLatest: Record<string, any> = {}
     for (const r of rows) {
@@ -49,8 +53,12 @@ export async function GET(req: Request) {
         vinLatest[r.vinno] = r
       }
     }
-    const currentYearVins = vinsByYear[currentYearPrefix] || new Set()
-    const pendingVins = [...candidateVins].filter(v => !currentYearVins.has(v))
+
+    // 3. Pending = candidate VINs with NO newer policy (newest overall = period's latest)
+    const pendingVins = [...candidateVins].filter(v => {
+      const periodDate = vinLatest[v]?.create_date
+      return periodDate && vinNewestDate[v] === periodDate
+    })
     let allLogs: any[] = []
     try { allLogs = await fetchAll('call_logs') } catch (_) {}
     const logMap: Record<string, any> = {}
