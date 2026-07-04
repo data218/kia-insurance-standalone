@@ -2,13 +2,19 @@ import { NextResponse } from 'next/server'
 import { fetchAll } from '@/lib/kia-insurance/supabase'
 import { extractMobileFromRemarks, sanitizeRemarks } from '@/lib/kia-insurance/utils'
 
-function calcExpiryDate(policyExpiryDate: string, createDate: string): string {
-  if (policyExpiryDate && policyExpiryDate.trim()) return policyExpiryDate
-  if (!createDate || !createDate.trim()) return ''
-  const parts = createDate.trim().split('-')
-  if (parts.length !== 3) return ''
-  const y = parseInt(parts[0])
-  return String(y + 1) + '-' + parts[1] + '-' + parts[2]
+function parsePortalDate(val: string): string {
+  if (!val || !val.trim()) return ''
+  const v = val.trim()
+  // Already YYYY-MM-DD
+  if (/^\d{4}-\d{2}-\d{2}$/.test(v)) return v
+  // DD Mon YYYY — format from Kia Safety portal
+  const m: Record<string,string> = {jan:'01',feb:'02',mar:'03',apr:'04',may:'05',jun:'06',jul:'07',aug:'08',sep:'09',oct:'10',nov:'11',dec:'12'}
+  const match = v.match(/^(\d{1,2})\s+([A-Za-z]{3})\s+(\d{4})$/)
+  if (match) {
+    const mon = m[match[2].toLowerCase()]
+    if (mon) return `${match[3]}-${mon}-${String(parseInt(match[1])).padStart(2,'0')}`
+  }
+  return ''
 }
 
 export const dynamic = 'force-dynamic'
@@ -76,7 +82,7 @@ export async function GET(req: Request) {
         model: r.model || '-',
         insurancecompany: r.insurancecompany || '-',
         grosspremium: Number(r.grosspremium) || 0,
-        policy_expiry_date: calcExpiryDate(r.policy_expiry_date, r.create_date),
+        policy_expiry_date: parsePortalDate(r.policy_expiry_date),
         policy_effective_date: r.policy_effective_date || '',
         state: r.state || '', location: r.location || '', dealer: r.dealer || '',
         mobile: lastLog ? (lastLog.mobile_no || extractMobileFromRemarks(lastLog.remarks || '')) : '',
