@@ -67,7 +67,7 @@ export async function GET(req: Request) {
         model: r.model || '-',
         insurancecompany: r.insurancecompany || '-',
         grosspremium: Number(r.grosspremium) || 0,
-        policy_expiry_date: r.create_date || '',
+        policy_expiry_date: r.policy_expiry_date || '',
         policy_effective_date: r.policy_effective_date || '',
         state: r.state || '', location: r.location || '', dealer: r.dealer || '',
         mobile: lastLog ? (lastLog.mobile_no || extractMobileFromRemarks(lastLog.remarks || '')) : '',

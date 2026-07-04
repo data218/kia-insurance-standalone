@@ -468,7 +468,7 @@ function renderTable() {
   const pageData = filtered.slice(start, start + PAGE_SIZE);
   var h = '<div class="table-scroll"><table><thead><tr>' +
     '<th>#</th><th>Customer</th><th>Contact</th><th>VIN</th><th>Model</th><th>Policy No</th>' +
-    '<th>Insurance</th><th>Risk Start Date</th><th>Policy Expire Date</th><th>Last Created</th><th>Last Gross Premium</th><th>Attempts</th><th>Status</th><th>Last Call</th><th>Remarks</th><th>Action</th><th>Customer History</th>' +
+    '<th>Policy Expire Date</th><th>Insurance</th><th>Risk Start Date</th><th>Last Created</th><th>Last Gross Premium</th><th>Attempts</th><th>Status</th><th>Last Call</th><th>Remarks</th><th>Action</th><th>Customer History</th>' +
     '</tr></thead><tbody>';
   if (!pageData.length) {
     h += '<tr><td colspan="17" style="text-align:center;padding:30px;color:var(--muted);font-size:13px">&#128203; No due policies found' + (q ? ' matching "' + q + '"' : '') + '</td></tr>';
@@ -493,9 +493,9 @@ function renderTable() {
       '<td style="font-size:10px;font-family:monospace;color:var(--muted)">' + r.vinno + '</td>' +
       '<td style="font-size:11px">' + r.model + '</td>' +
       '<td style="font-size:10px;font-family:monospace;color:var(--muted)">' + r.policyno + '</td>' +
+      '<td style="color:' + (isExpired(r.policy_expiry_date) ? 'var(--red)' : 'var(--muted)') + ';font-size:10px;font-weight:' + (isExpired(r.policy_expiry_date) ? '600' : '400') + '">' + (r.policy_expiry_date ? fmtDate(r.policy_expiry_date) : '-') + '</td>' +
       '<td style="font-size:10px">' + r.insurancecompany + '</td>' +
       '<td style="color:var(--muted);font-size:10px">' + (r.policy_effective_date ? fmtDate(r.policy_effective_date) : '-') + '</td>' +
-      '<td style="color:' + (isExpired(r.policy_expiry_date) ? 'var(--red)' : 'var(--muted)') + ';font-size:10px;font-weight:' + (isExpired(r.policy_expiry_date) ? '600' : '400') + '">' + (r.policy_expiry_date ? fmtDate(r.policy_expiry_date) : '-') + '</td>' +
       '<td style="color:var(--muted);font-size:10px">' + fmtDate(r.create_date) + '</td>' +
       '<td style="text-align:right;font-weight:600">\u20B9' + Number(r.grosspremium).toLocaleString('en-IN') + '</td>' +
       '<td style="text-align:center"><span class="attempt-badge ' + attemptClass(r.attempt_count || 0) + '">' + (r.attempt_count || 0) + '</span></td>' +
