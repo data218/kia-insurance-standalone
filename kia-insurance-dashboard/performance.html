@@ -233,7 +233,7 @@ tr.total td { font-weight:800; background:#e8f0fe; border-top:3px solid #000; pa
         <tr><td>New (LY)</td><td>VINs with <b>policytype="New"</b> in the LY month.</td></tr>
         <tr><td>New (CY)</td><td>VINs with <b>policytype="New"</b> in the CY month.</td></tr>
         <tr><td>Renewal (LY)</td><td>VINs present in <b>both</b> the LY month and the same LY-1 month (<b>VIN overlap</b>).</td></tr>
-        <tr><td>Renewal (CY)</td><td>A VIN is classified as <b>CY Renewal</b> if it had <b>policytype="New"</b> in LY months <b>M, M-1, or M-2</b> (same month + 2 months back, wrapping to Nov/Dec of LY year for Jan/Feb) AND has <b>policytype="Renewal"</b> in the CY month.</td></tr>
+        <tr><td>Renewal (CY)</td><td>A VIN is classified as <b>CY Renewal</b> if it had <b>policytype="New"</b> in <b>any LY month</b> (whole year) AND has <b>policytype="Renewal"</b> in CY. The renewal is counted in the CY month matching the <b><code>policy_expiry_date</code></b> from that LY New record (not <code>create_date</code>). Handles early/late renewals correctly for all months.</td></tr>
         <tr><td>Rollover (LY)</td><td>LY VINs with <b>policytype="Renewal"</b> that are <b>not</b> in the same LY-1 month (= previously-renewed policies).</td></tr>
         <tr><td>Rollover (CY)</td><td>Remaining CY VINs with <b>policytype="Renewal"</b> that are <b>not</b> CY Renewal and <b>not</b> LY Rollover VINs that came back. Formula: <code>Total CY Renewal-type &#8722; CY Renewal &#8722; LY Rollover in CY</code>.</td></tr>
         <tr><td>Rollover&#8594;Renew</td><td>LY Rollover VINs that <b>came to CY</b> in the same month. Shows how many previously-renewed policies returned.</td></tr>
@@ -630,6 +630,33 @@ function render() {
     lyNewVm[ym].add(r.vinno);
   });
 
+  // Combined set of ALL VINs that were New in any LY month (no window restriction)
+  const allLyNewVins = new Set();
+  Object.values(lyNewVm).forEach(s => s.forEach(v => allLyNewVins.add(v)));
+
+  // Map VIN → CY month from LY New policy_expiry_date (for Renewal categorization)
+  const vinExpiryMonth = {};
+  const cyRenewalVins = new Set();
+  companyFiltered.forEach(r => {
+    if (!r.vinno || !r.policy_expiry_date || r.policytype !== 'New') return;
+    if (getYear(r.create_date) !== ly) return;
+    vinExpiryMonth[r.vinno] = getMonth(r.policy_expiry_date);
+  });
+  companyFiltered.forEach(r => {
+    if (!r.vinno || r.policytype !== 'Renewal' || r.cancelled === 'Yes') return;
+    if (getYear(r.create_date) === cy) cyRenewalVins.add(r.vinno);
+  });
+
+  // Build CY Renewal VINs grouped by LY New policy_expiry_date month
+  const cyRenewalByExpiry = {};
+  allLyNewVins.forEach(v => {
+    const expMonth = vinExpiryMonth[v];
+    if (!expMonth || !cyRenewalVins.has(v)) return;
+    const ym = cy + '-' + String(expMonth).padStart(2,'0');
+    if (!cyRenewalByExpiry[ym]) cyRenewalByExpiry[ym] = new Set();
+    cyRenewalByExpiry[ym].add(v);
+  });
+
   // Build VIN sets per LY year-month for policytype='Renewal'
   const lyRenewalVm = {};
   companyFiltered.forEach(r => {
@@ -653,7 +680,6 @@ function render() {
     if (!cyRenewalVm[ym]) cyRenewalVm[ym] = new Set();
     cyRenewalVm[ym].add(r.vinno);
   });
-
   // All CY VINs (any month in range)
   const allCyVins = new Set();
   Object.values(cyVm).forEach(s => s.forEach(v => allCyVins.add(v)));
@@ -666,32 +692,25 @@ function render() {
   for (let m = 1; m <= 12; m++) {
     const ms = String(m).padStart(2,'0');
     const cyYm = cy + '-' + ms;
-    const cyVins = cyVm[cyYm] || new Set();
+    const cyVins = new Set([...(cyVm[cyYm] || []), ...(cyRenewalByExpiry[cyYm] || [])]);
     const lyVins = lyVm[ly + '-' + ms] || new Set();
 
-    // 2-month-back window: check LY months M, M-1, M-2 using only VINs with policytype="New" in LY
-    const lyWindow = new Set();
-    for (let b = 0; b <= 2; b++) {
-      let bm = m - b;
-      if (bm < 1) bm = 12 + bm; // wrap: 0→Dec, -1→Nov of LY year
-      const lym = ly + '-' + String(bm).padStart(2,'0');
-      const s = lyNewVm[lym]; // only VINs that were New in LY
-      if (s) s.forEach(v => lyWindow.add(v));
-    }
+    // All LY New VINs (any month) — no 2-month-back window restriction
+    const lyWindow = allLyNewVins;
 
     const cyNew = cyNewVm[cyYm] || new Set();
     const cyRenewal = new Set(), cyRollover = new Set(), cyLyRollback = new Set();
 
     cyVins.forEach(v => {
-      if (lyWindow.has(v) && (cyRenewalVm[cyYm]?.has(v))) {
-        cyRenewal.add(v); // Was New in LY window + Renewal in CY
+      if (lyWindow.has(v) && (cyRenewalByExpiry[cyYm]?.has(v))) {
+        cyRenewal.add(v);
       } else if ((lyRenewalVm[ly + '-' + ms]?.has(v)) && (cyRenewalVm[cyYm]?.has(v))) {
-        cyLyRollback.add(v); // LY Rollover came back — counted in LY Rollover column
+        cyLyRollback.add(v);
       } else if (!cyNew.has(v)) {
-        cyRollover.add(v); // Remainder: Renewal-type VINs not in any other category
+        cyRollover.add(v);
       }
     });
-    // Exclude LY Rollover VINs that came back (already counted in LY Rollover column)
+
     cyLyRollback.forEach(v => cyRollover.delete(v));
 
     // Not Visited: VINs in LY (any month) but NOT in CY (any month in range)
@@ -906,25 +925,26 @@ function buildDailyTable(data, filter, label, yesterday, yyy, yesterdayLabel) {
   tblData.forEach(r => {
     if (!r.vinno) return;
     const comp = r.insurancecompany || 'Unknown';
-    if (!compMap[comp]) { compMap[comp] = { mtd: 0, mtdCount: 0, yesterday: 0, premium: 0 }; mtdVins[comp] = new Set(); }
+    if (!compMap[comp]) { compMap[comp] = { mtd: 0, mtdCount: 0, yesterday: 0, yesterdayPremium: 0 }; mtdVins[comp] = new Set(); }
     const cd = (r.create_date || '').trim();
     if (cd.startsWith(curMonthPrefix) || cd.includes(curMonthMdy)) {
       compMap[comp].mtd += Number(r.netodpremiuma) || 0;
       if (!mtdVins[comp].has(r.vinno)) { mtdVins[comp].add(r.vinno); compMap[comp].mtdCount++; }
     }
-    compMap[comp].premium += Number(r.netodpremiuma) || 0;
+
   });
   const yDateStr = String(yyy) + '-' + String(yesterday.getMonth()+1).padStart(2,'0') + '-' + String(yesterday.getDate()).padStart(2,'0');
   const yMdyStr = String(yesterday.getMonth()+1) + '/' + String(yesterday.getDate()) + '/' + String(yyy);
-  const compMap2 = {};
+  const compMap2 = {}, compMap2Prem = {};
   tblData.forEach(r => {
     if (!r.vinno || !r.create_date) return;
     const comp = r.insurancecompany || 'Unknown';
     if (!compMap2[comp]) compMap2[comp] = new Set();
+    if (!compMap2Prem[comp]) compMap2Prem[comp] = 0;
     const cd = (r.create_date||'').trim();
-    if (cd === yDateStr || cd === yMdyStr || cd.startsWith(yDateStr)) compMap2[comp].add(r.vinno);
+    if (cd === yDateStr || cd === yMdyStr || cd.startsWith(yDateStr)) { compMap2[comp].add(r.vinno); compMap2Prem[comp] += Number(r.netodpremiuma) || 0; }
   });
-  Object.keys(compMap2).forEach(comp => { if (compMap[comp]) compMap[comp].yesterday = compMap2[comp].size; });
+  Object.keys(compMap2).forEach(comp => { if (compMap[comp]) { compMap[comp].yesterday = compMap2[comp].size; compMap[comp].yesterdayPremium = compMap2Prem[comp] || 0; } });
   const sorted = Object.entries(compMap).sort((a,b) => b[1].mtd - a[1].mtd);
   if (!sorted.length) return '';
   const maxMtd = sorted[0][1].mtd;
@@ -937,9 +957,9 @@ function buildDailyTable(data, filter, label, yesterday, yyy, yesterdayLabel) {
       <thead><tr style="background:${color}">
         <th style="padding:2px 8px;text-align:left;font-size:7px;text-transform:uppercase;letter-spacing:0.3px;color:#fff;border:1px solid #000">Insurance Company</th>
         <th style="padding:2px 8px;text-align:center;font-size:7px;text-transform:uppercase;letter-spacing:0.3px;color:#fff;border:1px solid #000;white-space:nowrap">Yesterday<div style="font-weight:400;font-size:6px;color:rgba(255,255,255,0.7);text-transform:none">${yesterdayLabel}</div></th>
+        <th style="padding:2px 8px;text-align:right;font-size:7px;text-transform:uppercase;letter-spacing:0.3px;color:#fff;border:1px solid #000;white-space:nowrap">Yesterday Premium (₹)</th>
         <th style="padding:2px 8px;text-align:center;font-size:7px;text-transform:uppercase;letter-spacing:0.3px;color:#fff;border:1px solid #000;white-space:nowrap">MTD Count</th>
-        <th style="padding:2px 8px;text-align:right;font-size:7px;text-transform:uppercase;letter-spacing:0.3px;color:#fff;border:1px solid #000;white-space:nowrap">MTD Premium (₹)</th>
-        <th style="padding:2px 8px;text-align:right;font-size:7px;text-transform:uppercase;letter-spacing:0.3px;color:#fff;border:1px solid #000;white-space:nowrap">Total Premium (₹)</th>
+        <th style="padding:2px 8px;text-align:right;font-size:7px;text-transform:uppercase;letter-spacing:0.3px;color:#fff;border:1px solid #000;white-space:nowrap">MTD Total (₹)</th>
         <th style="padding:2px 8px;text-align:center;font-size:7px;text-transform:uppercase;letter-spacing:0.3px;color:#fff;border:1px solid #000">Share %</th>
       </tr></thead><tbody>`;
   sorted.forEach(([comp, vals], i) => {
@@ -948,22 +968,22 @@ function buildDailyTable(data, filter, label, yesterday, yyy, yesterdayLabel) {
     h += `<tr style="border-bottom:1px solid #000">
       <td style="padding:2px 8px;font-weight:600;color:#000;font-size:8px;border:1px solid #000">${comp}</td>
       <td style="padding:2px 8px;text-align:center;border:1px solid #000"><span style="background:#dbeafe;color:#1e40af;padding:2px 8px;border-radius:6px;font-weight:700;font-size:9px">${fmt(vals.yesterday)}</span></td>
+      <td style="padding:2px 8px;text-align:right;border:1px solid #000;font-weight:600;color:#000;font-size:8px;white-space:nowrap">${fmtRs(vals.yesterdayPremium)}</td>
       <td style="padding:2px 8px;text-align:center;border:1px solid #000;font-weight:600;color:#000;font-size:9px">${fmt(vals.mtdCount)}</td>
       <td style="padding:2px 8px;text-align:right;border:1px solid #000;font-weight:600;color:#000;font-size:8px;white-space:nowrap">${fmtRs(vals.mtd)}</td>
-      <td style="padding:2px 8px;text-align:right;border:1px solid #000;font-weight:600;color:#000;font-size:8px;white-space:nowrap">${fmtRs(vals.premium)}</td>
       <td style="padding:2px 8px;text-align:center;border:1px solid #000"><span style="color:#000;font-size:8px">${share}%</span></td>
     </tr>`;
   });
   const totalYesterday = sorted.reduce((s,[_,v]) => s + v.yesterday, 0);
+  const totalYesterdayPrem = sorted.reduce((s,[_,v]) => s + v.yesterdayPremium, 0);
   const totalMtdCount = sorted.reduce((s,[_,v]) => s + v.mtdCount, 0);
   const totalMtd = sorted.reduce((s,[_,v]) => s + v.mtd, 0);
-  const totalPremium = sorted.reduce((s,[_,v]) => s + v.premium, 0);
   h += `<tr style="background:#e8f0fe;font-weight:700;border-top:1px solid #000">
     <td style="padding:2px 8px;color:#1e40af;font-size:8px;border:1px solid #000">Total</td>
     <td style="padding:2px 8px;text-align:center;border:1px solid #000"><span style="background:#1e40af;color:#fff;padding:2px 8px;border-radius:6px;font-size:9px">${fmt(totalYesterday)}</span></td>
+    <td style="padding:2px 8px;text-align:right;border:1px solid #000;font-size:8px;white-space:nowrap;font-weight:700">${fmtRs(totalYesterdayPrem)}</td>
     <td style="padding:2px 8px;text-align:center;border:1px solid #000;font-size:9px;font-weight:700;color:#1e40af">${fmt(totalMtdCount)}</td>
     <td style="padding:2px 8px;text-align:right;border:1px solid #000;font-size:8px;white-space:nowrap;font-weight:700">${fmtRs(totalMtd)}</td>
-    <td style="padding:2px 8px;text-align:right;border:1px solid #000;font-size:8px;white-space:nowrap;font-weight:700">${fmtRs(totalPremium)}</td>
     <td style="padding:2px 8px;text-align:center;border:1px solid #000;font-size:8px;color:#000">100%</td>
   </tr>`;
   h += '</tbody></table></div></div>';
@@ -1247,7 +1267,7 @@ function loadExportData() {
     lyNew:    '<b>LY New</b> &mdash; VINs with policytype <b>"New"</b> in LY ('+ly+'). These are first-time policies from last year.',
     cyNew:    '<b>CY New</b> &mdash; VINs with policytype <b>"New"</b> in CY ('+cy+'). These are first-time policies this year.',
     lyRenewal:'<b>LY Renewal</b> &mdash; VINs present in <b>both</b> LY ('+ly+') and LY-1 same month (VIN overlap). Policies that renewed from the year before.',
-    cyRenewal:'<b>CY Renewal</b> &mdash; VINs with policytype <b>"Renewal"</b> in CY ('+cy+') that had policytype <b>"New"</b> in LY months M, M-1, or M-2. Originally-New policies that renewed.',
+    cyRenewal:'<b>CY Renewal</b> &mdash; VINs with policytype <b>"Renewal"</b> in CY ('+cy+') that had policytype <b>"New"</b> in any LY month. Originally-New policies that renewed.',
     lyRollover:'<b>LY Rollover</b> &mdash; VINs with policytype <b>"Renewal"</b> in LY ('+ly+') that are <b>not</b> in LY-1 same month. Previously-renewed policies that kept renewing.',
     cyRollover:'<b>CY Rollover</b> &mdash; Remaining VINs with policytype <b>"Renewal"</b> in CY ('+cy+') after removing CY Renewal and LY Rollover returnees. Policies not tracked back to a LY New origin.',
     rolloverRenew:'<b>Rollover&rarr;Renew</b> &mdash; LY Rollover VINs that <b>came back</b> in CY ('+cy+'). Shows how many previously-renewed policies renewed again.',
@@ -1270,6 +1290,10 @@ function loadExportData() {
     if(y===ly&&r.policytype==='New'){if(!lyNewByM[k])lyNewByM[k]=new Set();lyNewByM[k].add(r.vinno);}
     if(y===cy){if(!cyVinsByM[k])cyVinsByM[k]=new Set();cyVinsByM[k].add(r.vinno);}
   });
+
+  // All VINs that were New in any LY month (no window)
+  const allLyNewByM = new Set();
+  Object.values(lyNewByM).forEach(s => s.forEach(v => allLyNewByM.add(v)));
 
   const allCyVins = new Set();
   Object.values(cyVinsByM).forEach(s => s.forEach(v => allCyVins.add(v)));
@@ -1324,16 +1348,20 @@ function loadExportData() {
     });
     filtered = data.filter(r => { const y=Y(r.create_date),mo=M(r.create_date); return y===ly&&keep.has(r.vinno)&&(selMonth==='all'||mo===parseInt(selMonth)); });
   } else if (cat === 'cyRenewal') {
-    // CY VINs that were New in LY window (M, M-1, M-2) AND have policytype Renewal in CY
+    // CY Renewal VINs grouped by LY New policy_expiry_date month
     const keep = new Set();
-    Object.keys(cyVinsByM).forEach(k => {
-      if(selMonth!=='all'&&k!==cy+'-'+selMonth)return;
-      const mo = parseInt(k.split('-')[1]);
-      const lyWin = new Set();
-      for(let b=0;b<=2;b++){let bm=mo-b;if(bm<1)bm=12+bm;const s=lyNewByM[ly+'-'+bm];if(s)s.forEach(v=>lyWin.add(v));}
-      cyVinsByM[k].forEach(v => {
-        if(lyWin.has(v))keep.add(v);
-      });
+    const expMonthMap = {};
+    data.forEach(r => {
+      if(!r.vinno||!r.policy_expiry_date||r.policytype!=='New')return;
+      if(Y(r.create_date)!==ly)return;
+      expMonthMap[r.vinno] = M(r.policy_expiry_date);
+    });
+    data.forEach(r => {
+      if(!r.vinno||r.policytype!=='Renewal'||Y(r.create_date)!==cy)return;
+      if(!allLyNewByM.has(r.vinno))return;
+      const em = expMonthMap[r.vinno];
+      if(!em||(selMonth!=='all'&&em!==parseInt(selMonth)))return;
+      keep.add(r.vinno);
     });
     filtered = data.filter(r => {
       const y=Y(r.create_date),mo=M(r.create_date);
@@ -1352,11 +1380,9 @@ function loadExportData() {
     Object.keys(cyVinsByM).forEach(k => {
       if(selMonth!=='all'&&k!==cy+'-'+selMonth)return;
       const mo = parseInt(k.split('-')[1]);
-      const lyWin = new Set();
-      for(let b=0;b<=2;b++){let bm=mo-b;if(bm<1)bm=12+bm;const s=lyNewByM[ly+'-'+bm];if(s)s.forEach(v=>lyWin.add(v));}
       const lyRen = lyRenewalM[ly+'-'+mo]||new Set();
       cyVinsByM[k].forEach(v => {
-        if(lyWin.has(v))return; // cyRenewal
+        if(allLyNewByM.has(v))return; // cyRenewal (was New in any LY month)
         if(lyRen.has(v))return; // lyRollback
         keep.add(v);
       });

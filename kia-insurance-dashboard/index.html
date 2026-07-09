@@ -705,13 +705,54 @@ function drawCalculations(d) {
     ['Filter: View (Renewal)', 'policytype === "Renewal"', curView==='renewal' ? 'Active' : '-', 'getData() → r.policytype==="Renewal"'],
     ['Filter: View (High)', 'grosspremium >= ₹50,000', curView==='high' ? 'Active' : '-', 'getData() → grosspremium>=50000'],
   ];
+  const perfRows = [
+    ['── PERFORMANCE DASHBOARD LOGIC ──', '', '', ''],
+    ['New (LY)', 'VINs with policytype="New" in the LY month', 'per render()', 'lyNewVm[ly + "-" + ms] || new Set()'],
+    ['New (CY)', 'VINs with policytype="New" in the CY month', 'per render()', 'cyNewVm[cyYm] || new Set()'],
+    ['Renewal (LY)', 'VINs present in BOTH the LY month and the same LY-1 month (VIN overlap)', 'per render()', 'lyVins.has(v) && lyPrevVins.has(v)'],
+    ['Renewal (CY)', 'VIN with policytype="Renewal" in CY that had policytype="New" in LY months M, M-1, or M-2', 'per render()', 'lyWindow.has(v) && cyRenewalVm[cyYm]?.has(v)'],
+    ['Rollover (LY)', 'LY VINs with policytype="Renewal" NOT in LY-1 same month (= previously-renewed policies)', 'per render()', '!lyPrevVins.has(v) && !lyNew.has(v)'],
+    ['Rollover (CY)', 'Remaining CY VINs with policytype="Renewal" after removing CY Renewal and LY Rollover returnees', 'per render()', 'Total CY Renewal-type − CY Renewal − LY Rollover in CY'],
+    ['Rollover→Renew', 'LY Rollover VINs that came to CY in the same month', 'per render()', 'lyRollover.has(v) && cyVins.has(v)'],
+    ['Not Visited', 'LY VINs that do NOT appear in any CY month within the selected range', 'per render()', '[...allLyVins].filter(v => !allCyVins.has(v))'],
+    ['LY #', 'Count of unique VINs in Previous Year (LY = CY − 1) for the given month', 'per render()', 'lyVins.size'],
+    ['CY #', 'Count of unique VINs in Current Year for the given month', 'per render()', 'cyVins.size'],
+    ['Growth', '((CY − LY) / LY) × 100. For Renewal, base is LY New (not LY Renewal)', 'per render()', '((a - b) / b * 100)'],
+    ['Unique VINs (Annual)', 'Each VIN counted only once per year regardless of months', 'per render()', 'new Set(allRows.map(r=>r.vinno)).size'],
+    ['Sum of Months vs Unique', 'Monthly columns count per-month. Total row = unique across all months', 'per render()', 'monthly: per-month count, total: unique set size'],
+    ['Duplicate Policy Check', 'Same policy number appearing more than once in the same year', 'per render()', 'group by policyno + year, filter groups with count > 1'],
+    ['Gross Premium (₹L)', 'Sum of grosspremium for all rows, divided by 100,000', '₹'+(tp/100000).toFixed(1)+'L', 'sum / 100000'],
+    ['Avg Premium', 'Gross premium / policy count', '₹'+fmt(Math.round(tp/(d.length||1))), 'grosspremium / policy count'],
+    ['Premium Share %', 'Each company/type premium as percentage of total', 'per render()', '(company premium / total premium) × 100'],
+    ['Cancelled / Dead', 'Policies where cancelled=Yes; excluded from ALL dashboard calculations', 'Excluded', 'allData.filter(r => r.cancelled !== "Yes")'],
+    ['Daily Performance: MTD Total (₹)', 'Sum of netodpremiuma for the current month', 'per buildDailyTable()', 'sum of netodpremiuma where create_date starts with curYear-curMonth'],
+    ['Daily Performance: MTD Count', 'Count of unique VINs in the current month', 'per buildDailyTable()', 'new Set(VINs where create_date starts with curYear-curMonth)'],
+    ['Daily Performance: Yesterday', 'Unique VINs with create_date matching yesterday', 'per buildDailyTable()', 'VINs where create_date === yesterday'],
+    ['Daily Performance: Yesterday Premium (₹)', 'Sum of netodpremiuma for yesterday date', 'per buildDailyTable()', 'sum of netodpremiuma where create_date === yesterday'],
+    ['Daily Performance: Share %', 'Each company/type MTD premium ÷ total MTD premium × 100', 'per buildDailyTable()', '(company.mtd / totalMtd) × 100'],
+  ];
+  const callRows = [
+    ['── CALL CENTER LOGIC ──', '', '', ''],
+    ['Due Policy Detection', 'VINs present in LY same month but NOT found in CY for the selected month', '/api/call-center/due', 'LY month VINs − CY month VINs (set difference)'],
+    ['Policy Expire Date', 'Actual policy_expiry_date from DB; expired shown in red', 'isExpired() → red', 'new Date(parts[2], parts[1]-1, parts[0]) < new Date()'],
+    ['Call Status: Pending', 'No call has been logged for this due policy', 'filter: call_status === null or "Pending"', 'default status when no call_log entry exists'],
+    ['Call Status: Connected', 'Agent successfully connected with customer', 'filter: call_status === "Connected"', 'Saved via saveCallLog() → POST /api/call-center/log'],
+    ['Call Status: Follow-up', 'Customer requested callback or agent set a follow-up date', 'filter: call_status === "Follow-up" || follow_up_date', 'Saved with follow_up_date field'],
+    ['Call Status: Not Reachable', 'Customer did not answer or number was unreachable', 'filter: call_status === "Not Reachable"', 'Saved via saveCallLog()'],
+    ['Call Status: Not Interested', 'Customer declined the offer', 'filter: call_status === "Not Interested"', 'Saved via saveCallLog()'],
+    ['Call Status: Wrong Number', 'Phone number belongs to a different person', 'filter: call_status === "Wrong Number"', 'Saved via saveCallLog()'],
+    ['Attempt Count', 'Number of times this policy has been called', 'attempt-badge shows n', 'length of history array from call_logs'],
+    ['Follow-up Panel', 'All policies with Follow-up status or a future follow_up_date', 'fuPanelBtn shows count', 'allDue.filter(x => cs==="follow-up" || x.follow_up_date)'],
+    ['Call Log Save', 'Stores outcome, remarks, agent name, follow-up date, mobile', 'POST /api/call-center/log', 'payload: { policyno, call_outcome, remarks, follow_up_date, agent_name, mobile_no }'],
+    ['Customer History', 'Complete call history for a policy, fetched from call_logs', 'GET /api/call-center/logs', 'history array includes date, outcome, agent, remarks, follow-up'],
+  ];
   const chartRows = chartDataRows(d);
   const hasChartData = chartRows.length > 0;
-  const allRows = [...kpiRows, ['', '', '', ''], ...filtRows];
+  const allRows = [...kpiRows, ['', '', '', ''], ...filtRows, ['', '', '', ''], ...perfRows, ['', '', '', ''], ...callRows];
   if (hasChartData) allRows.push(...['', '', '', ''], ['── Current Chart Data ──', chartTitle(), chartHint(), ''], ...chartRows);
   const closeBtn = '<button onclick="setChart(\'trend\')" style="float:right;padding:4px 12px;border:1px solid var(--border);border-radius:6px;background:var(--card);color:var(--muted);font-size:11px;cursor:pointer">✕ Close</button>';
   return `<div class="chart-section" style="overflow:auto"><h3>${closeBtn}🧮 Calculations & Logic <span class="hint">How each metric is derived</span></h3><div style="overflow:auto;max-height:500px"><table style="font-size:11px;width:100%"><thead><tr><th style="position:sticky;top:0;background:var(--panel);padding:6px 10px;text-align:left">Metric</th><th style="position:sticky;top:0;background:var(--panel);padding:6px 10px;text-align:left">Logic</th><th style="position:sticky;top:0;background:var(--panel);padding:6px 10px;text-align:left">Current Value</th><th style="position:sticky;top:0;background:var(--panel);padding:6px 10px;text-align:left">Formula</th></tr></thead><tbody>${
-    allRows.map(r=>r[0]?'<tr>'+r.map(c=>'<td style="padding:5px 10px;border-bottom:1px solid var(--border);color:'+(r[0].startsWith('KPI')||r[0].startsWith('──')?'var(--accent)':'var(--text)')+'">'+c+'</td>').join('')+'</tr>':'').join('')
+    allRows.map(r=>r[0]?'<tr>'+r.map(c=>'<td style="padding:5px 10px;border-bottom:1px solid var(--border);color:'+(r[0].startsWith('──')?'#1e40af':r[0].startsWith('KPI')?'var(--accent)':'var(--text)')+';'+(r[0].startsWith('──')?'font-weight:700;':r[0].startsWith('Cancel')||r[0].startsWith('Due Policy')?'font-weight:600;':'')+'">'+c+'</td>').join('')+'</tr>':'').join('')
   }</tbody></table></div></div>`;
 }
 
