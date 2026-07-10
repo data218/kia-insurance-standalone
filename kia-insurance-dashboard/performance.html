@@ -1023,7 +1023,7 @@ function renderDailyPerformance(sourceData) {
       </div>
       <div style="display:flex;align-items:center;gap:4px">
         <span onclick="toggleDailyView()" style="cursor:pointer;font-size:13px;color:#fff;opacity:.7;transition:.15s;margin-right:2px" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.7" title="Toggle daily fullscreen">&#x2630;</span>
-        <span onclick="renderDailyPerformance(allData)" style="cursor:pointer;font-size:11px;color:#fff;opacity:.7;transition:.15s" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.7" title="Refresh daily data">&#x21BB;</span>
+        <span onclick="onRefresh()" style="cursor:pointer;font-size:11px;color:#fff;opacity:.7;transition:.15s" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.7" title="Refresh daily data">&#x21BB;</span>
         <span style="font-size:8px;color:#fff;background:rgba(255,255,255,0.15);padding:1px 6px;border-radius:8px;border:1px solid rgba(255,255,255,0.3)">${monthLabel}</span>
       </div>
     </div>`;
