@@ -35,6 +35,8 @@ body { font-family: 'Inter','Segoe UI',system-ui,sans-serif; background:#e8f0fe;
 .main-right { flex:1; overflow:auto; display:flex; flex-direction:column; }
 .main-left.daily-hidden { display:none; }
 .main-right.daily-full { flex:1; }
+.main-left.dashboard-full { flex:1; }
+.hamburger.open { background:rgba(255,255,255,0.15); border-radius:4px; }
 .table-container { flex:1; min-height:0; overflow:auto; }
 .daily-container { flex:1; min-height:0; overflow:auto; }
 .main-left, .main-right { position:relative; display:flex; flex-direction:column; }
@@ -119,7 +121,7 @@ tr.total td { font-weight:800; background:#e8f0fe; border-top:3px solid #000; pa
   </div>
   <button class="btn-refresh" id="refreshBtn" onclick="onRefresh()">&#x21BA; Refresh</button>
   <span id="welcomeUser" style="font-size:10px;color:#fff;font-weight:500;margin-right:8px"></span>
-  <button class="hamburger" id="hamburgerBtn" onclick="toggleToolbar()">&#x2630;</button>
+  <button class="hamburger" id="hamburgerBtn" onclick="toggleFullDashboard()">&#x2630;</button>
 </div>
 <div class="toolbar collapsed" id="toolbarPanel">
   <div style="width:1px;height:20px;background:#d0dce8"></div>
@@ -1638,11 +1640,23 @@ function confirmDeleteAll() {
     });
 }
 
-function toggleToolbar() {
+function toggleFullDashboard() {
   const panel = document.getElementById('toolbarPanel');
   const btn = document.getElementById('hamburgerBtn');
+  const right = document.querySelector('.main-right');
+  const left = document.querySelector('.main-left');
+  const isFull = !panel.classList.contains('collapsed');
   panel.classList.toggle('collapsed');
-  btn.textContent = panel.classList.contains('collapsed') ? '\u2630' : '\u2715';
+  right.classList.toggle('dashboard-full', isFull);
+  left.classList.toggle('dashboard-full', isFull);
+  btn.classList.toggle('open', isFull);
+  if (isFull) {
+    right.style.display = 'none';
+    btn.textContent = '\u2715';
+  } else {
+    right.style.display = '';
+    btn.textContent = '\u2630';
+  }
 }
 
 function startClock() {
