@@ -191,7 +191,7 @@ tbody tr:hover td { background:var(--card-hover); }
 
 <script>
 (function(){var t=new URLSearchParams(location.search).get('token');if(t)localStorage.setItem('authToken',t)}());
-(function(){var t=localStorage.getItem('authToken');if(!t){location.href='/login'}else{var el=document.getElementById('welcomeUser');if(el)el.textContent='Welcome Admin';}})();
+(function(){var t=localStorage.getItem('authToken');if(!t){location.href='/login'}else{document.querySelectorAll('a[href^="/"]').forEach(function(a){if(a.href.includes('token='))return;a.href+=((a.href.includes('?')?'&':'?')+'token='+encodeURIComponent(t))});var el=document.getElementById('welcomeUser');if(el)el.textContent='Welcome Admin';}})();
 const labelPlugin = {
   id:'labelPlugin',
   afterDraw(chart) {
