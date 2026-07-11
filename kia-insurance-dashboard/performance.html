@@ -792,8 +792,8 @@ function growthArrow(v) {
 function growthBox(a,b) {
   if (!b) return '<span class="growth-box">&nbsp;</span>';
   const v = ((a - b) / b * 100);
-  const pct = v.toFixed(1);
-  return `<span class="growth-box ${growthClass(v)}">${growthArrow(v)} ${pct}%</span>`;
+  const pct = Math.abs(v).toFixed(1);
+  return `<span class="growth-box ${growthClass(v)}">${growthArrow(v)} ${pct} %</span>`;
 }
 
 function renderInfo(stats, totals, ly, cy, allCyVins, allLyVins) {
@@ -806,7 +806,7 @@ function renderInfo(stats, totals, ly, cy, allCyVins, allLyVins) {
   let growthHtml = '';
   if (totalLy) {
     const g = ((totalCy - totalLy) / totalLy * 100);
-    growthHtml = `<span class="growth-box ${growthClass(g)}">${growthArrow(g)} ${g.toFixed(1)}%</span>`;
+    growthHtml = `<span class="growth-box ${growthClass(g)}">${growthArrow(g)} ${Math.abs(g).toFixed(1)} %</span>`;
   }
   document.getElementById('infoBar').innerHTML = `
     <div class="info-box" style="border-left:3px solid #1e40af"><div class="num">${fmt(totalLy)}</div><div><div class="lbl">${ly} Total VINs</div><div class="sub">LY policies</div></div></div>
