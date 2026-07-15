@@ -959,25 +959,27 @@ function buildDailyTable(data, filter, label, yesterday, yyy, yesterdayLabel) {
     <div style="display:flex;align-items:center;padding:2px 8px;background:${color};color:#fff;font-size:8px;font-weight:600">${label}</div>
     <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:8px;border:1px solid #000">
       <thead><tr style="background:${color}">
-        <th style="padding:2px 8px;text-align:center;font-size:7px;text-transform:uppercase;letter-spacing:0.3px;color:#fff;border:1px solid #000">Insurance Company</th>
-        <th style="padding:2px 8px;text-align:center;font-size:7px;text-transform:uppercase;letter-spacing:0.3px;color:#fff;border:1px solid #000;white-space:nowrap">Yesterday<div style="font-weight:400;font-size:6px;color:rgba(255,255,255,0.7);text-transform:none">${yesterdayLabel}</div></th>
-        <th style="padding:2px 8px;text-align:center;font-size:7px;text-transform:uppercase;letter-spacing:0.3px;color:#fff;border:1px solid #000;white-space:nowrap">Yesterday Premium (₹)</th>
-        <th style="padding:2px 8px;text-align:center;font-size:7px;text-transform:uppercase;letter-spacing:0.3px;color:#fff;border:1px solid #000;white-space:nowrap">Yesterday IDV (₹)</th>
-        <th style="padding:2px 8px;text-align:center;font-size:7px;text-transform:uppercase;letter-spacing:0.3px;color:#fff;border:1px solid #000;white-space:nowrap">MTD Count</th>
-        <th style="padding:2px 8px;text-align:center;font-size:7px;text-transform:uppercase;letter-spacing:0.3px;color:#fff;border:1px solid #000;white-space:nowrap">MTD Total (₹)</th>
-        <th style="padding:2px 8px;text-align:center;font-size:7px;text-transform:uppercase;letter-spacing:0.3px;color:#fff;border:1px solid #000">Share %</th>
+        <th style="padding:1px 3px;text-align:center;font-size:6px;text-transform:uppercase;color:#fff;border:1px solid #000;white-space:nowrap">Company</th>
+        <th style="padding:1px 3px;text-align:center;font-size:6px;text-transform:uppercase;color:#fff;border:1px solid #000;white-space:nowrap">Y'day<div style="font-weight:400;font-size:5px;color:rgba(255,255,255,0.7);text-transform:none">${yesterdayLabel}</div></th>
+        <th style="padding:1px 3px;text-align:center;font-size:6px;text-transform:uppercase;color:#fff;border:1px solid #000;white-space:nowrap">Prem (₹)</th>
+        <th style="padding:1px 3px;text-align:center;font-size:6px;text-transform:uppercase;color:#fff;border:1px solid #000;white-space:nowrap">IDV (₹)</th>
+        <th style="padding:1px 3px;text-align:center;font-size:6px;text-transform:uppercase;color:#fff;border:1px solid #000;white-space:nowrap">MTD</th>
+        <th style="padding:1px 3px;text-align:center;font-size:6px;text-transform:uppercase;color:#fff;border:1px solid #000;white-space:nowrap">MTD Prem (₹)</th>
+        <th style="padding:1px 3px;text-align:center;font-size:6px;text-transform:uppercase;color:#fff;border:1px solid #000;white-space:nowrap">MTD IDV (₹)</th>
+        <th style="padding:1px 3px;text-align:center;font-size:6px;text-transform:uppercase;color:#fff;border:1px solid #000">Share %</th>
       </tr></thead><tbody>`;
   sorted.forEach(([comp, vals], i) => {
     const pct = maxMtd ? (vals.mtd / maxMtd * 100) : 0;
     const share = mtdSum ? (vals.mtd / mtdSum * 100).toFixed(1) : 0;
     h += `<tr style="border-bottom:1px solid #000">
-      <td style="padding:2px 8px;font-weight:600;color:#000;font-size:8px;text-align:center;border:1px solid #000">${comp}</td>
-      <td style="padding:2px 8px;text-align:center;border:1px solid #000"><span style="background:#dbeafe;color:#1e40af;padding:2px 8px;border-radius:6px;font-weight:700;font-size:9px">${fmt(vals.yesterday)}</span></td>
-      <td style="padding:2px 8px;text-align:center;border:1px solid #000;font-weight:600;color:#000;font-size:8px;white-space:nowrap">${fmtRs(vals.yesterdayPremium)}</td>
-      <td style="padding:2px 8px;text-align:center;border:1px solid #000;font-weight:600;color:#000;font-size:8px;white-space:nowrap">${fmtRs(vals.yesterdayIdv)}</td>
-      <td style="padding:2px 8px;text-align:center;border:1px solid #000;font-weight:600;color:#000;font-size:9px">${fmt(vals.mtdCount)}</td>
-      <td style="padding:2px 8px;text-align:center;border:1px solid #000;font-weight:600;color:#000;font-size:8px;white-space:nowrap">${fmtRs(vals.mtd)}</td>
-      <td style="padding:2px 8px;text-align:center;border:1px solid #000"><span style="color:#000;font-size:8px">${share}%</span></td>
+      <td style="padding:1px 3px;font-weight:600;color:#000;font-size:7px;text-align:center;border:1px solid #000">${comp}</td>
+      <td style="padding:1px 3px;text-align:center;border:1px solid #000"><span style="background:#dbeafe;color:#1e40af;padding:1px 4px;border-radius:4px;font-weight:700;font-size:8px">${fmt(vals.yesterday)}</span></td>
+      <td style="padding:1px 3px;text-align:center;border:1px solid #000;font-weight:600;color:#000;font-size:7px;white-space:nowrap">${fmtRs(vals.yesterdayPremium)}</td>
+      <td style="padding:1px 3px;text-align:center;border:1px solid #000;font-weight:600;color:#000;font-size:7px;white-space:nowrap">${fmtRs(vals.yesterdayIdv)}</td>
+      <td style="padding:1px 3px;text-align:center;border:1px solid #000;font-weight:600;color:#000;font-size:8px">${fmt(vals.mtdCount)}</td>
+      <td style="padding:1px 3px;text-align:center;border:1px solid #000;font-weight:600;color:#000;font-size:7px;white-space:nowrap">${fmtRs(vals.mtd)}</td>
+      <td style="padding:1px 3px;text-align:center;border:1px solid #000;font-weight:600;color:#000;font-size:7px;white-space:nowrap">${fmtRs(vals.mtdIdv)}</td>
+      <td style="padding:1px 3px;text-align:center;border:1px solid #000"><span style="color:#000;font-size:7px">${share}%</span></td>
     </tr>`;
   });
   const totalYesterday = sorted.reduce((s,[_,v]) => s + v.yesterday, 0);
@@ -987,13 +989,14 @@ function buildDailyTable(data, filter, label, yesterday, yyy, yesterdayLabel) {
   const totalMtd = sorted.reduce((s,[_,v]) => s + v.mtd, 0);
   const totalMtdIdv = sorted.reduce((s,[_,v]) => s + v.mtdIdv, 0);
   h += `<tr style="background:#e8f0fe;font-weight:700;border-top:1px solid #000">
-    <td style="padding:2px 8px;color:#1e40af;font-size:8px;text-align:center;border:1px solid #000">Total</td>
-    <td style="padding:2px 8px;text-align:center;border:1px solid #000"><span style="background:#1e40af;color:#fff;padding:2px 8px;border-radius:6px;font-size:9px">${fmt(totalYesterday)}</span></td>
-    <td style="padding:2px 8px;text-align:center;border:1px solid #000;font-size:8px;white-space:nowrap;font-weight:700">${fmtRs(totalYesterdayPrem)}</td>
-    <td style="padding:2px 8px;text-align:center;border:1px solid #000;font-size:8px;white-space:nowrap;font-weight:700">${fmtRs(totalYesterdayIdv)}</td>
-    <td style="padding:2px 8px;text-align:center;border:1px solid #000;font-size:9px;font-weight:700;color:#1e40af">${fmt(totalMtdCount)}</td>
-    <td style="padding:2px 8px;text-align:center;border:1px solid #000;font-size:8px;white-space:nowrap;font-weight:700">${fmtRs(totalMtd)}</td>
-    <td style="padding:2px 8px;text-align:center;border:1px solid #000;font-size:8px;color:#000">100%</td>
+    <td style="padding:1px 3px;color:#1e40af;font-size:7px;text-align:center;border:1px solid #000">Total</td>
+    <td style="padding:1px 3px;text-align:center;border:1px solid #000"><span style="background:#1e40af;color:#fff;padding:1px 4px;border-radius:4px;font-size:8px">${fmt(totalYesterday)}</span></td>
+    <td style="padding:1px 3px;text-align:center;border:1px solid #000;font-size:7px;white-space:nowrap;font-weight:700">${fmtRs(totalYesterdayPrem)}</td>
+    <td style="padding:1px 3px;text-align:center;border:1px solid #000;font-size:7px;white-space:nowrap;font-weight:700">${fmtRs(totalYesterdayIdv)}</td>
+    <td style="padding:1px 3px;text-align:center;border:1px solid #000;font-size:8px;font-weight:700;color:#1e40af">${fmt(totalMtdCount)}</td>
+    <td style="padding:1px 3px;text-align:center;border:1px solid #000;font-size:7px;white-space:nowrap;font-weight:700">${fmtRs(totalMtd)}</td>
+    <td style="padding:1px 3px;text-align:center;border:1px solid #000;font-size:7px;white-space:nowrap;font-weight:700">${fmtRs(totalMtdIdv)}</td>
+    <td style="padding:1px 3px;text-align:center;border:1px solid #000;font-size:7px;color:#000">100%</td>
   </tr>`;
   h += '</tbody></table></div></div>';
   return h;
