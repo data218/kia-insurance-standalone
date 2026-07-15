@@ -371,6 +371,7 @@ async function doLogin() {
     const d = await r.json();
     if (!d.success) { err.textContent = d.error || 'Login failed'; err.style.display = 'block'; btn.disabled = false; btn.textContent = 'Sign In'; return; }
     localStorage.setItem('authToken', d.token);
+    if (d.user && d.user.last_login) localStorage.setItem('lastLogin', d.user.last_login);
     currentUser = d.user;
     closeModal('loginModal');
     renderUserBadge();

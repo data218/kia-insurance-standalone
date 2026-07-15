@@ -1729,7 +1729,7 @@ loadData();
 startClock();
 </script>
 <script>
-(function(){ var t=new URLSearchParams(window.location.search).get('token'); if(t) localStorage.setItem('authToken',t); t=localStorage.getItem('authToken'); if(!t) { location.href='/login'; return; } document.querySelectorAll('a[href^="/"]').forEach(function(a){ if(a.href.includes('token=')) return; a.href+=((a.href.includes('?')?'&':'?')+'token='+encodeURIComponent(t)); }); var el=document.getElementById('welcomeUser');if(el)el.textContent='Welcome Admin';fetch('/api/auth/log-activity',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:t,action:'view',page:'performance'}),keepalive:true}).catch(function(){}) })();
+(function(){ var t=new URLSearchParams(window.location.search).get('token'); if(t) localStorage.setItem('authToken',t); t=localStorage.getItem('authToken'); if(!t) { location.href='/login'; return; } document.querySelectorAll('a[href^="/"]').forEach(function(a){ if(a.href.includes('token=')) return; a.href+=((a.href.includes('?')?'&':'?')+'token='+encodeURIComponent(t)); }); var el=document.getElementById('welcomeUser');if(el){var ll=localStorage.getItem('lastLogin');if(ll){var d=new Date(ll);el.textContent='Admin | Last: '+d.toLocaleDateString('en-GB')+' '+d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}else{el.textContent='Admin'}}fetch('/api/auth/log-activity',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:t,action:'view',page:'performance'}),keepalive:true}).catch(function(){}) })();
 </script>
 </body>
 </html>

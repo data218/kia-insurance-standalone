@@ -36,7 +36,7 @@ export async function POST(req: Request) {
     const res = NextResponse.json({
       success: true,
       token,
-      user: { username: user.username, role: user.role, full_name: user.full_name, email: user.email }
+      user: { username: user.username, role: user.role, full_name: user.full_name, email: user.email, last_login: user.last_login }
     })
     res.cookies.set('kia_admin_token', token, {
       path: '/',
