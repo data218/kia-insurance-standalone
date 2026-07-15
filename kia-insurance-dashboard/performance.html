@@ -121,6 +121,7 @@ tr.total td { font-weight:800; background:#e8f0fe; border-top:3px solid #000; pa
   </div>
   <button class="btn-refresh" id="refreshBtn" onclick="onRefresh()">&#x21BA; Refresh</button>
   <span id="welcomeUser" style="font-size:10px;color:#fff;font-weight:500;margin-right:8px"></span>
+  <button class="btn-settings" id="settingsBtn" onclick="openSettings()" title="KIA Credentials" style="background:none;border:none;color:#fff;font-size:16px;cursor:pointer;padding:0 6px;line-height:1">&#x2699;</button>
   <button class="hamburger" id="hamburgerBtn" onclick="toggleFullDashboard()">&#x2630;</button>
 </div>
 <div class="toolbar collapsed" id="toolbarPanel">
@@ -380,6 +381,28 @@ tr.total td { font-weight:800; background:#e8f0fe; border-top:3px solid #000; pa
     <div style="display:flex;gap:6px;justify-content:flex-end">
       <button class="btn-fetch" onclick="closeFetchModal()" style="background:#64748b">Cancel</button>
       <button class="btn-fetch" onclick="startFetch()" id="fetchStartBtn">Fetch Now</button>
+    </div>
+  </div>
+</div>
+
+<!-- Settings Modal -->
+<div class="modal-overlay" id="settingsModal" onclick="if(event.target===this)closeSettings()">
+  <div class="modal-box" style="max-width:400px">
+    <button class="close-btn" onclick="closeSettings()">&times;</button>
+    <h2>&#x2699; KIA Safety Credentials</h2>
+    <div style="font-size:11px;color:#64748b;margin-bottom:12px">Update the credentials used by the daily cron job to login to KIA Safety VISOF portal.</div>
+    <div style="margin-bottom:10px">
+      <label style="font-size:10px;font-weight:600;color:#475569;display:block;margin-bottom:2px">Username</label>
+      <input type="text" id="settingsUsername" style="width:100%;padding:6px 8px;border:1px solid #cbd5e1;border-radius:4px;font-size:12px">
+    </div>
+    <div style="margin-bottom:14px">
+      <label style="font-size:10px;font-weight:600;color:#475569;display:block;margin-bottom:2px">Password</label>
+      <input type="password" id="settingsPassword" style="width:100%;padding:6px 8px;border:1px solid #cbd5e1;border-radius:4px;font-size:12px">
+    </div>
+    <div id="settingsMsg" style="font-size:11px;margin-bottom:8px;display:none"></div>
+    <div style="display:flex;gap:6px;justify-content:flex-end">
+      <button class="btn-fetch" onclick="closeSettings()" style="background:#64748b">Cancel</button>
+      <button class="btn-fetch" onclick="saveSettings()" id="settingsSaveBtn">Save Credentials</button>
     </div>
   </div>
 </div>
@@ -1722,6 +1745,43 @@ function toggleDailyView() {
   const isFull = left.classList.toggle('daily-hidden');
   right.classList.toggle('daily-full', isFull);
   toolbar.classList.toggle('collapsed', isFull);
+}
+
+// Settings modal - KIA credentials
+function openSettings() {
+  document.getElementById('settingsUsername').value = localStorage.getItem('kiaUsername') || '';
+  document.getElementById('settingsPassword').value = '';
+  document.getElementById('settingsMsg').style.display = 'none';
+  document.getElementById('settingsSaveBtn').disabled = false;
+  document.getElementById('settingsSaveBtn').textContent = 'Save Credentials';
+  document.getElementById('settingsModal').classList.add('open');
+}
+function closeSettings() {
+  document.getElementById('settingsModal').classList.remove('open');
+}
+async function saveSettings() {
+  const u = document.getElementById('settingsUsername').value.trim();
+  const p = document.getElementById('settingsPassword').value;
+  const msg = document.getElementById('settingsMsg');
+  const btn = document.getElementById('settingsSaveBtn');
+  if (!u || !p) { msg.textContent = 'Enter username and password'; msg.style.color = '#dc2626'; msg.style.display = 'block'; return; }
+  msg.style.display = 'none';
+  btn.disabled = true; btn.textContent = 'Saving...';
+  try {
+    const r = await fetch('/api/update-kia-credentials', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: localStorage.getItem('authToken'), username: u, password: p })
+    });
+    const d = await r.json();
+    if (!d.success) { msg.textContent = d.error || 'Save failed'; msg.style.color = '#dc2626'; msg.style.display = 'block'; btn.disabled = false; btn.textContent = 'Save Credentials'; return; }
+    localStorage.setItem('kiaUsername', u);
+    msg.textContent = 'Credentials saved! Cron will use them on next run.';
+    msg.style.color = '#16a34a'; msg.style.display = 'block';
+    btn.textContent = 'Saved';
+  } catch (e) {
+    msg.textContent = 'Connection error'; msg.style.color = '#dc2626'; msg.style.display = 'block';
+  }
+  btn.disabled = false;
 }
 
 setDefaults();

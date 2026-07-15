@@ -200,6 +200,7 @@ tr:last-child td { border-bottom:none; }
   </div>
   <div style="display:flex;align-items:center;gap:0;flex-shrink:0">
     <span id="welcomeUser" style="font-size:11px;color:rgba(255,255,255,.85);font-weight:500;margin-right:10px"></span>
+    <button onclick="openSettings()" title="KIA Credentials" style="background:none;border:none;color:rgba(255,255,255,.85);font-size:16px;cursor:pointer;padding:0 8px;line-height:1">&#x2699;</button>
     <button class="btn-icon" id="viewToggle" onclick="toggleToolbar()" title="Toggle Toolbar" style="font-size:16px;font-weight:700;background:none;border:none;color:rgba(255,255,255,.85);cursor:pointer;width:28px;height:28px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">&#x2630;</button>
     <span id="liveClock" style="font-size:14px;color:#fff;font-family:'Courier New',monospace;background:rgba(255,255,255,.15);padding:5px 14px;border-radius:6px;letter-spacing:1.5px;border:1px solid rgba(255,255,255,.2);white-space:nowrap;font-weight:700;box-shadow:0 1px 4px rgba(0,0,0,0.1);flex-shrink:0"></span>
   </div>
@@ -329,6 +330,32 @@ tr:last-child td { border-bottom:none; }
       <div class="form-actions" style="margin-top:16px;justify-content:center;">
         <button class="btn-cancel" onclick="closeFuDateModal()">Cancel</button>
         <button class="btn-save" onclick="saveFuDate()">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS MODAL -->
+<div class="modal-overlay" id="settingsModal">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-head">
+      <h2>&#x2699; KIA Safety Credentials</h2>
+      <button class="close" onclick="closeSettings()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div style="font-size:11px;color:#64748b;margin-bottom:12px">Update the credentials used by the daily cron job to login to KIA Safety VISOF portal.</div>
+      <div class="form-group">
+        <label>Username</label>
+        <input type="text" id="settingsUsername" placeholder="KIA Safety username">
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="settingsPassword" placeholder="KIA Safety password">
+      </div>
+      <div id="settingsMsg" style="font-size:12px;margin-bottom:10px;display:none"></div>
+      <div class="form-actions">
+        <button class="btn-cancel" onclick="closeSettings()">Cancel</button>
+        <button class="btn-save" onclick="saveSettings()" id="settingsSaveBtn">&#128190; Save Credentials</button>
       </div>
     </div>
   </div>
@@ -734,6 +761,43 @@ function startClock() {
   const sr = document.getElementById('statsRow');
   if (sr) sr.style.top = '44px';
 })();
+
+// Settings modal - KIA credentials
+function openSettings() {
+  document.getElementById('settingsUsername').value = localStorage.getItem('kiaUsername') || '';
+  document.getElementById('settingsPassword').value = '';
+  document.getElementById('settingsMsg').style.display = 'none';
+  document.getElementById('settingsSaveBtn').disabled = false;
+  document.getElementById('settingsSaveBtn').textContent = 'Save Credentials';
+  document.getElementById('settingsModal').classList.add('show');
+}
+function closeSettings() {
+  document.getElementById('settingsModal').classList.remove('show');
+}
+async function saveSettings() {
+  const u = document.getElementById('settingsUsername').value.trim();
+  const p = document.getElementById('settingsPassword').value;
+  const msg = document.getElementById('settingsMsg');
+  const btn = document.getElementById('settingsSaveBtn');
+  if (!u || !p) { msg.textContent = 'Enter username and password'; msg.style.color = '#dc2626'; msg.style.display = 'block'; return; }
+  msg.style.display = 'none';
+  btn.disabled = true; btn.textContent = 'Saving...';
+  try {
+    const r = await fetch('/api/update-kia-credentials', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: localStorage.getItem('authToken'), username: u, password: p })
+    });
+    const d = await r.json();
+    if (!d.success) { msg.textContent = d.error || 'Save failed'; msg.style.color = '#dc2626'; msg.style.display = 'block'; btn.disabled = false; btn.textContent = 'Save Credentials'; return; }
+    localStorage.setItem('kiaUsername', u);
+    msg.textContent = 'Credentials saved! Cron will use them on next run.';
+    msg.style.color = '#16a34a'; msg.style.display = 'block';
+    btn.textContent = 'Saved';
+  } catch (e) {
+    msg.textContent = 'Connection error'; msg.style.color = '#dc2626'; msg.style.display = 'block';
+  }
+  btn.disabled = false;
+}
 
 populateMonths();
 loadDue();
