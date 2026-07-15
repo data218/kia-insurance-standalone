@@ -8,8 +8,7 @@
 :root {
 }
 * { margin:0; padding:0; box-sizing:border-box; }
-body { font-family: 'Inter','Segoe UI',system-ui,sans-serif; background:#121212; color:#fff; height:100vh; display:flex; flex-direction:column; overflow:hidden; min-width:1100px; }
-:root { --bg:#121212; }
+body { font-family: 'Inter','Segoe UI',system-ui,sans-serif; background:#e8f0fe; color:#000; height:100vh; display:flex; flex-direction:column; overflow:hidden; min-width:1100px; }
 .topbar { background:linear-gradient(135deg,#1a1a1a,#555); border-bottom:1px solid #000; padding:0 10px; height:40px; display:flex; align-items:center; flex-shrink:0; gap:4px; position:relative; }
 .topbar h1 { font-size:13px; font-weight:600; color:#fff; }
 .topbar .sub { font-size:10px; color:rgba(255,255,255,0.7); }
@@ -62,20 +61,20 @@ body { font-family: 'Inter','Segoe UI',system-ui,sans-serif; background:#121212;
 /* TABLE */
 .table-wrap { overflow-x:auto; }
 .table-wrap::-webkit-scrollbar { height:4px; }
-.table-wrap::-webkit-scrollbar-thumb { background:#555; border-radius:4px; }
+.table-wrap::-webkit-scrollbar-thumb { background:#d0dce8; border-radius:4px; }
 table { width:100%; border-collapse:collapse; background:#fff; border:2px solid #000; font-size:9px; }
 thead { background:#1a1a1a; }
 th { padding:4px 5px; text-align:center; font-weight:800; font-size:8px; color:#fff; text-transform:uppercase; letter-spacing:0.4px; border:2px solid #000; white-space:nowrap; }
 td { padding:2px 4px; text-align:center; border:2px solid #000; }
-tr:hover td { background:#2a2a2a; }
+tr:hover td { background:#eff6ff; }
 tr:last-child td { border-bottom:1px solid #000; }
 th.month-col { text-align:left; min-width:40px; color:#fff; }
 td.month-cell { text-align:left; font-weight:600; font-size:10px; }
-tr.total td { font-weight:800; background:#2a2a2a; border-top:3px solid #000; padding:5px 4px !important; font-size:10px; }
+tr.total td { font-weight:800; background:#e8f0fe; border-top:3px solid #000; padding:5px 4px !important; font-size:10px; }
 .num-val { font-weight:600; }
 .empty { text-align:center; padding:40px 16px; color:#000; font-size:13px; }
 .loader { text-align:center; padding:40px; color:#000; }
-.spin { display:inline-block; width:20px; height:20px; border:2px solid #555; border-top-color:#fff; border-radius:50%; animation:spin .6s linear infinite; margin-bottom:6px; }
+.spin { display:inline-block; width:20px; height:20px; border:2px solid #d0dce8; border-top-color:#1a1a1a; border-radius:50%; animation:spin .6s linear infinite; margin-bottom:6px; }
 @keyframes spin { to { transform:rotate(360deg); } }
 .btn-refresh { padding:3px 12px; border:1px solid rgba(255,255,255,0.4); border-radius:4px; background:rgba(255,255,255,0.12); color:#fff; font-size:10px; font-weight:600; cursor:pointer; outline:none; transition:.15s; display:inline-flex; align-items:center; gap:4px; }
 .btn-refresh:hover { background:rgba(255,255,255,0.25); }
@@ -94,7 +93,7 @@ tr.total td { font-weight:800; background:#2a2a2a; border-top:3px solid #000; pa
 .btn-fetch:hover { background:#444; }
 .btn-fetch.loading { pointer-events:none; opacity:.6; }
 .btn-zoom { padding:2px 8px; border:1px solid #000; border-radius:3px; background:#fff; color:#000; font-size:13px; font-weight:700; cursor:pointer; outline:none; line-height:1.2; display:inline-flex; align-items:center; justify-content:center; }
-.btn-zoom:hover { background:#2a2a2a; }
+.btn-zoom:hover { background:#e8f0fe; }
 #zoomLabel { font-size:9px; color:#000; font-weight:600; min-width:32px; text-align:center; display:inline-block; }
 .modal-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; justify-content:center; align-items:center; }
 .modal-overlay.open { display:flex; }
@@ -118,7 +117,7 @@ tr.total td { font-weight:800; background:#2a2a2a; border-top:3px solid #000; pa
   </div>
   <div style="flex:1;text-align:center">
     <h1 style="color:#fff;font-size:13px;font-weight:600;display:inline">Performance Dashboard</h1>
-    <span id="liveClock" style="font-size:11px;color:#fff;margin-left:8px;font-family:'Courier New',monospace;background:rgba(0,0,0,0.2);padding:1px 6px;border-radius:3px;letter-spacing:1px"></span>
+    <span id="liveClock" style="font-size:11px;color:#fff;margin-left:8px;font-family:'Courier New',monospace;background:rgba(255,255,255,0.15);padding:1px 6px;border-radius:3px;letter-spacing:1px"></span>
   </div>
   <button class="btn-refresh" id="refreshBtn" onclick="onRefresh()">&#x21BA; Refresh</button>
   <span id="welcomeUser" style="font-size:10px;color:#fff;font-weight:500;margin-right:8px"></span>
@@ -126,7 +125,7 @@ tr.total td { font-weight:800; background:#2a2a2a; border-top:3px solid #000; pa
   <button class="hamburger" id="hamburgerBtn" onclick="toggleFullDashboard()">&#x2630;</button>
 </div>
 <div class="toolbar collapsed" id="toolbarPanel">
-  <div style="width:1px;height:20px;background:#555"></div>
+  <div style="width:1px;height:20px;background:#d0dce8"></div>
   <div class="multi-select" id="periodContainer">
     <span class="g-label">Period</span>
     <div class="multi-select-trigger" id="periodTrigger" onclick="togglePeriodDropdown()" style="min-width:60px">YTD</div>
@@ -142,14 +141,14 @@ tr.total td { font-weight:800; background:#2a2a2a; border-top:3px solid #000; pa
       <label style="display:flex;align-items:center;gap:4px;padding:2px 4px;font-size:10px;cursor:pointer"><input type="checkbox" id="pcb4" value="q4" onchange="onPeriodCheckbox()" style="margin:0"> Q4 (Oct-Dec)</label>
     </div>
   </div>
-  <div style="width:1px;height:20px;background:#555"></div>
+  <div style="width:1px;height:20px;background:#d0dce8"></div>
   <div class="date-group" id="dateRangeGroup">
     <span class="g-label">From</span>
     <input type="date" id="fromDate" onchange="onDateChange()">
     <span class="g-label">to</span>
     <input type="date" id="toDate" onchange="onDateChange()">
   </div>
-  <div style="width:1px;height:20px;background:#555"></div>
+  <div style="width:1px;height:20px;background:#d0dce8"></div>
   <div class="date-group">
     <span class="g-label">Type</span>
     <select id="typeFilter" onchange="render()">
@@ -161,34 +160,34 @@ tr.total td { font-weight:800; background:#2a2a2a; border-top:3px solid #000; pa
       <option value="notVisited">Not Visited</option>
     </select>
   </div>
-  <div style="width:1px;height:20px;background:#555"></div>
+  <div style="width:1px;height:20px;background:#d0dce8"></div>
   <div class="date-group">
     <span class="g-label">Comp</span>
     <select id="companyFilter" onchange="render()" style="max-width:100px">
       <option value="all">All</option>
     </select>
   </div>
-  <div style="width:1px;height:20px;background:#555"></div>
+  <div style="width:1px;height:20px;background:#d0dce8"></div>
   <div class="date-group">
     <span class="g-label">Model</span>
     <select id="modelFilter" onchange="render()" style="max-width:90px">
       <option value="all">All</option>
     </select>
   </div>
-  <div style="width:1px;height:20px;background:#555"></div>
+  <div style="width:1px;height:20px;background:#d0dce8"></div>
   <div class="multi-select" id="mfgContainer">
     <span class="g-label">MFG</span>
     <div class="multi-select-trigger" id="mfgTrigger" onclick="toggleMfgDropdown()">All</div>
     <div class="multi-select-dropdown" id="mfgDropdown"></div>
   </div>
-  <div style="width:1px;height:20px;background:#555"></div>
+  <div style="width:1px;height:20px;background:#d0dce8"></div>
   <button class="btn-calc" onclick="showCalculations()">&#x1F9EE; Dashboard Calculation</button>
   <button class="btn-dup" onclick="showDuplicates()">&#x26A0; Duplicate VINs</button>
   <button class="btn-track" onclick="showVinTrack()">&#x1F50D; VIN Track</button>
   <button class="btn-export" onclick="showExport()">&#x2913; Export Data</button>
 <button class="btn-fetch" onclick="showFetchModal()">&#x21BB; Fetch KIA Data</button>
   <button class="btn-fetch" onclick="deleteAllData()" id="deleteAllBtn">&#x1F5D1; Delete All Data</button>
-  <div style="width:1px;height:20px;background:#555"></div>
+  <div style="width:1px;height:20px;background:#d0dce8"></div>
   <div style="display:inline-flex;align-items:center;gap:0">
     <button class="btn-zoom" onclick="zoomOut()" title="Zoom Out" style="padding:1px 3px;border:1px solid rgba(255,255,255,0.4);border-radius:3px;background:rgba(255,255,255,0.15);color:#fff;font-size:10px;font-weight:700;cursor:pointer;outline:none;line-height:1">&#x2212;&#x1F50D;</button>
     <span id="zoomLabel" style="font-size:9px;color:#fff;font-weight:600;min-width:26px;text-align:center;padding:0 2px">100%</span>
