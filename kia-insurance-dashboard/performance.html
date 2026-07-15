@@ -1014,12 +1014,12 @@ function buildDailyTable(data, filter, label, yesterday, yyy, yesterdayLabel) {
   h += `<tr style="background:#2a2a2a;font-weight:700;border-top:1px solid #000">
     <td style="padding:1px 3px;color:#fff;font-size:7px;text-align:center;border:1px solid #000">Total</td>
     <td style="padding:1px 3px;text-align:center;border:1px solid #000"><span style="background:#1a1a1a;color:#fff;padding:1px 4px;border-radius:4px;font-size:8px">${fmt(totalYesterday)}</span></td>
-    <td style="padding:1px 3px;text-align:center;border:1px solid #000;font-size:7px;white-space:nowrap;font-weight:700">${fmtRs(totalYesterdayPrem)}</td>
-    <td style="padding:1px 3px;text-align:center;border:1px solid #000;font-size:7px;white-space:nowrap;font-weight:700">${fmtRs(totalYesterdayIdv)}</td>
+    <td style="padding:1px 3px;text-align:center;border:1px solid #000;font-size:7px;white-space:nowrap;font-weight:700;color:#fff">${fmtRs(totalYesterdayPrem)}</td>
+    <td style="padding:1px 3px;text-align:center;border:1px solid #000;font-size:7px;white-space:nowrap;font-weight:700;color:#fff">${fmtRs(totalYesterdayIdv)}</td>
     <td style="padding:1px 3px;text-align:center;border:1px solid #000;font-size:8px;font-weight:700;color:#fff">${fmt(totalMtdCount)}</td>
-    <td style="padding:1px 3px;text-align:center;border:1px solid #000;font-size:7px;white-space:nowrap;font-weight:700">${fmtRs(totalMtd)}</td>
-    <td style="padding:1px 3px;text-align:center;border:1px solid #000;font-size:7px;white-space:nowrap;font-weight:700">${fmtRs(totalMtdIdv)}</td>
-    <td style="padding:1px 3px;text-align:center;border:1px solid #000;font-size:7px;color:#000">100%</td>
+    <td style="padding:1px 3px;text-align:center;border:1px solid #000;font-size:7px;white-space:nowrap;font-weight:700;color:#fff">${fmtRs(totalMtd)}</td>
+    <td style="padding:1px 3px;text-align:center;border:1px solid #000;font-size:7px;white-space:nowrap;font-weight:700;color:#fff">${fmtRs(totalMtdIdv)}</td>
+    <td style="padding:1px 3px;text-align:center;border:1px solid #000;font-size:7px;color:#fff">100%</td>
   </tr>`;
   h += '</tbody></table></div></div>';
   return h;
