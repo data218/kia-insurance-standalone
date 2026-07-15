@@ -8,17 +8,17 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <style>
 :root {
-  --bg: #e8f0fe;
-  --panel: #ffffff;
-  --card: #ffffff;
-  --card-hover: #f0f5ff;
-  --border: #d0dce8;
-  --text: #000000;
-  --muted: #2a2a2a;
+  --bg: #121212;
+  --panel: #1e1e1e;
+  --card: #1e1e1e;
+  --card-hover: #2a2a2a;
+  --border: #444;
+  --text: #ffffff;
+  --muted: #ccc;
   --accent: #f59e0b;
   --green: #22c55e;
   --red: #ef4444;
-  --blue: #3b82f6;
+  --blue: #555;
   --radius: 10px;
 }
 * { margin:0; padding:0; box-sizing:border-box; }
@@ -259,7 +259,7 @@ const labelPlugin = {
 Chart.defaults.plugins.tooltip.backgroundColor = '#ffffff';
 Chart.defaults.plugins.tooltip.titleColor = '#000000';
 Chart.defaults.plugins.tooltip.bodyColor = '#2a2a2a';
-Chart.defaults.plugins.tooltip.borderColor = '#d0dce8';
+Chart.defaults.plugins.tooltip.borderColor = '#555';
 Chart.defaults.plugins.tooltip.borderWidth = 1;
 Chart.defaults.plugins.tooltip.padding = 10;
 Chart.defaults.plugins.tooltip.cornerRadius = 6;
@@ -752,7 +752,7 @@ function drawCalculations(d) {
   if (hasChartData) allRows.push(...['', '', '', ''], ['── Current Chart Data ──', chartTitle(), chartHint(), ''], ...chartRows);
   const closeBtn = '<button onclick="setChart(\'trend\')" style="float:right;padding:4px 12px;border:1px solid var(--border);border-radius:6px;background:var(--card);color:var(--muted);font-size:11px;cursor:pointer">✕ Close</button>';
   return `<div class="chart-section" style="overflow:auto"><h3>${closeBtn}🧮 Calculations & Logic <span class="hint">How each metric is derived</span></h3><div style="overflow:auto;max-height:500px"><table style="font-size:11px;width:100%"><thead><tr><th style="position:sticky;top:0;background:var(--panel);padding:6px 10px;text-align:left">Metric</th><th style="position:sticky;top:0;background:var(--panel);padding:6px 10px;text-align:left">Logic</th><th style="position:sticky;top:0;background:var(--panel);padding:6px 10px;text-align:left">Current Value</th><th style="position:sticky;top:0;background:var(--panel);padding:6px 10px;text-align:left">Formula</th></tr></thead><tbody>${
-    allRows.map(r=>r[0]?'<tr>'+r.map(c=>'<td style="padding:5px 10px;border-bottom:1px solid var(--border);color:'+(r[0].startsWith('──')?'#1e40af':r[0].startsWith('KPI')?'var(--accent)':'var(--text)')+';'+(r[0].startsWith('──')?'font-weight:700;':r[0].startsWith('Cancel')||r[0].startsWith('Due Policy')?'font-weight:600;':'')+'">'+c+'</td>').join('')+'</tr>':'').join('')
+    allRows.map(r=>r[0]?'<tr>'+r.map(c=>'<td style="padding:5px 10px;border-bottom:1px solid var(--border);color:'+(r[0].startsWith('──')?'#fff':r[0].startsWith('KPI')?'var(--accent)':'var(--text)')+';'+(r[0].startsWith('──')?'font-weight:700;':r[0].startsWith('Cancel')||r[0].startsWith('Due Policy')?'font-weight:600;':'')+'">'+c+'</td>').join('')+'</tr>':'').join('')
   }</tbody></table></div></div>`;
 }
 
