@@ -14,7 +14,7 @@ export function transformHtml(content: string): string {
   content = content.replace(/location\.href\s*=\s*['"]#?['"]/g, `location.href='/performance'`)
   content = content.replace(/location\.href\s*=\s*['"](?!\/\/|\/api|http)[^'"]*['"]/g, (m) => {
     if (m.includes('/performance') || m.includes('performance')) return m
-    if (m.includes("''") || m.includes("''")) return `location.href='/performance'`
+    if (m.includes("''")) return `location.href='/performance'`
     return m
   })
   content = injectNav(content)

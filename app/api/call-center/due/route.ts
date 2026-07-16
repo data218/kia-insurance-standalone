@@ -1,13 +1,12 @@
 import { NextResponse } from 'next/server'
 import { fetchAll } from '@/lib/kia-insurance/supabase'
 import { extractMobileFromRemarks, sanitizeRemarks } from '@/lib/kia-insurance/utils'
+import { checkCookie, validateToken } from '@/lib/kia-insurance/auth'
 
 function parsePortalDate(val: string): string {
   if (!val || !val.trim()) return ''
   const v = val.trim()
-  // Already YYYY-MM-DD
   if (/^\d{4}-\d{2}-\d{2}$/.test(v)) return v
-  // DD Mon YYYY — format from Kia Safety portal
   const m: Record<string,string> = {jan:'01',feb:'02',mar:'03',apr:'04',may:'05',jun:'06',jul:'07',aug:'08',sep:'09',oct:'10',nov:'11',dec:'12'}
   const match = v.match(/^(\d{1,2})\s+([A-Za-z]{3})\s+(\d{4})$/)
   if (match) {
@@ -17,10 +16,22 @@ function parsePortalDate(val: string): string {
   return ''
 }
 
+function authenticate(req: Request): boolean {
+  if (checkCookie(req).valid) return true
+  const url = new URL(req.url)
+  const token = url.searchParams.get('token')
+  if (token && validateToken(token).valid) return true
+  return false
+}
+
 export const dynamic = 'force-dynamic'
 
 export async function GET(req: Request) {
   try {
+    if (!authenticate(req)) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const { searchParams } = new URL(req.url)
     const month = searchParams.get('month') || (() => {
       const d = new Date()
@@ -31,7 +42,6 @@ export async function GET(req: Request) {
     const lastYear = selYear - 1
     const lastYearMonthPrefix = `${lastYear}-${String(selMonth).padStart(2, '0')}`
 
-    // 1. Newest create_date per VIN across ALL data (to detect renewals)
     const vinNewestDate: Record<string, string> = {}
     for (const r of rows) {
       if (!r.vinno || !r.create_date) continue
@@ -41,7 +51,6 @@ export async function GET(req: Request) {
       }
     }
 
-    // 2. Candidate VINs: policies in last year's same month
     const candidateVins = new Set<string>()
     const vinLatest: Record<string, any> = {}
     for (const r of rows) {
@@ -54,7 +63,6 @@ export async function GET(req: Request) {
       }
     }
 
-    // 3. Pending = candidate VINs with NO newer policy (newest overall = period's latest)
     const pendingVins = [...candidateVins].filter(v => {
       const periodDate = vinLatest[v]?.create_date
       return periodDate && vinNewestDate[v] === periodDate

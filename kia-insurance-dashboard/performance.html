@@ -1508,7 +1508,7 @@ function loadExportData() {
         '<td style="font-size:9px;font-family:monospace">'+r.vinno+'</td>' +
         '<td style="font-size:9px;color:'+ptColor+';font-weight:600">'+r.policytype+'</td>' +
         '<td style="font-size:9px">'+(r.insurancecompany||'')+'</td>' +
-        '<td style="font-size:9px">'+(r.customername||'')+'</td>' +
+        '<td style="font-size:9px">'+(r.customer_name||'')+'</td>' +
         '<td style="font-size:9px;text-align:right">'+(r.grosspremium?Number(r.grosspremium).toLocaleString('en-IN'):'')+'</td>' +
       '</tr>';
     });

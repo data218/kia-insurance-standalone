@@ -11,7 +11,7 @@ export async function POST(req: Request) {
     if (!username || !password) {
       return NextResponse.json({ success: false, error: 'Username and password required' }, { status: 400 })
     }
-    
+
     const supabase = getSupabaseAdmin()
     const { data: user, error } = await supabase
       .from('admin_users')
@@ -19,20 +19,19 @@ export async function POST(req: Request) {
       .eq('username', username)
       .eq('is_active', true)
       .single()
-    
+
     if (error || !user) {
       return NextResponse.json({ success: false, error: 'Invalid credentials' }, { status: 401 })
     }
-    
+
     const validPassword = await bcrypt.compare(password, user.password_hash)
     if (!validPassword) {
       return NextResponse.json({ success: false, error: 'Invalid credentials' }, { status: 401 })
     }
-    
-    // Update last_login
+
     await supabase.from('admin_users').update({ last_login: new Date().toISOString() }).eq('id', user.id)
-    
-    const token = makeToken()
+
+    const token = makeToken(user.username, user.role)
     const res = NextResponse.json({
       success: true,
       token,
@@ -40,7 +39,7 @@ export async function POST(req: Request) {
     })
     res.cookies.set('kia_admin_token', token, {
       path: '/',
-      httpOnly: false,
+      httpOnly: true,
       maxAge: 86400,
       sameSite: 'lax',
     })

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase/admin'
+import { validateToken } from '@/lib/kia-insurance/auth'
 import bcrypt from 'bcryptjs'
 
 export const dynamic = 'force-dynamic'
@@ -7,14 +8,14 @@ export const dynamic = 'force-dynamic'
 export async function POST(req: Request) {
   try {
     const { token, username, password, role } = await req.json()
-    const session = decodeToken(token)
-    if (!session) return NextResponse.json({ error: 'Invalid token' }, { status: 401 })
+    const result = validateToken(token)
+    if (!result.valid || !result.user) return NextResponse.json({ error: 'Invalid token' }, { status: 401 })
 
     const supabase = getSupabaseAdmin()
     const { data: adminUser } = await supabase
       .from('admin_users')
       .select('role')
-      .eq('username', session.username)
+      .eq('username', result.user.username)
       .eq('is_active', true)
       .single()
 
@@ -50,16 +51,5 @@ export async function POST(req: Request) {
     return NextResponse.json({ success: true })
   } catch {
     return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
-  }
-}
-
-function decodeToken(token: string): { username: string; role: string } | null {
-  try {
-    const parts = token.split('.')
-    if (parts.length !== 2) return null
-    const decoded = JSON.parse(Buffer.from(parts[0], 'base64').toString())
-    return { username: decoded.u, role: decoded.r }
-  } catch {
-    return null
   }
 }

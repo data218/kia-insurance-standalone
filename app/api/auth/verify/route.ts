@@ -10,7 +10,7 @@ export async function POST(req: Request) {
     if (result.valid) {
       return NextResponse.json({ valid: true, user: result.user })
     }
-    return NextResponse.json({ valid: false }, { status: 401 })
+    return NextResponse.json({ valid: false, expired: result.expired }, { status: 401 })
   } catch {
     return NextResponse.json({ valid: false }, { status: 400 })
   }
