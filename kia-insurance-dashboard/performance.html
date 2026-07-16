@@ -248,9 +248,9 @@ tr.total td { font-weight:800; background:#e8f0fe; border-top:3px solid #ccc; pa
         <tr><td>Unique VINs (Annual)</td><td>Each VIN is counted <b>only once per year</b>, regardless of how many months it appears. Info bar shows the true unique count.</td></tr>
         <tr><td>Sum of Months vs Unique</td><td>Monthly columns count unique VINs <b>per month</b>. A VIN in Jan AND Feb gets counted in both. The total row shows the correct unique count across all months.</td></tr>
         <tr><td>Duplicate Policy Check</td><td>Detects rows where the <b>same policy number</b> appears more than once in the <b>same year</b>.</td></tr>
-        <tr><td>Gross Prem (₹)ium (&#x20B9;L)</td><td>Sum of <code>grosspremium</code> for <b>all rows</b>, divided by 100,000.</td></tr>
-        <tr><td>Avg Prem (₹)ium</td><td><code>grosspremium / policy count</code> for the selected period.</td></tr>
-        <tr><td>Prem (₹)ium Share %</td><td>Each company's gross premium as a percentage of total.</td></tr>
+        <tr><td>Gross Premium (&#x20B9;L)</td><td>Sum of <code>grosspremium</code> for <b>all rows</b>, divided by 100,000.</td></tr>
+        <tr><td>Avg Premium</td><td><code>grosspremium / policy count</code> for the selected period.</td></tr>
+        <tr><td>Premium Share %</td><td>Each company's gross premium as a percentage of total.</td></tr>
         <tr><td style="color:#dc2626;font-weight:600">Cancelled / Dead</td><td>Policies where <b>cancelled=Yes</b> are <b style="color:#dc2626">excluded</b> from all dashboard calculations. View them in <b>Export Data &#8594; Cancelled</b>.</td></tr>
       </tbody>
     </table>
@@ -320,7 +320,7 @@ tr.total td { font-weight:800; background:#e8f0fe; border-top:3px solid #ccc; pa
           <th style="min-width:70px">Policy Type</th>
           <th style="min-width:100px">Insurance Company</th>
           <th style="min-width:100px">Customer</th>
-          <th style="min-width:70px;text-align:right">Prem (₹)ium (&#x20B9;)</th>
+          <th style="min-width:70px;text-align:right">Premium (&#x20B9;)</th>
         </tr></thead>
         <tbody id="exportBody"></tbody>
       </table>
@@ -953,7 +953,7 @@ function buildDailyTable(data, filter, label, yesterday, yyy, yesterdayLabel) {
   tblData.forEach(r => {
     if (!r.vinno) return;
     const comp = r.insurancecompany || 'Unknown';
-    if (!compMap[comp]) { compMap[comp] = { mtd: 0, mtdCount: 0, mtdIdv: 0, yesterday: 0, yesterdayPrem (₹)ium: 0, yesterdayIdv: 0 }; mtdVins[comp] = new Set(); }
+    if (!compMap[comp]) { compMap[comp] = { mtd: 0, mtdCount: 0, mtdIdv: 0, yesterday: 0, yesterdayPremium: 0, yesterdayIdv: 0 }; mtdVins[comp] = new Set(); }
     const cd = (r.create_date || '').trim();
     if (cd.startsWith(curMonthPrefix) || cd.includes(curMonthMdy)) {
       compMap[comp].mtd += Number(r.netodpremiuma) || 0;
@@ -964,17 +964,17 @@ function buildDailyTable(data, filter, label, yesterday, yyy, yesterdayLabel) {
   });
   const yDateStr = String(yyy) + '-' + String(yesterday.getMonth()+1).padStart(2,'0') + '-' + String(yesterday.getDate()).padStart(2,'0');
   const yMdyStr = String(yesterday.getMonth()+1) + '/' + String(yesterday.getDate()) + '/' + String(yyy);
-  const compMap2 = {}, compMap2Prem (₹) = {}, compMap2Idv = {};
+  const compMap2 = {}, compMap2Prem = {}, compMap2Idv = {};
   tblData.forEach(r => {
     if (!r.vinno || !r.create_date) return;
     const comp = r.insurancecompany || 'Unknown';
     if (!compMap2[comp]) compMap2[comp] = new Set();
-    if (!compMap2Prem (₹)[comp]) compMap2Prem (₹)[comp] = 0;
+    if (!compMap2Prem[comp]) compMap2Prem[comp] = 0;
     if (!compMap2Idv[comp]) compMap2Idv[comp] = 0;
     const cd = (r.create_date||'').trim();
-    if (cd === yDateStr || cd === yMdyStr || cd.startsWith(yDateStr)) { compMap2[comp].add(r.vinno); compMap2Prem (₹)[comp] += Number(r.netodpremiuma) || 0; compMap2Idv[comp] += Number(r.totalidv) || 0; }
+    if (cd === yDateStr || cd === yMdyStr || cd.startsWith(yDateStr)) { compMap2[comp].add(r.vinno); compMap2Prem[comp] += Number(r.netodpremiuma) || 0; compMap2Idv[comp] += Number(r.totalidv) || 0; }
   });
-  Object.keys(compMap2).forEach(comp => { if (compMap[comp]) { compMap[comp].yesterday = compMap2[comp].size; compMap[comp].yesterdayPrem (₹)ium = compMap2Prem (₹)[comp] || 0; compMap[comp].yesterdayIdv = compMap2Idv[comp] || 0; } });
+  Object.keys(compMap2).forEach(comp => { if (compMap[comp]) { compMap[comp].yesterday = compMap2[comp].size; compMap[comp].yesterdayPremium = compMap2Prem[comp] || 0; compMap[comp].yesterdayIdv = compMap2Idv[comp] || 0; } });
   const sorted = Object.entries(compMap).sort((a,b) => b[1].mtd - a[1].mtd);
   if (!sorted.length) return '';
   const maxMtd = sorted[0][1].mtd;
@@ -990,8 +990,8 @@ function buildDailyTable(data, filter, label, yesterday, yyy, yesterdayLabel) {
         <th style="padding:1px 3px;text-align:center;font-size:6px;text-transform:uppercase;color:#fff;border:1px solid #ccc;white-space:nowrap">Prem (₹)</th>
         <th style="padding:1px 3px;text-align:center;font-size:6px;text-transform:uppercase;color:#fff;border:1px solid #ccc;white-space:nowrap">IDV (₹)</th>
         <th style="padding:1px 3px;text-align:center;font-size:6px;text-transform:uppercase;color:#fff;border:1px solid #ccc;white-space:nowrap">MTD</th>
-        <th style="padding:1px 3px;text-align:center;font-size:6px;text-transform:uppercase;color:#fff;border:1px solid #ccc;white-space:nowrap">MTD Prem (₹) (₹)</th>
-        <th style="padding:1px 3px;text-align:center;font-size:6px;text-transform:uppercase;color:#fff;border:1px solid #ccc;white-space:nowrap">MTD IDV (₹) (₹)</th>
+        <th style="padding:1px 3px;text-align:center;font-size:6px;text-transform:uppercase;color:#fff;border:1px solid #ccc;white-space:nowrap">MTD Prem (₹)</th>
+        <th style="padding:1px 3px;text-align:center;font-size:6px;text-transform:uppercase;color:#fff;border:1px solid #ccc;white-space:nowrap">MTD IDV (₹)</th>
         <th style="padding:1px 3px;text-align:center;font-size:6px;text-transform:uppercase;color:#fff;border:1px solid #ccc">Share %</th>
       </tr></thead><tbody>`;
   sorted.forEach(([comp, vals], i) => {
@@ -1000,7 +1000,7 @@ function buildDailyTable(data, filter, label, yesterday, yyy, yesterdayLabel) {
     h += `<tr style="border-bottom:1px solid #ccc">
       <td style="padding:1px 3px;font-weight:600;color:#000;font-size:7px;text-align:center;border:1px solid #ccc">${comp}</td>
       <td style="padding:1px 3px;text-align:center;border:1px solid #ccc"><span style="background:#555;color:#fff;padding:1px 4px;border-radius:4px;font-weight:700;font-size:8px">${fmt(vals.yesterday)}</span></td>
-      <td style="padding:1px 3px;text-align:center;border:1px solid #ccc;font-weight:600;color:#000;font-size:7px;white-space:nowrap">${fmtRs(vals.yesterdayPrem (₹)ium)}</td>
+      <td style="padding:1px 3px;text-align:center;border:1px solid #ccc;font-weight:600;color:#000;font-size:7px;white-space:nowrap">${fmtRs(vals.yesterdayPremium)}</td>
       <td style="padding:1px 3px;text-align:center;border:1px solid #ccc;font-weight:600;color:#000;font-size:7px;white-space:nowrap">${fmtRs(vals.yesterdayIdv)}</td>
       <td style="padding:1px 3px;text-align:center;border:1px solid #ccc;font-weight:600;color:#000;font-size:8px">${fmt(vals.mtdCount)}</td>
       <td style="padding:1px 3px;text-align:center;border:1px solid #ccc;font-weight:600;color:#000;font-size:7px;white-space:nowrap">${fmtRs(vals.mtd)}</td>
@@ -1009,7 +1009,7 @@ function buildDailyTable(data, filter, label, yesterday, yyy, yesterdayLabel) {
     </tr>`;
   });
   const totalYesterday = sorted.reduce((s,[_,v]) => s + v.yesterday, 0);
-  const totalYesterdayPrem (₹) = sorted.reduce((s,[_,v]) => s + v.yesterdayPrem (₹)ium, 0);
+  const totalYesterdayPrem = sorted.reduce((s,[_,v]) => s + v.yesterdayPremium, 0);
   const totalYesterdayIdv = sorted.reduce((s,[_,v]) => s + v.yesterdayIdv, 0);
   const totalMtdCount = sorted.reduce((s,[_,v]) => s + v.mtdCount, 0);
   const totalMtd = sorted.reduce((s,[_,v]) => s + v.mtd, 0);
@@ -1017,7 +1017,7 @@ function buildDailyTable(data, filter, label, yesterday, yyy, yesterdayLabel) {
   h += `<tr class="daily-total" style="background:#555;font-weight:700;border-top:1px solid #ccc">
     <td style="padding:1px 3px;color:#fff;font-size:7px;text-align:center;border:1px solid #ccc;background:#555">Total</td>
     <td style="padding:1px 3px;text-align:center;border:1px solid #ccc;background:#555"><span style="background:#333;color:#fff;padding:1px 4px;border-radius:4px;font-size:8px">${fmt(totalYesterday)}</span></td>
-    <td style="padding:1px 3px;text-align:center;border:1px solid #ccc;font-size:7px;white-space:nowrap;font-weight:700;color:#fff;background:#555">${fmtRs(totalYesterdayPrem (₹))}</td>
+    <td style="padding:1px 3px;text-align:center;border:1px solid #ccc;font-size:7px;white-space:nowrap;font-weight:700;color:#fff;background:#555">${fmtRs(totalYesterdayPrem)}</td>
     <td style="padding:1px 3px;text-align:center;border:1px solid #ccc;font-size:7px;white-space:nowrap;font-weight:700;color:#fff;background:#555">${fmtRs(totalYesterdayIdv)}</td>
     <td style="padding:1px 3px;text-align:center;border:1px solid #ccc;font-size:8px;font-weight:700;color:#fff;background:#555">${fmt(totalMtdCount)}</td>
     <td style="padding:1px 3px;text-align:center;border:1px solid #ccc;font-size:7px;white-space:nowrap;font-weight:700;color:#fff;background:#555">${fmtRs(totalMtd)}</td>
@@ -1521,7 +1521,7 @@ function loadExportData() {
 function downloadExportCSV() {
   const rows = document.querySelectorAll('#exportBody tr');
   if(!rows.length||rows[0].querySelector('td[colspan]'))return;
-  let csv = '#,Created Date,VIN,Policy Type,Insurance Company,Customer,Prem (₹)ium\n';
+  let csv = '#,Created Date,VIN,Policy Type,Insurance Company,Customer,Premium\n';
   rows.forEach(tr => {
     const tds = tr.querySelectorAll('td');
     if(tds.length<7||tds[0].getAttribute('colspan'))return; // skip month headers
