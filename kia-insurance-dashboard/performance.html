@@ -9,19 +9,19 @@
 }
 * { margin:0; padding:0; box-sizing:border-box; }
 body { font-family: 'Inter','Segoe UI',system-ui,sans-serif; background:#e8f0fe; color:#000; height:100vh; display:flex; flex-direction:column; overflow:hidden; min-width:1100px; }
-.topbar { background:linear-gradient(135deg,#1a1a1a,#555); border-bottom:1px solid #000; padding:0 10px; height:40px; display:flex; align-items:center; flex-shrink:0; gap:4px; position:relative; }
+.topbar { background:linear-gradient(135deg,#333,#777); border-bottom:1px solid #ccc; padding:0 10px; height:40px; display:flex; align-items:center; flex-shrink:0; gap:4px; position:relative; }
 .topbar h1 { font-size:13px; font-weight:600; color:#fff; }
 .topbar .sub { font-size:10px; color:rgba(255,255,255,0.7); }
 .topbar .g-label { font-size:8px; color:#fff; text-transform:uppercase; letter-spacing:0.5px; margin-right:2px; font-weight:600; }
-.toolbar { background:linear-gradient(135deg,#1a1a1a,#555); border-bottom:1px solid #000; padding:3px 8px; display:flex; gap:2px; flex-wrap:wrap; align-items:center; flex-shrink:0; }
+.toolbar { background:linear-gradient(135deg,#333,#777); border-bottom:1px solid #ccc; padding:3px 8px; display:flex; gap:2px; flex-wrap:wrap; align-items:center; flex-shrink:0; }
 .toolbar .g-label { font-size:8px; color:#fff; text-transform:uppercase; letter-spacing:0.5px; margin-right:2px; font-weight:600; }
 .toolbar select { padding:1px 3px; border:1px solid rgba(255,255,255,0.4); border-radius:3px; background:rgba(255,255,255,0.15); color:#fff; font-size:7px; font-weight:500; cursor:pointer; outline:none; max-width:100px; }
-.toolbar select option { background:#1a1a1a; color:#fff; }
+.toolbar select option { background:#333; color:#fff; }
 .toolbar.collapsed { display:none; }
 .hamburger { background:none; border:none; color:#fff; font-size:20px; cursor:pointer; padding:0 4px; line-height:1; margin-left:auto; display:flex; align-items:center; }
 .multi-select { position:relative; display:inline-flex; }
 .multi-select-trigger { padding:2px 4px; border:1px solid rgba(255,255,255,0.4); border-radius:3px; background:rgba(255,255,255,0.15); color:#fff; font-size:8px; font-weight:500; cursor:pointer; outline:none; min-width:36px; text-align:center; white-space:nowrap; }
-.multi-select-dropdown { display:none; position:absolute; top:100%; left:0; background:#1a1a1a; border:1px solid rgba(255,255,255,0.4); border-radius:4px; padding:4px; z-index:500; max-height:150px; overflow-y:auto; min-width:100px; box-shadow:0 2px 8px rgba(0,0,0,0.3); }
+.multi-select-dropdown { display:none; position:absolute; top:100%; left:0; background:#333; border:1px solid rgba(255,255,255,0.4); border-radius:4px; padding:4px; z-index:500; max-height:150px; overflow-y:auto; min-width:100px; box-shadow:0 2px 8px rgba(0,0,0,0.3); }
 .multi-select-dropdown.open { display:block; }
 .multi-select-dropdown label { display:flex; align-items:center; gap:4px; padding:2px 4px; font-size:10px; cursor:pointer; white-space:nowrap; color:#fff; }
 .multi-select-dropdown label:hover { background:rgba(255,255,255,0.15); }
@@ -41,10 +41,10 @@ body { font-family: 'Inter','Segoe UI',system-ui,sans-serif; background:#e8f0fe;
 .daily-container { flex:1; min-height:0; overflow:auto; }
 .main-left, .main-right { position:relative; display:flex; flex-direction:column; }
 .info-bar { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px; flex-shrink:0; }
-.info-box { background:#fff; border-radius:8px; padding:6px 10px; border:1px solid #000; display:flex; align-items:center; gap:6px; flex:1; min-width:100px; transition:.15s; }
+.info-box { background:#fff; border-radius:8px; padding:6px 10px; border:1px solid #ccc; display:flex; align-items:center; gap:6px; flex:1; min-width:100px; transition:.15s; }
 .info-box:hover { box-shadow:0 2px 8px rgba(0,0,0,.06); }
 .info-box .num { font-size:14px; font-weight:700; white-space:nowrap; color:#000; }
-.info-box .lbl { font-size:9px; font-weight:600; color:#1a1a1a; }
+.info-box .lbl { font-size:9px; font-weight:600; color:#333; }
 .info-box .sub { font-size:8px; color:#000; }
 
 /* VALUE BOXES */
@@ -62,47 +62,47 @@ body { font-family: 'Inter','Segoe UI',system-ui,sans-serif; background:#e8f0fe;
 .table-wrap { overflow-x:auto; }
 .table-wrap::-webkit-scrollbar { height:4px; }
 .table-wrap::-webkit-scrollbar-thumb { background:#d0dce8; border-radius:4px; }
-table { width:100%; border-collapse:collapse; background:#fff; border:2px solid #000; font-size:9px; }
-thead { background:#1a1a1a; }
-th { padding:4px 5px; text-align:center; font-weight:800; font-size:8px; color:#fff; text-transform:uppercase; letter-spacing:0.4px; border:2px solid #000; white-space:nowrap; }
-td { padding:2px 4px; text-align:center; border:2px solid #000; }
+table { width:100%; border-collapse:collapse; background:#fff; border:2px solid #ccc; font-size:9px; }
+thead { background:#333; }
+th { padding:4px 5px; text-align:center; font-weight:800; font-size:8px; color:#fff; text-transform:uppercase; letter-spacing:0.4px; border:2px solid #ccc; white-space:nowrap; }
+td { padding:2px 4px; text-align:center; border:2px solid #ccc; }
 tr:hover td { background:#eff6ff; }
-tr:last-child td { border-bottom:1px solid #000; }
+tr:last-child td { border-bottom:1px solid #ccc; }
 th.month-col { text-align:left; min-width:40px; color:#fff; }
 td.month-cell { text-align:left; font-weight:600; font-size:10px; }
-tr.total td { font-weight:800; background:#e8f0fe; border-top:3px solid #000; padding:5px 4px !important; font-size:10px; }
+tr.total td { font-weight:800; background:#e8f0fe; border-top:3px solid #ccc; padding:5px 4px !important; font-size:10px; }
 .num-val { font-weight:600; }
 .empty { text-align:center; padding:40px 16px; color:#000; font-size:13px; }
 .loader { text-align:center; padding:40px; color:#000; }
-.spin { display:inline-block; width:20px; height:20px; border:2px solid #d0dce8; border-top-color:#1a1a1a; border-radius:50%; animation:spin .6s linear infinite; margin-bottom:6px; }
+.spin { display:inline-block; width:20px; height:20px; border:2px solid #d0dce8; border-top-color:#333; border-radius:50%; animation:spin .6s linear infinite; margin-bottom:6px; }
 @keyframes spin { to { transform:rotate(360deg); } }
 .btn-refresh { padding:3px 12px; border:1px solid rgba(255,255,255,0.4); border-radius:4px; background:rgba(255,255,255,0.12); color:#fff; font-size:10px; font-weight:600; cursor:pointer; outline:none; transition:.15s; display:inline-flex; align-items:center; gap:4px; }
 .btn-refresh:hover { background:rgba(255,255,255,0.25); }
 .btn-refresh:active { background:rgba(255,255,255,0.08); }
 .btn-refresh.loading { pointer-events:none; opacity:.6; }
 .btn-refresh .spin-sm { display:inline-block; width:10px; height:10px; border:1.5px solid rgba(255,255,255,0.3); border-top-color:#fff; border-radius:50%; animation:spin .6s linear infinite; }
-.btn-calc { padding:3px 8px; border:1px solid rgba(255,255,255,0.4); border-radius:4px; background:#1a1a1a; color:#fff; font-size:10px; font-weight:600; cursor:pointer; outline:none; transition:.15s; display:inline-flex; align-items:center; gap:4px; white-space:nowrap; }
-.btn-calc:hover { background:#444; }
-.btn-dup { padding:3px 8px; border:1px solid rgba(255,255,255,0.4); border-radius:4px; background:#1a1a1a; color:#fff; font-size:10px; font-weight:600; cursor:pointer; outline:none; transition:.15s; display:inline-flex; align-items:center; gap:4px; white-space:nowrap; }
-.btn-dup:hover { background:#444; }
-.btn-track { padding:3px 8px; border:1px solid rgba(255,255,255,0.4); border-radius:4px; background:#1a1a1a; color:#fff; font-size:10px; font-weight:600; cursor:pointer; outline:none; transition:.15s; display:inline-flex; align-items:center; gap:4px; white-space:nowrap; }
-.btn-track:hover { background:#444; }
-.btn-export { padding:3px 8px; border:1px solid rgba(255,255,255,0.4); border-radius:4px; background:#1a1a1a; color:#fff; font-size:10px; font-weight:600; cursor:pointer; outline:none; transition:.15s; display:inline-flex; align-items:center; gap:4px; white-space:nowrap; }
-.btn-export:hover { background:#444; }
-.btn-fetch { padding:3px 8px; border:1px solid rgba(255,255,255,0.4); border-radius:4px; background:#1a1a1a; color:#fff; font-size:10px; font-weight:600; cursor:pointer; outline:none; transition:.15s; display:inline-flex; align-items:center; gap:4px; white-space:nowrap; }
-.btn-fetch:hover { background:#444; }
+.btn-calc { padding:3px 8px; border:1px solid rgba(255,255,255,0.4); border-radius:4px; background:#333; color:#fff; font-size:10px; font-weight:600; cursor:pointer; outline:none; transition:.15s; display:inline-flex; align-items:center; gap:4px; white-space:nowrap; }
+.btn-calc:hover { background:#555; }
+.btn-dup { padding:3px 8px; border:1px solid rgba(255,255,255,0.4); border-radius:4px; background:#333; color:#fff; font-size:10px; font-weight:600; cursor:pointer; outline:none; transition:.15s; display:inline-flex; align-items:center; gap:4px; white-space:nowrap; }
+.btn-dup:hover { background:#555; }
+.btn-track { padding:3px 8px; border:1px solid rgba(255,255,255,0.4); border-radius:4px; background:#333; color:#fff; font-size:10px; font-weight:600; cursor:pointer; outline:none; transition:.15s; display:inline-flex; align-items:center; gap:4px; white-space:nowrap; }
+.btn-track:hover { background:#555; }
+.btn-export { padding:3px 8px; border:1px solid rgba(255,255,255,0.4); border-radius:4px; background:#333; color:#fff; font-size:10px; font-weight:600; cursor:pointer; outline:none; transition:.15s; display:inline-flex; align-items:center; gap:4px; white-space:nowrap; }
+.btn-export:hover { background:#555; }
+.btn-fetch { padding:3px 8px; border:1px solid rgba(255,255,255,0.4); border-radius:4px; background:#333; color:#fff; font-size:10px; font-weight:600; cursor:pointer; outline:none; transition:.15s; display:inline-flex; align-items:center; gap:4px; white-space:nowrap; }
+.btn-fetch:hover { background:#555; }
 .btn-fetch.loading { pointer-events:none; opacity:.6; }
-.btn-zoom { padding:2px 8px; border:1px solid #000; border-radius:3px; background:#fff; color:#000; font-size:13px; font-weight:700; cursor:pointer; outline:none; line-height:1.2; display:inline-flex; align-items:center; justify-content:center; }
+.btn-zoom { padding:2px 8px; border:1px solid #ccc; border-radius:3px; background:#fff; color:#000; font-size:13px; font-weight:700; cursor:pointer; outline:none; line-height:1.2; display:inline-flex; align-items:center; justify-content:center; }
 .btn-zoom:hover { background:#e8f0fe; }
 #zoomLabel { font-size:9px; color:#000; font-weight:600; min-width:32px; text-align:center; display:inline-block; }
 .modal-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; justify-content:center; align-items:center; }
 .modal-overlay.open { display:flex; }
-.modal-box { background:#fff; border:2px solid #000; border-radius:8px; max-width:700px; width:90%; max-height:80vh; overflow:auto; padding:20px; position:relative; }
+.modal-box { background:#fff; border:2px solid #ccc; border-radius:8px; max-width:700px; width:90%; max-height:80vh; overflow:auto; padding:20px; position:relative; }
 .modal-box h2 { font-size:14px; margin-bottom:12px; display:flex; align-items:center; gap:8px; }
 .modal-box .close-btn { position:absolute; top:10px; right:14px; background:none; border:none; font-size:18px; cursor:pointer; color:#000; }
 .modal-box table { width:100%; border-collapse:collapse; font-size:11px; }
-.modal-box th { background:#1a1a1a; color:#fff; padding:6px 10px; text-align:left; border:1px solid #000; font-size:10px; text-transform:uppercase; }
-.modal-box td { padding:5px 10px; border:1px solid #000; vertical-align:top; }
+.modal-box th { background:#333; color:#fff; padding:6px 10px; text-align:left; border:1px solid #ccc; font-size:10px; text-transform:uppercase; }
+.modal-box td { padding:5px 10px; border:1px solid #ccc; vertical-align:top; }
 .modal-box tr:nth-child(even) td { background:#f8f9fa; }
 
 </style>
@@ -214,7 +214,7 @@ tr.total td { font-weight:800; background:#e8f0fe; border-top:3px solid #000; pa
     <h2>&#x26A0; Duplicate Policies &mdash; Same Policy + Same Year</h2>
     <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center">
       <span style="font-size:11px;color:#000" id="dupCount">Loading...</span>
-      <button onclick="downloadDupCSV()" style="margin-left:auto;padding:4px 12px;border:1px solid #000;border-radius:4px;background:#1a1a1a;color:#fff;font-size:10px;font-weight:600;cursor:pointer">&#x2913; Download CSV</button>
+      <button onclick="downloadDupCSV()" style="margin-left:auto;padding:4px 12px;border:1px solid #ccc;border-radius:4px;background:#333;color:#fff;font-size:10px;font-weight:600;cursor:pointer">&#x2913; Download CSV</button>
     </div>
     <div style="max-height:55vh;overflow:auto">
       <table>
@@ -265,8 +265,8 @@ tr.total td { font-weight:800; background:#e8f0fe; border-top:3px solid #000; pa
     <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center">
       <span style="font-size:11px;color:#000" id="vinTrackCount">Loading...</span>
       <div style="margin-left:auto;display:flex;gap:4px;align-items:center">
-        <span class="g-label" style="font-size:8px;color:#1a1a1a;text-transform:uppercase;letter-spacing:.5px;font-weight:600">LY Month</span>
-        <select id="vinTrackMonth" onchange="showVinTrack()" style="padding:3px 5px;border:1px solid #000;border-radius:4px;font-size:9px">
+        <span class="g-label" style="font-size:8px;color:#333;text-transform:uppercase;letter-spacing:.5px;font-weight:600">LY Month</span>
+        <select id="vinTrackMonth" onchange="showVinTrack()" style="padding:3px 5px;border:1px solid #ccc;border-radius:4px;font-size:9px">
           <option value="all">All Months</option>
         </select>
       </div>
@@ -286,8 +286,8 @@ tr.total td { font-weight:800; background:#e8f0fe; border-top:3px solid #000; pa
     <button class="close-btn" onclick="closeExport()">&#x2715;</button>
     <h2>&#x2913; Export Data</h2>
     <div style="display:flex;gap:8px;margin-bottom:6px;align-items:center;flex-wrap:wrap">
-      <span class="g-label" style="font-size:8px;color:#1a1a1a;text-transform:uppercase;letter-spacing:.5px;font-weight:600">Category</span>
-      <select id="exportCategory" onchange="loadExportData()" style="padding:3px 5px;border:1px solid #000;border-radius:4px;font-size:9px">
+      <span class="g-label" style="font-size:8px;color:#333;text-transform:uppercase;letter-spacing:.5px;font-weight:600">Category</span>
+      <select id="exportCategory" onchange="loadExportData()" style="padding:3px 5px;border:1px solid #ccc;border-radius:4px;font-size:9px">
         <option value="cyNew" data-year="CY">CY New</option>
         <option value="cyRenewal" data-year="CY">CY Renewal</option>
         <option value="cyRollover" data-year="CY">CY Rollover</option>
@@ -298,8 +298,8 @@ tr.total td { font-weight:800; background:#e8f0fe; border-top:3px solid #000; pa
         <option value="notVisited" data-year="LY">Not Visited</option>
         <option value="cancelled" data-year="Other" style="color:#dc2626;font-weight:600">&#x2716; Cancelled</option>
       </select>
-      <span class="g-label" style="font-size:8px;color:#1a1a1a;text-transform:uppercase;letter-spacing:.5px;font-weight:600">Month</span>
-      <select id="exportMonth" onchange="loadExportData()" style="padding:3px 5px;border:1px solid #000;border-radius:4px;font-size:9px">
+      <span class="g-label" style="font-size:8px;color:#333;text-transform:uppercase;letter-spacing:.5px;font-weight:600">Month</span>
+      <select id="exportMonth" onchange="loadExportData()" style="padding:3px 5px;border:1px solid #ccc;border-radius:4px;font-size:9px">
         <option value="all">All Months</option>
         <option value="1">Jan</option><option value="2">Feb</option><option value="3">Mar</option>
         <option value="4">Apr</option><option value="5">May</option><option value="6">Jun</option>
@@ -307,7 +307,7 @@ tr.total td { font-weight:800; background:#e8f0fe; border-top:3px solid #000; pa
         <option value="10">Oct</option><option value="11">Nov</option><option value="12">Dec</option>
       </select>
       <span style="font-size:10px;color:#000;font-weight:700" id="exportCount"></span>
-      <button onclick="downloadExportCSV()" style="margin-left:auto;padding:4px 12px;border:1px solid #000;border-radius:4px;background:#059669;color:#fff;font-size:10px;font-weight:600;cursor:pointer">&#x2913; Download CSV</button>
+      <button onclick="downloadExportCSV()" style="margin-left:auto;padding:4px 12px;border:1px solid #ccc;border-radius:4px;background:#059669;color:#fff;font-size:10px;font-weight:600;cursor:pointer">&#x2913; Download CSV</button>
     </div>
     <div id="exportDesc" style="font-size:9px;color:#000;background:#f0fdf4;border:1px solid #059669;border-radius:4px;padding:4px 8px;margin-bottom:6px"></div>
     <div style="max-height:55vh;overflow:auto">
@@ -832,11 +832,11 @@ function renderInfo(stats, totals, ly, cy, allCyVins, allLyVins) {
     growthHtml = `<span class="growth-box ${growthClass(g)}">${growthArrow(g)} ${Math.abs(g).toFixed(1)} %</span>`;
   }
   document.getElementById('infoBar').innerHTML = `
-    <div class="info-box" style="border-left:3px solid #1a1a1a"><div class="num">${fmt(totalLy)}</div><div><div class="lbl">${ly} Total VINs</div><div class="sub">LY policies</div></div></div>
+    <div class="info-box" style="border-left:3px solid #333"><div class="num">${fmt(totalLy)}</div><div><div class="lbl">${ly} Total VINs</div><div class="sub">LY policies</div></div></div>
     <div class="info-box" style="border-left:3px solid #444"><div class="num">${fmt(totalCy)}</div><div><div class="lbl">${cy} Total VINs</div><div class="sub">CY policies</div></div></div>
     <div class="info-box" style="border-left:3px solid #555"><div class="num">${growthHtml}</div><div><div class="lbl">Growth</div><div class="sub">CY vs LY</div></div></div>
-    <div class="info-box" style="border-left:3px solid #000"><div class="num">${fmt(totals.cy.notVisited)}</div><div><div class="lbl">Not Visited</div><div class="sub">In LY not in CY</div></div></div>
-    <div class="info-box" style="border-left:3px solid #000"><div class="num">${periodLabel}</div><div><div class="lbl">Period</div><div class="sub">${cy} vs ${ly}</div></div></div>
+    <div class="info-box" style="border-left:3px solid #ccc"><div class="num">${fmt(totals.cy.notVisited)}</div><div><div class="lbl">Not Visited</div><div class="sub">In LY not in CY</div></div></div>
+    <div class="info-box" style="border-left:3px solid #ccc"><div class="num">${periodLabel}</div><div><div class="lbl">Period</div><div class="sub">${cy} vs ${ly}</div></div></div>
   `;
 }
 
@@ -848,7 +848,7 @@ function renderTable(stats, totals, ly, cy, typeFilter, minMonth, maxMonth) {
   const filteredStats = isYtd ? stats : stats.filter(r => r.month >= minMonth && r.month <= maxMonth);
   const types = typeFilter === 'all' ? ['new','renewal','rollover','rolloverRenew','overall','notVisited'] : [typeFilter];
   const typeLabels = { new:'New', renewal:'Renewal', rollover:'Rollover', rolloverRenew:'Rollover→Renew', overall:'Overall', notVisited:'Not Visited' };
-  const typeColors = { new:'#1a1a1a', renewal:'#1a1a1a', rollover:'#1a1a1a', rolloverRenew:'#1a1a1a', overall:'#1a1a1a', notVisited:'#1a1a1a' };
+  const typeColors = { new:'#333', renewal:'#333', rollover:'#333', rolloverRenew:'#333', overall:'#333', notVisited:'#333' };
 
   if (filteredStats.length === 0) {
     document.getElementById('tableContainer').innerHTML = '<div class="empty">No data for selected date range</div>';
@@ -860,7 +860,7 @@ function renderTable(stats, totals, ly, cy, typeFilter, minMonth, maxMonth) {
   types.forEach((t, idx) => {
     const color = typeColors[t];
     const isLast = idx === types.length - 1;
-    html += `<th colspan="3" style="color:#fff;background:${color};border-bottom:2px solid ${color};${!isLast ? 'border-right:3px solid #000;' : ''}padding:2px 4px;font-size:7px;white-space:nowrap;min-width:60px">${typeLabels[t]}</th>`;
+    html += `<th colspan="3" style="color:#fff;background:${color};border-bottom:2px solid ${color};${!isLast ? 'border-right:3px solid #ccc;' : ''}padding:2px 4px;font-size:7px;white-space:nowrap;min-width:60px">${typeLabels[t]}</th>`;
   });
   html += '</tr><tr>';
   html += '<th class="month-col" style="background:transparent"></th>';
@@ -880,7 +880,7 @@ function renderTable(stats, totals, ly, cy, typeFilter, minMonth, maxMonth) {
     html += `<td class="month-cell" style="padding:2px 4px;font-size:8px">${months[r.month - 1]}</td>`;
     types.forEach((t, ti) => {
       const isLastType = ti === types.length - 1;
-      const growthBorder = isLastType ? '' : 'border-right:2px solid #000;';
+      const growthBorder = isLastType ? '' : 'border-right:2px solid #ccc;';
       if (t === 'notVisited') {
         const cyVal = r.cy[t] || 0;
 html += `<td style="padding:2px 3px;${growthBorder}" colspan="3"><span class="val-box" style="font-size:8px;min-width:32px;padding:1px 3px;background:#fee2e2;color:#dc2626;border:none">${fmt(cyVal)}</span></td>`;
@@ -910,7 +910,7 @@ html += `<td style="padding:2px 3px;${growthBorder}" colspan="3"><span class="va
   html += '<td class="month-cell" style="padding:5px 4px;font-size:10px;font-weight:800">Total</td>';
   types.forEach((t, ti) => {
     const isLastType = ti === types.length - 1;
-    const growthBorder = isLastType ? '' : 'border-right:2px solid #000;';
+    const growthBorder = isLastType ? '' : 'border-right:2px solid #ccc;';
     if (t === 'notVisited') {
       const cyVal = ttl.cy[t] || 0;
       html += `<td style="padding:5px 4px;${growthBorder}" colspan="3"><span class="val-box" style="font-size:10px;min-width:32px;padding:2px 4px;background:#fee2e2;color:#dc2626;border:none;font-weight:800">${fmt(cyVal)}</span></td>`;
@@ -976,33 +976,33 @@ function buildDailyTable(data, filter, label, yesterday, yyy, yesterdayLabel) {
   if (!sorted.length) return '';
   const maxMtd = sorted[0][1].mtd;
   const mtdSum = sorted.reduce((s,[_,v]) => s + v.mtd, 0);
-  const labelColors = { all:'#1a1a1a', New:'#1a1a1a', Renewal:'#1a1a1a' };
-  const color = labelColors[filter] || '#1a1a1a';
-  let h = `<div style="margin-top:${label==='All'?'0':'6px'};border:1px solid #000;overflow:hidden">
+  const labelColors = { all:'#333', New:'#333', Renewal:'#333' };
+  const color = labelColors[filter] || '#333';
+  let h = `<div style="margin-top:${label==='All'?'0':'6px'};border:1px solid #ccc;overflow:hidden">
     <div style="display:flex;align-items:center;padding:2px 8px;background:${color};color:#fff;font-size:8px;font-weight:600">${label}</div>
-    <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:8px;border:1px solid #000">
+    <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:8px;border:1px solid #ccc">
       <thead><tr style="background:${color}">
-        <th style="padding:1px 3px;text-align:center;font-size:6px;text-transform:uppercase;color:#fff;border:1px solid #000;white-space:nowrap">Company</th>
-        <th style="padding:1px 3px;text-align:center;font-size:6px;text-transform:uppercase;color:#fff;border:1px solid #000;white-space:nowrap">Y'day<div style="font-weight:400;font-size:5px;color:rgba(255,255,255,0.7);text-transform:none">${yesterdayLabel}</div></th>
-        <th style="padding:1px 3px;text-align:center;font-size:6px;text-transform:uppercase;color:#fff;border:1px solid #000;white-space:nowrap">Prem (₹)</th>
-        <th style="padding:1px 3px;text-align:center;font-size:6px;text-transform:uppercase;color:#fff;border:1px solid #000;white-space:nowrap">IDV (₹)</th>
-        <th style="padding:1px 3px;text-align:center;font-size:6px;text-transform:uppercase;color:#fff;border:1px solid #000;white-space:nowrap">MTD</th>
-        <th style="padding:1px 3px;text-align:center;font-size:6px;text-transform:uppercase;color:#fff;border:1px solid #000;white-space:nowrap">MTD Prem (₹)</th>
-        <th style="padding:1px 3px;text-align:center;font-size:6px;text-transform:uppercase;color:#fff;border:1px solid #000;white-space:nowrap">MTD IDV (₹)</th>
-        <th style="padding:1px 3px;text-align:center;font-size:6px;text-transform:uppercase;color:#fff;border:1px solid #000">Share %</th>
+        <th style="padding:1px 3px;text-align:center;font-size:6px;text-transform:uppercase;color:#fff;border:1px solid #ccc;white-space:nowrap">Company</th>
+        <th style="padding:1px 3px;text-align:center;font-size:6px;text-transform:uppercase;color:#fff;border:1px solid #ccc;white-space:nowrap">Y'day<div style="font-weight:400;font-size:5px;color:rgba(255,255,255,0.7);text-transform:none">${yesterdayLabel}</div></th>
+        <th style="padding:1px 3px;text-align:center;font-size:6px;text-transform:uppercase;color:#fff;border:1px solid #ccc;white-space:nowrap">Prem (₹)</th>
+        <th style="padding:1px 3px;text-align:center;font-size:6px;text-transform:uppercase;color:#fff;border:1px solid #ccc;white-space:nowrap">IDV (₹)</th>
+        <th style="padding:1px 3px;text-align:center;font-size:6px;text-transform:uppercase;color:#fff;border:1px solid #ccc;white-space:nowrap">MTD</th>
+        <th style="padding:1px 3px;text-align:center;font-size:6px;text-transform:uppercase;color:#fff;border:1px solid #ccc;white-space:nowrap">MTD Prem (₹)</th>
+        <th style="padding:1px 3px;text-align:center;font-size:6px;text-transform:uppercase;color:#fff;border:1px solid #ccc;white-space:nowrap">MTD IDV (₹)</th>
+        <th style="padding:1px 3px;text-align:center;font-size:6px;text-transform:uppercase;color:#fff;border:1px solid #ccc">Share %</th>
       </tr></thead><tbody>`;
   sorted.forEach(([comp, vals], i) => {
     const pct = maxMtd ? (vals.mtd / maxMtd * 100) : 0;
     const share = mtdSum ? (vals.mtd / mtdSum * 100).toFixed(1) : 0;
-    h += `<tr style="border-bottom:1px solid #000">
-      <td style="padding:1px 3px;font-weight:600;color:#000;font-size:7px;text-align:center;border:1px solid #000">${comp}</td>
-      <td style="padding:1px 3px;text-align:center;border:1px solid #000"><span style="background:#444;color:#fff;padding:1px 4px;border-radius:4px;font-weight:700;font-size:8px">${fmt(vals.yesterday)}</span></td>
-      <td style="padding:1px 3px;text-align:center;border:1px solid #000;font-weight:600;color:#000;font-size:7px;white-space:nowrap">${fmtRs(vals.yesterdayPremium)}</td>
-      <td style="padding:1px 3px;text-align:center;border:1px solid #000;font-weight:600;color:#000;font-size:7px;white-space:nowrap">${fmtRs(vals.yesterdayIdv)}</td>
-      <td style="padding:1px 3px;text-align:center;border:1px solid #000;font-weight:600;color:#000;font-size:8px">${fmt(vals.mtdCount)}</td>
-      <td style="padding:1px 3px;text-align:center;border:1px solid #000;font-weight:600;color:#000;font-size:7px;white-space:nowrap">${fmtRs(vals.mtd)}</td>
-      <td style="padding:1px 3px;text-align:center;border:1px solid #000;font-weight:600;color:#000;font-size:7px;white-space:nowrap">${fmtRs(vals.mtdIdv)}</td>
-      <td style="padding:1px 3px;text-align:center;border:1px solid #000"><span style="color:#000;font-size:7px">${share}%</span></td>
+    h += `<tr style="border-bottom:1px solid #ccc">
+      <td style="padding:1px 3px;font-weight:600;color:#000;font-size:7px;text-align:center;border:1px solid #ccc">${comp}</td>
+      <td style="padding:1px 3px;text-align:center;border:1px solid #ccc"><span style="background:#555;color:#fff;padding:1px 4px;border-radius:4px;font-weight:700;font-size:8px">${fmt(vals.yesterday)}</span></td>
+      <td style="padding:1px 3px;text-align:center;border:1px solid #ccc;font-weight:600;color:#000;font-size:7px;white-space:nowrap">${fmtRs(vals.yesterdayPremium)}</td>
+      <td style="padding:1px 3px;text-align:center;border:1px solid #ccc;font-weight:600;color:#000;font-size:7px;white-space:nowrap">${fmtRs(vals.yesterdayIdv)}</td>
+      <td style="padding:1px 3px;text-align:center;border:1px solid #ccc;font-weight:600;color:#000;font-size:8px">${fmt(vals.mtdCount)}</td>
+      <td style="padding:1px 3px;text-align:center;border:1px solid #ccc;font-weight:600;color:#000;font-size:7px;white-space:nowrap">${fmtRs(vals.mtd)}</td>
+      <td style="padding:1px 3px;text-align:center;border:1px solid #ccc;font-weight:600;color:#000;font-size:7px;white-space:nowrap">${fmtRs(vals.mtdIdv)}</td>
+      <td style="padding:1px 3px;text-align:center;border:1px solid #ccc"><span style="color:#000;font-size:7px">${share}%</span></td>
     </tr>`;
   });
   const totalYesterday = sorted.reduce((s,[_,v]) => s + v.yesterday, 0);
@@ -1011,15 +1011,15 @@ function buildDailyTable(data, filter, label, yesterday, yyy, yesterdayLabel) {
   const totalMtdCount = sorted.reduce((s,[_,v]) => s + v.mtdCount, 0);
   const totalMtd = sorted.reduce((s,[_,v]) => s + v.mtd, 0);
   const totalMtdIdv = sorted.reduce((s,[_,v]) => s + v.mtdIdv, 0);
-  h += `<tr style="background:#2a2a2a;font-weight:700;border-top:1px solid #000">
-    <td style="padding:1px 3px;color:#fff;font-size:7px;text-align:center;border:1px solid #000">Total</td>
-    <td style="padding:1px 3px;text-align:center;border:1px solid #000"><span style="background:#1a1a1a;color:#fff;padding:1px 4px;border-radius:4px;font-size:8px">${fmt(totalYesterday)}</span></td>
-    <td style="padding:1px 3px;text-align:center;border:1px solid #000;font-size:7px;white-space:nowrap;font-weight:700;color:#fff">${fmtRs(totalYesterdayPrem)}</td>
-    <td style="padding:1px 3px;text-align:center;border:1px solid #000;font-size:7px;white-space:nowrap;font-weight:700;color:#fff">${fmtRs(totalYesterdayIdv)}</td>
-    <td style="padding:1px 3px;text-align:center;border:1px solid #000;font-size:8px;font-weight:700;color:#fff">${fmt(totalMtdCount)}</td>
-    <td style="padding:1px 3px;text-align:center;border:1px solid #000;font-size:7px;white-space:nowrap;font-weight:700;color:#fff">${fmtRs(totalMtd)}</td>
-    <td style="padding:1px 3px;text-align:center;border:1px solid #000;font-size:7px;white-space:nowrap;font-weight:700;color:#fff">${fmtRs(totalMtdIdv)}</td>
-    <td style="padding:1px 3px;text-align:center;border:1px solid #000;font-size:7px;color:#fff">100%</td>
+  h += `<tr style="background:#555;font-weight:700;border-top:1px solid #ccc">
+    <td style="padding:1px 3px;color:#fff;font-size:7px;text-align:center;border:1px solid #ccc">Total</td>
+    <td style="padding:1px 3px;text-align:center;border:1px solid #ccc"><span style="background:#333;color:#fff;padding:1px 4px;border-radius:4px;font-size:8px">${fmt(totalYesterday)}</span></td>
+    <td style="padding:1px 3px;text-align:center;border:1px solid #ccc;font-size:7px;white-space:nowrap;font-weight:700;color:#fff">${fmtRs(totalYesterdayPrem)}</td>
+    <td style="padding:1px 3px;text-align:center;border:1px solid #ccc;font-size:7px;white-space:nowrap;font-weight:700;color:#fff">${fmtRs(totalYesterdayIdv)}</td>
+    <td style="padding:1px 3px;text-align:center;border:1px solid #ccc;font-size:8px;font-weight:700;color:#fff">${fmt(totalMtdCount)}</td>
+    <td style="padding:1px 3px;text-align:center;border:1px solid #ccc;font-size:7px;white-space:nowrap;font-weight:700;color:#fff">${fmtRs(totalMtd)}</td>
+    <td style="padding:1px 3px;text-align:center;border:1px solid #ccc;font-size:7px;white-space:nowrap;font-weight:700;color:#fff">${fmtRs(totalMtdIdv)}</td>
+    <td style="padding:1px 3px;text-align:center;border:1px solid #ccc;font-size:7px;color:#fff">100%</td>
   </tr>`;
   h += '</tbody></table></div></div>';
   return h;
@@ -1046,11 +1046,11 @@ function renderDailyPerformance(sourceData) {
   const filterOpts = ['all','New','Renewal','screenshot'];
   const isScreen = dailyFilter === 'screenshot';
 
-  let html = `<div style="background:#fff;border:1px solid #000;overflow:hidden">
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 8px;border-bottom:1px solid #000;background:linear-gradient(135deg,#1a1a1a,#555)">
+  let html = `<div style="background:#fff;border:1px solid #ccc;overflow:hidden">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 8px;border-bottom:1px solid #ccc;background:linear-gradient(135deg,#333,#777)">
       <div style="display:flex;align-items:center;gap:6px">
         <h3 style="font-size:10px;font-weight:600;display:flex;align-items:center;gap:4px;color:#fff">&#128202; Daily Performance</h3>
-        <select id="dailyTypeFilter" onchange="renderDailyPerformance(allData)" style="padding:1px 3px;border:1px solid #000;border-radius:2px;background:#fff;color:#1a1a1a;font-size:7px;font-weight:500;outline:none;cursor:pointer;max-height:16px">
+        <select id="dailyTypeFilter" onchange="renderDailyPerformance(allData)" style="padding:1px 3px;border:1px solid #ccc;border-radius:2px;background:#fff;color:#333;font-size:7px;font-weight:500;outline:none;cursor:pointer;max-height:16px">
           ${filterOpts.map(o => `<option value="${o}"${dailyFilter===o?' selected':''} style="font-size:7px">${o==='all'?'All':o==='screenshot'?'&#x1F4F7; Screenshot':o}</option>`).join('')}
         </select>
         ${isScreen?'<span onclick="document.getElementById(\'dailyTypeFilter\').value=\'all\';renderDailyPerformance(allData)" style="cursor:pointer;font-size:10px;color:#fff;opacity:.7;background:rgba(255,255,255,0.15);padding:0 6px;border-radius:3px" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.7">&#x2715; Close</span>':''}
@@ -1270,7 +1270,7 @@ function showVinTrack() {
     const statusColor = '#d97706';
     const statusBg = '#fef3c7';
     html += '<tr>' +
-      '<td style="font-size:10px;font-weight:600;color:#1a1a1a">'+r.lyName+' '+ly+'</td>' +
+      '<td style="font-size:10px;font-weight:600;color:#333">'+r.lyName+' '+ly+'</td>' +
       '<td style="font-size:10px;font-family:monospace">'+r.vin+'</td>' +
       '<td style="font-size:10px">'+r.cyMonths+'</td>' +
       '<td style="font-size:10px">'+r.cyPolicy+'</td>' +
@@ -1494,14 +1494,14 @@ function loadExportData() {
     const [y,mo] = ym.split('-');
     const label = monthNames[parseInt(mo)]+' '+y;
     const isCy = parseInt(y) === cy;
-    const headBg = isCy ? '#2a2a2a' : '#fefce8';
+    const headBg = isCy ? '#444' : '#fefce8';
     const headBorder = isCy ? '#555' : '#f59e0b';
     html += '<tr style="background:'+headBg+';border-bottom:1px solid '+headBorder+'">' +
       '<td colspan="7" style="padding:3px 6px;font-size:9px;font-weight:700;color:'+headBorder+'">'+label+' <span style="font-weight:400;color:#000">('+rows.length+' records)</span></td>' +
     '</tr>';
     rows.forEach(r => {
       idx++;
-      const ptColor = r.policytype==='New' ? '#1a1a1a' : (r.policytype==='Renewal' ? '#059669' : '#000');
+      const ptColor = r.policytype==='New' ? '#333' : (r.policytype==='Renewal' ? '#059669' : '#000');
       html += '<tr>' +
         '<td style="font-size:8px;color:#666;text-align:center">'+idx+'</td>' +
         '<td style="font-size:9px">'+r.create_date+'</td>' +
