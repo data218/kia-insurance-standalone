@@ -507,7 +507,9 @@ function cachedFetch(url, ttl, bypass) {
       if (item) { var p = JSON.parse(item); if (Date.now() - p.ts < ttl) return Promise.resolve(p.data); }
     } catch(e) {}
   }
-  return fetch(url).then(function(r){ return r.json().then(function(d){ if(!bypass) sessionStorage.setItem('cf_' + url, JSON.stringify({ts:Date.now(),data:d})); return d; }); });
+  var token = localStorage.getItem('authToken');
+  var authUrl = url + (url.includes('?') ? '&' : '?') + 'token=' + encodeURIComponent(token || '');
+  return fetch(authUrl).then(function(r){ return r.json().then(function(d){ if(!bypass) sessionStorage.setItem('cf_' + url, JSON.stringify({ts:Date.now(),data:d})); return d; }); });
 }
 
 async function onRefresh() {
