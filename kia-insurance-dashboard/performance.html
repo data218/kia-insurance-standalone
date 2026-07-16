@@ -937,7 +937,7 @@ html += `<td style="padding:2px 3px;${growthBorder}" colspan="3"><span class="va
   document.getElementById('tableContainer').innerHTML = html;
 }
 
-function fmtRs(v) { return Math.round(v).toLocaleString('en-IN') + ' rs'; }
+function fmtRs(v) { return Math.round(v).toLocaleString('en-IN'); }
 
 function buildDailyTable(data, filter, label, yesterday, yyy, yesterdayLabel) {
   let tblData = data;
@@ -985,11 +985,11 @@ function buildDailyTable(data, filter, label, yesterday, yyy, yesterdayLabel) {
       <thead><tr style="background:${color}">
         <th style="padding:1px 3px;text-align:center;font-size:6px;text-transform:uppercase;color:#fff;border:1px solid #ccc;white-space:nowrap">Company</th>
         <th style="padding:1px 3px;text-align:center;font-size:6px;text-transform:uppercase;color:#fff;border:1px solid #ccc;white-space:nowrap">Y'day<div style="font-weight:400;font-size:5px;color:rgba(255,255,255,0.7);text-transform:none">${yesterdayLabel}</div></th>
-        <th style="padding:1px 3px;text-align:center;font-size:6px;text-transform:uppercase;color:#fff;border:1px solid #ccc;white-space:nowrap">Prem (₹)</th>
-        <th style="padding:1px 3px;text-align:center;font-size:6px;text-transform:uppercase;color:#fff;border:1px solid #ccc;white-space:nowrap">IDV (₹)</th>
+        <th style="padding:1px 3px;text-align:center;font-size:6px;text-transform:uppercase;color:#fff;border:1px solid #ccc;white-space:nowrap">Prem</th>
+        <th style="padding:1px 3px;text-align:center;font-size:6px;text-transform:uppercase;color:#fff;border:1px solid #ccc;white-space:nowrap">IDV</th>
         <th style="padding:1px 3px;text-align:center;font-size:6px;text-transform:uppercase;color:#fff;border:1px solid #ccc;white-space:nowrap">MTD</th>
-        <th style="padding:1px 3px;text-align:center;font-size:6px;text-transform:uppercase;color:#fff;border:1px solid #ccc;white-space:nowrap">MTD Prem (₹)</th>
-        <th style="padding:1px 3px;text-align:center;font-size:6px;text-transform:uppercase;color:#fff;border:1px solid #ccc;white-space:nowrap">MTD IDV (₹)</th>
+        <th style="padding:1px 3px;text-align:center;font-size:6px;text-transform:uppercase;color:#fff;border:1px solid #ccc;white-space:nowrap">MTD Prem</th>
+        <th style="padding:1px 3px;text-align:center;font-size:6px;text-transform:uppercase;color:#fff;border:1px solid #ccc;white-space:nowrap">MTD IDV</th>
         <th style="padding:1px 3px;text-align:center;font-size:6px;text-transform:uppercase;color:#fff;border:1px solid #ccc">Share %</th>
       </tr></thead><tbody>`;
   sorted.forEach(([comp, vals], i) => {
