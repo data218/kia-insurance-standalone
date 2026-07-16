@@ -786,10 +786,8 @@ function toggleToolbar() {
   document.getElementById('toolbarPanel').classList.toggle('collapsed');
 }
 
-loadData();
-</script>
-<script>
 (function(){ var t=new URLSearchParams(window.location.search).get('token'); if(t) localStorage.setItem('authToken',t); t=localStorage.getItem('authToken'); if(t) fetch('/api/auth/log-activity',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:t,action:'view',page:'data-analysis'}),keepalive:true}).catch(function(){}); })();
+loadData();
 </script>
 </body>
 </html>
