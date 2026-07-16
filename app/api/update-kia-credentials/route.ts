@@ -7,8 +7,8 @@ export const dynamic = 'force-dynamic'
 export async function POST(req: Request) {
   try {
     const { token, username, password } = await req.json()
-    const auth = validateToken(token || '')
-    if (!auth.valid) {
+    const result = validateToken(token || '')
+    if (!result.valid) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
 

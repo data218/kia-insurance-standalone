@@ -1,10 +1,23 @@
 import { NextResponse } from 'next/server'
 import { fetchAll } from '@/lib/kia-insurance/supabase'
+import { checkCookie, validateToken } from '@/lib/kia-insurance/auth'
 
 export const dynamic = 'force-dynamic'
 
-export async function GET() {
+function authenticate(req: Request): boolean {
+  if (checkCookie(req).valid) return true
+  const url = new URL(req.url)
+  const token = url.searchParams.get('token')
+  if (token && validateToken(token).valid) return true
+  return false
+}
+
+export async function GET(req: Request) {
   try {
+    if (!authenticate(req)) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const rows = await fetchAll('kia_insurance')
     const vinMap: Record<string, { customer: string; model: string; lastPremium: number; lastDate: string; status: string }> = {}
     for (const r of rows) {
