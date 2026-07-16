@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+// @ts-expect-error pg has no type declarations
 import pg from 'pg'
 
 export async function POST(req: Request) {
