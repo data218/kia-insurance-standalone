@@ -803,23 +803,15 @@ function render() {
   applyZoom();
 }
 
-function growthClass(v) {
-  if (v > 0) return 'growth-up';
-  if (v < 0) return 'growth-down';
-  return 'growth-flat';
-}
+function growthClass(v) { return 'growth-flat'; }
 
-function growthArrow(v) {
-  if (v > 0) return '\u25B2';
-  if (v < 0) return '\u25BC';
-  return '\u25C6';
-}
+function growthArrow(v) { return ''; }
 
 function growthBox(a,b) {
   if (!b) return '<span class="growth-box">&nbsp;</span>';
   const v = ((a - b) / b * 100);
-  const pct = Math.abs(v).toFixed(1);
-  return `<span class="growth-box ${growthClass(v)}">${growthArrow(v)} ${pct} %</span>`;
+  const pct = v.toFixed(1);
+  return `<span style="font-weight:600">${pct}%</span>`;
 }
 
 function renderInfo(stats, totals, ly, cy, allCyVins, allLyVins) {
@@ -832,7 +824,7 @@ function renderInfo(stats, totals, ly, cy, allCyVins, allLyVins) {
   let growthHtml = '';
   if (totalLy) {
     const g = ((totalCy - totalLy) / totalLy * 100);
-    growthHtml = `<span class="growth-box ${growthClass(g)}">${growthArrow(g)} ${Math.abs(g).toFixed(1)} %</span>`;
+    growthHtml = `<span style="font-weight:600">${g.toFixed(1)}%</span>`;
   }
   document.getElementById('infoBar').innerHTML = `
     <div class="info-box" style="border-left:3px solid #333"><div class="num">${fmt(totalLy)}</div><div><div class="lbl">${ly} Total VINs</div><div class="sub">LY policies</div></div></div>
