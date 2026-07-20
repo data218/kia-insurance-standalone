@@ -206,6 +206,22 @@ tr:last-child td { border-bottom:none; }
 .th-filter { display:flex; flex-direction:column; gap:1px; }
 .th-filter select { padding:1px 3px; border:none; border-radius:3px; background:rgba(255,255,255,.2); color:#fff; font-size:7px; cursor:pointer; outline:none; max-width:100%; }
 .th-filter select option { background:#2d2d2d; color:#fff; }
+
+/* MULTI-SELECT DROPDOWN */
+.ms-wrap { position:relative; }
+.ms-btn { padding:1px 3px; border:none; border-radius:3px; background:rgba(255,255,255,.2); color:#fff; font-size:7px; cursor:pointer; text-align:left; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; display:flex; align-items:center; justify-content:space-between; gap:2px; }
+.ms-btn:hover { background:rgba(255,255,255,.3); }
+.ms-panel { position:absolute; top:100%; left:0; min-width:180px; background:#1a1a1a; border:1px solid rgba(255,255,255,.2); border-radius:4px; z-index:60; display:none; box-shadow:0 4px 16px rgba(0,0,0,.4); margin-top:2px; }
+.ms-panel.show { display:block; }
+.ms-panel-head { padding:4px 6px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,.1); }
+.ms-panel-head span { font-size:8px; color:rgba(255,255,255,.7); font-weight:600; }
+.ms-panel-head .ms-cancel { font-size:8px; color:#ef4444; cursor:pointer; background:none; border:none; font-weight:600; padding:0; }
+.ms-panel-head .ms-cancel:hover { color:#fca5a5; }
+.ms-items { max-height:160px; overflow-y:auto; padding:2px 0; }
+.ms-item { padding:3px 6px; font-size:9px; color:#fff; cursor:pointer; display:flex; align-items:center; gap:5px; }
+.ms-item:hover { background:rgba(255,255,255,.1); }
+.ms-item input[type="checkbox"] { width:10px; height:10px; accent-color:#3b82f6; cursor:pointer; flex-shrink:0; }
+.ms-count { font-size:8px; color:rgba(255,255,255,.6); padding:3px 6px; border-top:1px solid rgba(255,255,255,.1); text-align:center; }
 </style>
 </head>
 <body>
@@ -497,6 +513,7 @@ let currentPage = 0;
 const PAGE_SIZE = 20;
 let filterModel = 'all';
 let filterInsurer = 'all';
+let filterFollowupDates = [];
 let dropdownOptions = { models: [], insurers: [] };
 
 function getAgents() { try { return JSON.parse(localStorage.getItem('cc_agents') || '[]'); } catch(e) { return []; } }
@@ -551,6 +568,29 @@ async function loadDropdownOptions() {
     setupAutocomplete('meModel', 'meModelAC', dropdownOptions.models);
     setupAutocomplete('meInsurer', 'meInsurerAC', dropdownOptions.insurers);
   } catch(e) {}
+}
+
+function toggleFuDatePanel(btn) {
+  var panel = btn.nextElementSibling;
+  var isOpen = panel.classList.contains('show');
+  document.querySelectorAll('.ms-panel').forEach(function(p){p.classList.remove('show');});
+  if (!isOpen) panel.classList.add('show');
+}
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.ms-wrap')) document.querySelectorAll('.ms-panel').forEach(function(p){p.classList.remove('show');});
+});
+
+function toggleFollowupDate(val, checked) {
+  if (checked) { if (filterFollowupDates.indexOf(val) === -1) filterFollowupDates.push(val); }
+  else { filterFollowupDates = filterFollowupDates.filter(function(d){return d !== val;}); }
+  currentPage = 0;
+  renderTable();
+}
+
+function clearFollowupDates() {
+  filterFollowupDates = [];
+  currentPage = 0;
+  renderTable();
 }
 
 function fmtDate(d) {
@@ -662,6 +702,13 @@ function renderTable() {
   if (filterInsurer !== 'all') {
     filtered = filtered.filter(function(x){return (x.insurancecompany||'-') === filterInsurer;});
   }
+  if (filterFollowupDates.length > 0) {
+    filtered = filtered.filter(function(x){
+      if (!x.follow_up_date) return false;
+      var fd = x.follow_up_date.slice(0,10);
+      return filterFollowupDates.indexOf(fd) !== -1;
+    });
+  }
   if (statusFilter !== 'all') {
     const targetStatus = statusFilter.replace(/-/g,' ').toLowerCase();
     if (targetStatus === 'follow up') {
@@ -689,13 +736,26 @@ function renderTable() {
   const pageData = filtered.slice(start, start + PAGE_SIZE);
   var models = [...new Set(allDue.map(function(r){return r.model||'-';}))].sort();
   var insurers = [...new Set(allDue.map(function(r){return r.insurancecompany||'-';}))].sort();
+  var fuDates = [...new Set(allDue.filter(function(r){return r.follow_up_date;}).map(function(r){return r.follow_up_date.slice(0,10);}))].sort();
   var modelOpts = '<option value="all">All</option>';
   models.forEach(function(m){ modelOpts += '<option value="'+m.replace(/"/g,'&quot;')+'"'+(filterModel===m?' selected':'')+'>'+m+'</option>'; });
   var insurerOpts = '<option value="all">All</option>';
   insurers.forEach(function(ins){ insurerOpts += '<option value="'+ins.replace(/"/g,'&quot;')+'"'+(filterInsurer===ins?' selected':'')+'>'+ins+'</option>'; });
+  var fuDateItems = '';
+  fuDates.forEach(function(dt){
+    var checked = filterFollowupDates.indexOf(dt) !== -1 ? ' checked' : '';
+    var label = fmtDateShort(dt);
+    fuDateItems += '<label class="ms-item"><input type="checkbox" value="'+dt+'"'+checked+' onchange="toggleFollowupDate(this.value,this.checked)"> ' + label + '</label>';
+  });
+  var fuDateCount = filterFollowupDates.length > 0 ? ' (' + filterFollowupDates.length + ')' : '';
+  var fuDateLabel = filterFollowupDates.length > 0 ? filterFollowupDates.length + ' selected' : 'All';
+  var fuDateFilter = '<div class="ms-wrap"><button class="ms-btn" onclick="toggleFuDatePanel(this)">' + fuDateLabel + ' &#9662;</button>' +
+    '<div class="ms-panel"><div class="ms-panel-head"><span>Follow-up Dates' + fuDateCount + '</span>' +
+    (filterFollowupDates.length > 0 ? '<button class="ms-cancel" onclick="clearFollowupDates()">Clear</button>' : '') +
+    '</div><div class="ms-items">' + (fuDateItems || '<div style="padding:6px;font-size:9px;color:rgba(255,255,255,.5)">No follow-up dates</div>') + '</div></div></div>';
   var h = '<div class="table-scroll"><table><thead><tr>' +
     '<th>#</th><th>Customer</th><th>Contact</th><th>VIN</th><th><div class="th-filter"><span>Model</span><select onchange="filterModel=this.value;currentPage=0;renderTable()">'+modelOpts+'</select></div></th><th>Policy</th>' +
-    '<th>Expiry</th><th><div class="th-filter"><span>Insurer</span><select onchange="filterInsurer=this.value;currentPage=0;renderTable()">'+insurerOpts+'</select></div></th><th>Risk Start</th><th>Created</th><th>Premium</th><th>Attempts</th><th>Status</th><th>Last Call</th><th>Remarks</th><th>Next Followup Date</th><th>Action</th><th>History</th>' +
+    '<th>Expiry</th><th><div class="th-filter"><span>Insurer</span><select onchange="filterInsurer=this.value;currentPage=0;renderTable()">'+insurerOpts+'</select></div></th><th>Risk Start</th><th>Created</th><th>Premium</th><th>Attempts</th><th>Status</th><th>Last Call</th><th>Remarks</th><th><div class="th-filter"><span>Next Followup</span>' + fuDateFilter + '</div></th><th>Action</th><th>History</th>' +
     '</tr></thead><tbody>';
   if (!pageData.length) {
     h += '<tr><td colspan="18" style="text-align:center;padding:20px;color:var(--muted);font-size:11px">&#128203; No due policies found' + (q ? ' matching "' + q + '"' : '') + '</td></tr>';
