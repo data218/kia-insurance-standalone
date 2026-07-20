@@ -74,16 +74,18 @@ export async function POST(req: Request) {
     }
 
     if (follow_up_date && policyno) {
-      await supabase.from('call_logs').insert({
-        policyno, vinno: vinno || '', customer_name: customer_name || '',
-        model: model || '', insurancecompany: insurancecompany || '',
-        grosspremium: grosspremium ? Number(grosspremium) : null,
-        policy_expiry_date: policy_expiry_date || '',
-        call_outcome: 'Follow-up', follow_up_date,
-        agent_name: source_agent || '', mobile_no: mobile_no || '',
-        call_date: new Date().toISOString(),
-        remarks: 'Initial follow-up set during manual entry',
-      }).then(() => {}).catch(() => {})
+      try {
+        await supabase.from('call_logs').insert({
+          policyno, vinno: vinno || '', customer_name: customer_name || '',
+          model: model || '', insurancecompany: insurancecompany || '',
+          grosspremium: grosspremium ? Number(grosspremium) : null,
+          policy_expiry_date: policy_expiry_date || '',
+          call_outcome: 'Follow-up', follow_up_date,
+          agent_name: source_agent || '', mobile_no: mobile_no || '',
+          call_date: new Date().toISOString(),
+          remarks: 'Initial follow-up set during manual entry',
+        })
+      } catch (_) {}
     }
 
     return NextResponse.json({ success: true, entry: data })
