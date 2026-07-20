@@ -333,12 +333,27 @@ tr:last-child td { border-bottom:none; }
 /* FILTER AGENT SELECT */
 .ap-filters select#apAgentFilter { min-width:120px; }
 
+/* CATEGORY TABS */
+.ap-cats { display:flex; gap:4px; flex-wrap:wrap; margin-bottom:14px; padding:8px 12px; background:#f1f5f9; border-radius:8px; border:1px solid #e2e8f0; }
+.ap-cat-btn { padding:5px 12px; font-size:10px; font-weight:600; border:1px solid #d1d5db; border-radius:6px; background:#fff; color:#475569; cursor:pointer; transition:all .15s; white-space:nowrap; }
+.ap-cat-btn:hover { background:#e2e8f0; }
+.ap-cat-btn.active { background:linear-gradient(135deg,#6366f1,#818cf8); color:#fff; border-color:#6366f1; }
+.ap-cat-btn .cat-count { font-size:9px; opacity:.7; margin-left:3px; }
+
+/* CATEGORY STATS ROW */
+.ap-cat-stats { display:grid; grid-template-columns:repeat(6,1fr); gap:6px; margin-bottom:14px; }
+.ap-cat-stat { text-align:center; padding:6px 4px; border-radius:6px; border:1px solid #e2e8f0; background:#fff; }
+.ap-cat-stat .cs-num { font-size:14px; font-weight:800; color:#1e293b; }
+.ap-cat-stat .cs-lbl { font-size:7px; color:#64748b; text-transform:uppercase; font-weight:600; letter-spacing:.3px; }
+
 @media(max-width:768px) {
   .ap-overview { grid-template-columns:repeat(4,1fr); }
   .ap-top { flex-direction:column; text-align:center; }
   .ap-top .top-stats { margin-left:0; }
   .ap-grid-2col { grid-template-columns:1fr; }
   .ap-filters { flex-direction:column; align-items:stretch; }
+  .ap-cat-stats { grid-template-columns:repeat(3,1fr); }
+  .ap-cats { gap:3px; }
 }
 </style>
 </head>
@@ -627,6 +642,8 @@ tr:last-child td { border-bottom:none; }
         <button class="ap-reset-btn" onclick="resetApFilters()">Reset</button>
       </div>
       <div id="apContent">
+        <div class="ap-cats" id="apCats"></div>
+        <div class="ap-cat-stats" id="apCatStats"></div>
         <div style="text-align:center;padding:40px;color:#64748b"><div class="spin" style="border-color:#e2e8f0;border-top-color:#6366f1"></div><br>Loading...</div>
       </div>
     </div>
@@ -1245,9 +1262,15 @@ document.getElementById('meAgentName').addEventListener('change', function() {
 
 // AGENT PERFORMANCE DASHBOARD
 var apAllLogs = [];
+var apAllInsurance = [];
+var apCategory = 'overall';
+var apCatData = {};
+var apCanonicalMap = {};
+
 function openAgentPerf() {
   document.getElementById('agentPerfOverlay').classList.add('show');
-  loadApLogs();
+  apCategory = 'overall';
+  loadApData();
 }
 function closeAgentPerf() {
   document.getElementById('agentPerfOverlay').classList.remove('show');
@@ -1258,175 +1281,258 @@ document.getElementById('agentPerfOverlay').addEventListener('click', function(e
 
 function normalizeAgentName(raw) {
   if (!raw) return '';
-  var t = raw.trim();
-  if (!t) return '';
-  return t.split(/\s+/).map(function(w) { return w.charAt(0).toUpperCase() + w.slice(1).toLowerCase(); }).join(' ');
+  return raw.trim().split(/\s+/).map(function(w) { return w.charAt(0).toUpperCase() + w.slice(1).toLowerCase(); }).join(' ');
+}
+
+function buildCanonicalMap() {
+  var agents = getAgents();
+  var map = {};
+  agents.forEach(function(a) {
+    map[a.toLowerCase().trim()] = a;
+    a.toLowerCase().trim().split(/\s+/).forEach(function(word) {
+      map[word] = a;
+    });
+  });
+  return map;
+}
+
+function matchAgent(rawName) {
+  if (!rawName || !rawName.trim()) return 'Unassigned';
+  var n = normalizeAgentName(rawName);
+  var key = n.toLowerCase().trim();
+  if (apCanonicalMap[key]) return apCanonicalMap[key];
+  var words = key.split(/\s+/);
+  for (var i = 0; i < words.length; i++) {
+    if (apCanonicalMap[words[i]]) return apCanonicalMap[words[i]];
+  }
+  for (var ck in apCanonicalMap) {
+    if (key.indexOf(ck) !== -1 || ck.indexOf(key) !== -1) return apCanonicalMap[ck];
+  }
+  return n;
 }
 
 function resetApFilters() {
   document.getElementById('apDateFrom').value = '';
   document.getElementById('apDateTo').value = '';
   document.getElementById('apAgentFilter').value = 'all';
+  apCategory = 'overall';
   renderAgentPerf();
 }
 
-async function loadApLogs() {
+function setApCategory(cat) {
+  apCategory = cat;
+  renderAgentPerf();
+}
+
+function categorizeInsurance(rows) {
+  var now = new Date();
+  var cyYm = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
+  var ly = now.getFullYear() - 1;
+  var lyFull = ly + '-' + String(now.getMonth()+1).padStart(2,'0');
+
+  var vinFirstSeen = {};
+  var vinNewType = {};
+  rows.forEach(function(r) {
+    if (!r.vinno || !r.create_date) return;
+    if (!vinFirstSeen[r.vinno] || r.create_date < vinFirstSeen[r.vinno]) {
+      vinFirstSeen[r.vinno] = r.create_date;
+      vinNewType[r.vinno] = r.policytype;
+    }
+  });
+
+  var vinInLyFull = new Set();
+  var vinInCy = new Set();
+  var lyRenewalVins = new Set();
+  var cyRenewalVins = new Set();
+  var cyNewVins = new Set();
+  var lyNewVins = new Set();
+
+  rows.forEach(function(r) {
+    if (!r.vinno || !r.create_date) return;
+    var ym = r.create_date.slice(0, 7);
+    if (ym === lyFull && r.policytype !== 'New') lyRenewalVins.add(r.vinno);
+    if (ym === lyFull && r.policytype === 'New') lyNewVins.add(r.vinno);
+    if (ym.startsWith(ly + '-')) vinInLyFull.add(r.vinno);
+    if (ym === cyYm) { vinInCy.add(r.vinno); if (r.policytype === 'Renewal') cyRenewalVins.add(r.vinno); if (r.policytype === 'New') cyNewVins.add(r.vinno); }
+  });
+
+  var rolloverVins = new Set();
+  var renewalVins = new Set();
+  cyRenewalVins.forEach(function(v) {
+    if (lyNewVins.has(v)) renewalVins.add(v);
+    else rolloverVins.add(v);
+  });
+
+  var catMap = {};
+  rows.forEach(function(r) {
+    var pno = r.policyno || '';
+    var pt = (r.policytype || '').trim();
+    var isNew = (r.is_new || '').trim() === 'Yes' || pt === 'New';
+    var isRenewal = pt === 'Renewal';
+    var isRollover = isRenewal && rolloverVins.has(r.vinno);
+    var isCyRenewal = isRenewal && renewalVins.has(r.vinno);
+    var cat = 'overall';
+    if (isNew) cat = 'new';
+    else if (isRollover) cat = 'rollover';
+    else if (isCyRenewal) cat = 'renewal';
+    else if (isRenewal) cat = 'renewal';
+    if (pno) catMap[pno] = cat;
+  });
+
+  return catMap;
+}
+
+async function loadApData() {
   var content = document.getElementById('apContent');
   try {
-    var logsData = await cachedFetch('/api/call-center/logs', 60000, true);
-    apAllLogs = logsData.logs || [];
-    var agentNames = {};
-    apAllLogs.forEach(function(l) {
-      var n = normalizeAgentName(l.agent_name);
-      if (n) agentNames[n] = 1;
+    var data = await cachedFetch('/api/call-center/performance-data', 60000, true);
+    apAllInsurance = data.insurance || [];
+    apAllLogs = (data.logs || []).map(function(l) {
+      l._agent = matchAgent(l.agent_name);
+      return l;
     });
+
+    apCanonicalMap = buildCanonicalMap();
+    apAllLogs.forEach(function(l) { l._agent = matchAgent(l.agent_name); });
+
+    var agentNames = {};
+    apAllLogs.forEach(function(l) { if (l._agent !== 'Unassigned') agentNames[l._agent] = 1; });
     var sel = document.getElementById('apAgentFilter');
     var cur = sel.value;
     sel.innerHTML = '<option value="all">All Agents</option>' + Object.keys(agentNames).sort().map(function(n) {
       return '<option value="' + n + '">' + n + '</option>';
     }).join('');
     sel.value = cur || 'all';
+
+    var catMap = categorizeInsurance(apAllInsurance);
+    apAllLogs.forEach(function(l) { l._cat = catMap[l.policyno] || 'overall'; });
+
+    var visitedPolicies = new Set();
+    apAllLogs.forEach(function(l) { if (l.policyno) visitedPolicies.add(l.policyno); });
+    var notVisited = apAllInsurance.filter(function(r) { return r.policyno && !visitedPolicies.has(r.policyno); });
+
+    var catCounts = { overall: apAllLogs.length, new: 0, renewal: 0, rollover: 0, 'rollover-to-renew': 0, 'not-visited': notVisited.length };
+    apAllLogs.forEach(function(l) {
+      if (l._cat === 'new') catCounts.new++;
+      else if (l._cat === 'renewal') catCounts.renewal++;
+      else if (l._cat === 'rollover') catCounts.rollover++;
+    });
+
+    apCatData = { catCounts: catCounts, notVisited: notVisited };
+
+    renderCategoryTabs();
     renderAgentPerf();
   } catch(e) {
     content.innerHTML = '<div style="text-align:center;padding:40px;color:#ef4444">&#10060; Error loading: ' + e.message + '</div>';
   }
 }
 
-function renderAgentPerf() {
-  var content = document.getElementById('apContent');
-  if (!apAllLogs.length) {
-    content.innerHTML = '<div style="text-align:center;padding:40px;color:#64748b;font-size:13px">&#128203; No call logs found. Start logging calls to see agent performance.</div>';
-    return;
-  }
+function renderCategoryTabs() {
+  var cc = apCatData.catCounts || {};
+  var cats = [
+    { id: 'overall', label: '&#128203; Overall', count: cc.overall || 0 },
+    { id: 'new', label: '&#10024; New', count: cc['new'] || 0 },
+    { id: 'renewal', label: '&#128260; Renewal', count: cc.renewal || 0 },
+    { id: 'rollover', label: '&#128256; Rollover', count: cc.rollover || 0 },
+    { id: 'rollover-to-renew', label: '&#9889; Rollover to Renew', count: cc['rollover-to-renew'] || 0 },
+    { id: 'not-visited', label: '&#128683; Not Visited', count: cc['not-visited'] || 0 },
+  ];
+  document.getElementById('apCats').innerHTML = cats.map(function(c) {
+    return '<button class="ap-cat-btn' + (apCategory === c.id ? ' active' : '') + '" onclick="setApCategory(\'' + c.id + '\')">' + c.label + ' <span class="cat-count">(' + c.count + ')</span></button>';
+  }).join('');
+}
 
-  var dateFrom = document.getElementById('apDateFrom').value || '';
-  var dateTo = document.getElementById('apDateTo').value || '';
-  var agentFilter = document.getElementById('apAgentFilter').value || 'all';
-
-  var logs = apAllLogs.filter(function(l) {
-    var d = (l.call_date || '').slice(0,10);
-    if (dateFrom && d < dateFrom) return false;
-    if (dateTo && d > dateTo) return false;
-    if (agentFilter !== 'all') {
-      var n = normalizeAgentName(l.agent_name);
-      if (n !== agentFilter) return false;
-    }
-    return true;
+function buildStats(logs) {
+  var stats = { total:0, connected:0, followup:0, nr:0, ni:0, pending:0, policies:new Set(), premium:0, days:new Set() };
+  logs.forEach(function(l) {
+    stats.total++;
+    var o = (l.call_outcome || '').toLowerCase();
+    if (o === 'connected') stats.connected++;
+    else if (o === 'follow-up') stats.followup++;
+    else if (o === 'not reachable') stats.nr++;
+    else if (o === 'not interested') stats.ni++;
+    else stats.pending++;
+    if (l.policyno) stats.policies.add(l.policyno);
+    stats.premium += Number(l.grosspremium) || 0;
+    var cd = (l.call_date || '').slice(0,10);
+    if (cd) stats.days.add(cd);
   });
+  return stats;
+}
 
-  if (!logs.length) {
-    content.innerHTML = '<div style="text-align:center;padding:40px;color:#64748b;font-size:13px">&#128203; No data for selected filters.</div>';
-    return;
-  }
-
-  var agentMap = {};
-  var insurerMap = {};
-  var modelMap = {};
-  var monthMap = {};
-  var workingDays = {};
-
-  logs.forEach(function(log) {
-    var name = normalizeAgentName(log.agent_name) || 'Unassigned';
-    if (!agentMap[name]) agentMap[name] = { total:0, connected:0, nr:0, ni:0, followup:0, wrong:0, pending:0, policies:new Set(), premium:0, days:new Set() };
-    var a = agentMap[name];
+function buildAgentStats(logs) {
+  var map = {};
+  logs.forEach(function(l) {
+    var name = l._agent || 'Unassigned';
+    if (!map[name]) map[name] = { name:name, total:0, connected:0, followup:0, nr:0, ni:0, pending:0, policies:new Set(), premium:0, days:new Set() };
+    var a = map[name];
     a.total++;
-    var outcome = (log.call_outcome || '').toLowerCase();
-    if (outcome === 'connected') a.connected++;
-    else if (outcome === 'not reachable') a.nr++;
-    else if (outcome === 'not interested') a.ni++;
-    else if (outcome === 'follow-up') a.followup++;
-    else if (outcome === 'wrong number') a.wrong++;
+    var o = (l.call_outcome || '').toLowerCase();
+    if (o === 'connected') a.connected++;
+    else if (o === 'follow-up') a.followup++;
+    else if (o === 'not reachable') a.nr++;
+    else if (o === 'not interested') a.ni++;
     else a.pending++;
-    if (log.policyno) a.policies.add(log.policyno);
-    var prem = Number(log.grosspremium) || 0;
-    a.premium += prem;
-    var callDate = (log.call_date || '').slice(0,10);
-    if (callDate) a.days.add(callDate);
-
-    var ins = log.insurancecompany || 'Unknown';
-    if (!insurerMap[ins]) insurerMap[ins] = { total:0, connected:0, premium:0 };
-    insurerMap[ins].total++;
-    if (outcome === 'connected') insurerMap[ins].connected++;
-    insurerMap[ins].premium += prem;
-
-    var mdl = log.model || 'Unknown';
-    if (!modelMap[mdl]) modelMap[mdl] = { total:0, connected:0, premium:0 };
-    modelMap[mdl].total++;
-    if (outcome === 'connected') modelMap[mdl].connected++;
-    modelMap[mdl].premium += prem;
-
-    if (callDate) {
-      var mk = callDate.slice(0,7);
-      if (!monthMap[mk]) monthMap[mk] = { total:0, connected:0, followup:0, nr:0, ni:0, pending:0, premium:0, policies:new Set() };
-      var m = monthMap[mk];
-      m.total++;
-      if (outcome === 'connected') m.connected++;
-      else if (outcome === 'follow-up') m.followup++;
-      else if (outcome === 'not reachable') m.nr++;
-      else if (outcome === 'not interested') m.ni++;
-      else m.pending++;
-      m.premium += prem;
-      if (log.policyno) m.policies.add(log.policyno);
-    }
+    if (l.policyno) a.policies.add(l.policyno);
+    a.premium += Number(l.grosspremium) || 0;
+    var cd = (l.call_date || '').slice(0,10);
+    if (cd) a.days.add(cd);
   });
-
-  var agents = Object.keys(agentMap).map(function(name) {
-    var a = agentMap[name];
+  return Object.keys(map).map(function(n) {
+    var a = map[n];
     var rate = a.total > 0 ? Math.round((a.connected / a.total) * 100) : 0;
     var avgCalls = a.days.size > 0 ? (a.total / a.days.size).toFixed(1) : '0';
-    return { name:name, total:a.total, connected:a.connected, nr:a.nr, ni:a.ni, followup:a.followup, wrong:a.wrong, pending:a.pending, policies:a.policies.size, premium:a.premium, rate:rate, days:a.days.size, avgCalls:avgCalls };
+    return { name:a.name, total:a.total, connected:a.connected, nr:a.nr, ni:a.ni, followup:a.followup, pending:a.pending, policies:a.policies.size, premium:a.premium, rate:rate, days:a.days.size, avgCalls:avgCalls };
   }).sort(function(x,y) { return y.rate - x.rate || y.total - x.total; });
+}
 
-  var ovTotal = agents.reduce(function(s,a){return s+a.total;},0);
-  var ovConnected = agents.reduce(function(s,a){return s+a.connected;},0);
-  var ovNr = agents.reduce(function(s,a){return s+a.nr;},0);
-  var ovNi = agents.reduce(function(s,a){return s+a.ni;},0);
-  var ovFollowup = agents.reduce(function(s,a){return s+a.followup;},0);
-  var ovPending = agents.reduce(function(s,a){return s+a.pending;},0);
-  var ovPolicies = agents.reduce(function(s,a){return s+a.policies;},0);
-  var ovPremium = agents.reduce(function(s,a){return s+a.premium;},0);
-  var ovDays = 0;
-  agents.forEach(function(a) { ovDays = Math.max(ovDays, a.days); });
-  var avgPerDay = ovDays > 0 ? (ovTotal / ovDays).toFixed(1) : '0';
-  var topAgent = agents.length ? agents[0] : null;
+function fmtPremium(p) {
+  if (p >= 100000) return '\u20B9' + (p/100000).toFixed(1) + 'L';
+  return '\u20B9' + p.toLocaleString('en-IN');
+}
 
-  var h = '';
-
-  h += '<div class="ap-overview">' +
-    '<div class="ap-ov-card ov-total"><div class="ov-num">' + ovTotal + '</div><div class="ov-lbl">Total Calls</div></div>' +
-    '<div class="ap-ov-card ov-connected"><div class="ov-num">' + ovConnected + '</div><div class="ov-lbl">Connected</div></div>' +
-    '<div class="ap-ov-card ov-followup"><div class="ov-num">' + ovFollowup + '</div><div class="ov-lbl">Follow-up</div></div>' +
-    '<div class="ap-ov-card ov-nr"><div class="ov-num">' + ovNr + '</div><div class="ov-lbl">Not Reachable</div></div>' +
-    '<div class="ap-ov-card ov-ni"><div class="ov-num">' + ovNi + '</div><div class="ov-lbl">Not Interested</div></div>' +
-    '<div class="ap-ov-card ov-pending"><div class="ov-num">' + ovPending + '</div><div class="ov-lbl">Pending</div></div>' +
-    '<div class="ap-ov-card ov-policies"><div class="ov-num">' + ovPolicies + '</div><div class="ov-lbl">Policies</div></div>' +
-    '<div class="ap-ov-card ov-premium"><div class="ov-num">\u20B9' + (ovPremium >= 100000 ? (ovPremium/100000).toFixed(1) + 'L' : ovPremium.toLocaleString('en-IN')) + '</div><div class="ov-lbl">Premium</div></div>' +
+function renderOverview(stats) {
+  var h = '<div class="ap-overview">' +
+    '<div class="ap-ov-card ov-total"><div class="ov-num">' + stats.total + '</div><div class="ov-lbl">Total Calls</div></div>' +
+    '<div class="ap-ov-card ov-connected"><div class="ov-num">' + stats.connected + '</div><div class="ov-lbl">Connected</div></div>' +
+    '<div class="ap-ov-card ov-followup"><div class="ov-num">' + stats.followup + '</div><div class="ov-lbl">Follow-up</div></div>' +
+    '<div class="ap-ov-card ov-nr"><div class="ov-num">' + stats.nr + '</div><div class="ov-lbl">Not Reachable</div></div>' +
+    '<div class="ap-ov-card ov-ni"><div class="ov-num">' + stats.ni + '</div><div class="ov-lbl">Not Interested</div></div>' +
+    '<div class="ap-ov-card ov-pending"><div class="ov-num">' + stats.pending + '</div><div class="ov-lbl">Pending</div></div>' +
+    '<div class="ap-ov-card ov-policies"><div class="ov-num">' + stats.policies.size + '</div><div class="ov-lbl">Policies</div></div>' +
+    '<div class="ap-ov-card ov-premium"><div class="ov-num">' + fmtPremium(stats.premium) + '</div><div class="ov-lbl">Premium</div></div>' +
     '</div>';
+  return h;
+}
 
-  if (topAgent) {
-    h += '<div class="ap-top">' +
-      '<div class="trophy">&#127942;</div>' +
-      '<div class="top-info"><h3>' + topAgent.name + '</h3><p>Best performing agent — highest connection rate</p></div>' +
-      '<div class="top-stats">' +
-        '<div class="top-stat"><div class="ts-num">' + topAgent.rate + '%</div><div class="ts-lbl">Connect Rate</div></div>' +
-        '<div class="top-stat"><div class="ts-num">' + topAgent.connected + '</div><div class="ts-lbl">Connected</div></div>' +
-        '<div class="top-stat"><div class="ts-num">' + topAgent.policies + '</div><div class="ts-lbl">Policies</div></div>' +
-        '<div class="top-stat"><div class="ts-num">\u20B9' + (topAgent.premium >= 100000 ? (topAgent.premium/100000).toFixed(1) + 'L' : topAgent.premium.toLocaleString('en-IN')) + '</div><div class="ts-lbl">Premium</div></div>' +
-        '<div class="top-stat"><div class="ts-num">' + topAgent.avgCalls + '</div><div class="ts-lbl">Avg/Day</div></div>' +
-      '</div></div>';
-  }
+function renderTopAgent(agents) {
+  if (!agents.length || !agents[0].total) return '';
+  var t = agents[0];
+  var bc = t.rate >= 60 ? '#22c55e' : t.rate >= 30 ? '#f59e0b' : '#ef4444';
+  return '<div class="ap-top">' +
+    '<div class="trophy">&#127942;</div>' +
+    '<div class="top-info"><h3>' + t.name + '</h3><p>Best performing agent — highest connection rate</p></div>' +
+    '<div class="top-stats">' +
+      '<div class="top-stat"><div class="ts-num" style="color:' + bc + '">' + t.rate + '%</div><div class="ts-lbl">Connect Rate</div></div>' +
+      '<div class="top-stat"><div class="ts-num">' + t.connected + '</div><div class="ts-lbl">Connected</div></div>' +
+      '<div class="top-stat"><div class="ts-num">' + t.policies + '</div><div class="ts-lbl">Policies</div></div>' +
+      '<div class="top-stat"><div class="ts-num">' + fmtPremium(t.premium) + '</div><div class="ts-lbl">Premium</div></div>' +
+      '<div class="top-stat"><div class="ts-num">' + t.avgCalls + '</div><div class="ts-lbl">Avg/Day</div></div>' +
+    '</div></div>';
+}
 
-  h += '<div class="ap-section-title">&#128101; Agent Leaderboard</div>';
+function renderLeaderboard(agents) {
+  if (!agents.length) return '';
+  var h = '<div class="ap-section-title">&#128101; Agent Leaderboard</div>';
   h += '<div class="ap-table-wrap"><table class="ap-table"><thead><tr>' +
-    '<th>#</th><th>Agent</th><th>Total</th><th>Connected</th><th>Follow-up</th><th>Not Reachable</th><th>Not Interested</th><th>Pending</th><th>Policies</th><th>Premium</th><th>Working Days</th><th>Avg/Day</th><th>Connect Rate</th>' +
+    '<th>#</th><th>Agent</th><th>Total</th><th>Connected</th><th>Follow-up</th><th>Not Reachable</th><th>Not Interested</th><th>Pending</th><th>Policies</th><th>Premium</th><th>Days</th><th>Avg/Day</th><th>Rate</th>' +
     '</tr></thead><tbody>';
-
   agents.forEach(function(a, i) {
     var rank = i + 1;
-    var rankClass = rank <= 3 ? 'rank-' + rank : 'rank-other';
-    var barColor = a.rate >= 60 ? '#22c55e' : a.rate >= 30 ? '#f59e0b' : '#ef4444';
+    var rc = rank <= 3 ? 'rank-' + rank : 'rank-other';
+    var bc = a.rate >= 60 ? '#22c55e' : a.rate >= 30 ? '#f59e0b' : '#ef4444';
     h += '<tr>' +
-      '<td><span class="rank-badge ' + rankClass + '">' + rank + '</span></td>' +
+      '<td><span class="rank-badge ' + rc + '">' + rank + '</span></td>' +
       '<td class="agent-name-cell">' + a.name + '</td>' +
       '<td style="font-weight:700">' + a.total + '</td>' +
       '<td style="color:#22c55e;font-weight:600">' + a.connected + '</td>' +
@@ -1435,98 +1541,156 @@ function renderAgentPerf() {
       '<td style="color:#ef4444">' + a.ni + '</td>' +
       '<td style="color:#6b7280">' + a.pending + '</td>' +
       '<td style="font-weight:700;color:#0ea5e9">' + a.policies + '</td>' +
-      '<td style="font-weight:600">\u20B9' + a.premium.toLocaleString('en-IN') + '</td>' +
+      '<td style="font-weight:600">' + fmtPremium(a.premium) + '</td>' +
       '<td>' + a.days + '</td>' +
       '<td>' + a.avgCalls + '</td>' +
-      '<td><div class="ap-bar-wrap"><div class="ap-bar"><div class="ap-bar-fill" style="width:' + a.rate + '%;background:' + barColor + '"></div></div><div class="ap-bar-pct" style="color:' + barColor + '">' + a.rate + '%</div></div></td>' +
+      '<td><div class="ap-bar-wrap"><div class="ap-bar"><div class="ap-bar-fill" style="width:' + a.rate + '%;background:' + bc + '"></div></div><div class="ap-bar-pct" style="color:' + bc + '">' + a.rate + '%</div></div></td>' +
       '</tr>';
   });
-
   h += '</tbody></table></div>';
+  return h;
+}
 
-  var months = Object.keys(monthMap).sort().reverse();
-  if (months.length) {
-    h += '<div class="ap-section-title">&#128197; Monthly Breakdown</div>';
-    h += '<div class="ap-month-grid">';
-    months.forEach(function(mk) {
-      var m = monthMap[mk];
-      var mRate = m.total > 0 ? Math.round((m.connected / m.total) * 100) : 0;
-      var d = new Date(mk + '-15');
-      var monthName = d.toLocaleDateString('en-US', { month:'short', year:'numeric' });
-      var colors = [['#22c55e', m.connected], ['#f59e0b', m.followup], ['#f97316', m.nr], ['#ef4444', m.ni], ['#6b7280', m.pending]];
-      var totalSeg = colors.reduce(function(s,c){return s+c[1];},0) || 1;
-      var barHtml = colors.map(function(c) {
-        var w = Math.round((c[1]/totalSeg)*100);
-        return w > 0 ? '<div style="width:' + w + '%;background:' + c[0] + '"></div>' : '';
-      }).join('');
-      h += '<div class="ap-month-card">' +
-        '<div class="mc-month">' + monthName + '</div>' +
-        '<div class="mc-total">' + m.total + '</div>' +
-        '<div class="mc-sub">' + m.connected + ' connected &middot; ' + m.policies.size + ' policies &middot; \u20B9' + (m.premium >= 100000 ? (m.premium/100000).toFixed(1)+'L' : m.premium.toLocaleString('en-IN')) + '</div>' +
-        '<div class="mc-bar">' + barHtml + '</div>' +
-        '</div>';
-    });
-    h += '</div>';
-  }
-
-  var insKeys = Object.keys(insurerMap).sort(function(x,y){return insurerMap[y].total-insurerMap[x].total;});
-  var modKeys = Object.keys(modelMap).sort(function(x,y){return modelMap[y].total-modelMap[x].total;});
-
-  if (insKeys.length || modKeys.length) {
-    h += '<div class="ap-section-title">&#128203; Policy Breakdown</div>';
-    h += '<div class="ap-grid-2col">';
-
-    h += '<div><div style="font-size:10px;font-weight:700;color:#475569;margin-bottom:6px">By Insurance Company</div>';
-    h += '<div class="ap-table-wrap"><table class="ap-mini-table"><thead><tr><th>Company</th><th>Calls</th><th>Connected</th><th>Rate</th><th>Premium</th></tr></thead><tbody>';
-    insKeys.slice(0,10).forEach(function(k) {
-      var v = insurerMap[k];
-      var r = v.total > 0 ? Math.round((v.connected/v.total)*100) : 0;
-      h += '<tr><td style="font-weight:600">' + k + '</td><td>' + v.total + '</td><td style="color:#22c55e">' + v.connected + '</td><td>' + r + '%</td><td>\u20B9' + v.premium.toLocaleString('en-IN') + '</td></tr>';
-    });
-    h += '</tbody></table></div></div>';
-
-    h += '<div><div style="font-size:10px;font-weight:700;color:#475569;margin-bottom:6px">By Vehicle Model</div>';
-    h += '<div class="ap-table-wrap"><table class="ap-mini-table"><thead><tr><th>Model</th><th>Calls</th><th>Connected</th><th>Rate</th><th>Premium</th></tr></thead><tbody>';
-    modKeys.slice(0,10).forEach(function(k) {
-      var v = modelMap[k];
-      var r = v.total > 0 ? Math.round((v.connected/v.total)*100) : 0;
-      h += '<tr><td style="font-weight:600">' + k + '</td><td>' + v.total + '</td><td style="color:#22c55e">' + v.connected + '</td><td>' + r + '%</td><td>\u20B9' + v.premium.toLocaleString('en-IN') + '</td></tr>';
-    });
-    h += '</tbody></table></div></div>';
-
-    h += '</div>';
-  }
-
-  h += '<div class="ap-section-title">&#128100; Agent Details</div>';
-  h += '<div class="ap-agent-cards">';
-  agents.forEach(function(a, i) {
-    var rank = i + 1;
-    var rankClass = rank <= 3 ? 'rank-' + rank : 'rank-other';
-    var barColor = a.rate >= 60 ? '#22c55e' : a.rate >= 30 ? '#f59e0b' : '#ef4444';
-    h += '<div class="ap-agent-card">' +
-      '<div class="ac-head">' +
-        '<div class="ac-rank ' + rankClass + '">' + rank + '</div>' +
-        '<div class="ac-name">' + a.name + '</div>' +
-        '<div class="ac-rate" style="color:' + barColor + '">' + a.rate + '%</div>' +
-      '</div>' +
-      '<div class="ac-stats">' +
-        '<div class="ac-stat"><div class="num" style="color:#6366f1">' + a.total + '</div><div class="lbl">Total</div></div>' +
-        '<div class="ac-stat"><div class="num" style="color:#22c55e">' + a.connected + '</div><div class="lbl">Connected</div></div>' +
-        '<div class="ac-stat"><div class="num" style="color:#0ea5e9">' + a.policies + '</div><div class="lbl">Policies</div></div>' +
-        '<div class="ac-stat"><div class="num" style="color:#f59e0b">' + a.followup + '</div><div class="lbl">Follow-up</div></div>' +
-        '<div class="ac-stat"><div class="num" style="color:#f97316">' + a.nr + '</div><div class="lbl">Not Reach.</div></div>' +
-        '<div class="ac-stat"><div class="num" style="color:#ef4444">' + a.ni + '</div><div class="lbl">Not Int.</div></div>' +
-      '</div>' +
-      '<div class="ac-extra">' +
-        '<span>&#128197; ' + a.days + ' days</span>' +
-        '<span>&#128200; ' + a.avgCalls + ' avg/day</span>' +
-        '<span>\u20B9' + (a.premium >= 100000 ? (a.premium/100000).toFixed(1)+'L' : a.premium.toLocaleString('en-IN')) + '</span>' +
-      '</div>' +
-      '<div class="ac-bar"><div class="ap-bar"><div class="ap-bar-fill" style="width:' + a.rate + '%;background:' + barColor + '"></div></div></div>' +
-      '</div>';
+function renderMonthly(logs) {
+  var mm = {};
+  logs.forEach(function(l) {
+    var cd = (l.call_date || '').slice(0,7);
+    if (!cd) return;
+    if (!mm[cd]) mm[cd] = { total:0, connected:0, followup:0, nr:0, ni:0, pending:0, premium:0, policies:new Set() };
+    var m = mm[cd];
+    m.total++;
+    var o = (l.call_outcome || '').toLowerCase();
+    if (o === 'connected') m.connected++;
+    else if (o === 'follow-up') m.followup++;
+    else if (o === 'not reachable') m.nr++;
+    else if (o === 'not interested') m.ni++;
+    else m.pending++;
+    m.premium += Number(l.grosspremium) || 0;
+    if (l.policyno) m.policies.add(l.policyno);
   });
-  h += '</div>';
+  var months = Object.keys(mm).sort().reverse();
+  if (!months.length) return '';
+  var h = '<div class="ap-section-title">&#128197; Monthly Breakdown</div><div class="ap-month-grid">';
+  months.forEach(function(mk) {
+    var m = mm[mk];
+    var d = new Date(mk + '-15');
+    var mn = d.toLocaleDateString('en-US', { month:'short', year:'numeric' });
+    var segs = [['#22c55e',m.connected],['#f59e0b',m.followup],['#f97316',m.nr],['#ef4444',m.ni],['#6b7280',m.pending]];
+    var tot = segs.reduce(function(s,c){return s+c[1];},0)||1;
+    var bar = segs.map(function(c){var w=Math.round(c[1]/tot*100);return w>0?'<div style="width:'+w+'%;background:'+c[0]+'"></div>':'';}).join('');
+    h += '<div class="ap-month-card"><div class="mc-month">' + mn + '</div><div class="mc-total">' + m.total + '</div>' +
+      '<div class="mc-sub">' + m.connected + ' connected &middot; ' + m.policies.size + ' policies &middot; ' + fmtPremium(m.premium) + '</div>' +
+      '<div class="mc-bar">' + bar + '</div></div>';
+  });
+  return h + '</div>';
+}
 
+function renderPolicyBreakdown(logs) {
+  var im = {}, md = {};
+  logs.forEach(function(l) {
+    var ins = l.insurancecompany || 'Unknown';
+    var mo = l.model || 'Unknown';
+    if (!im[ins]) im[ins] = {t:0,c:0,p:0};
+    im[ins].t++; if ((l.call_outcome||'').toLowerCase()==='connected') im[ins].c++; im[ins].p += Number(l.grosspremium)||0;
+    if (!md[mo]) md[mo] = {t:0,c:0,p:0};
+    md[mo].t++; if ((l.call_outcome||'').toLowerCase()==='connected') md[mo].c++; md[mo].p += Number(l.grosspremium)||0;
+  });
+  var ik = Object.keys(im).sort(function(a,b){return im[b].t-im[a].t;});
+  var mk = Object.keys(md).sort(function(a,b){return md[b].t-md[a].t;});
+  if (!ik.length && !mk.length) return '';
+  var h = '<div class="ap-section-title">&#128203; Policy Breakdown</div><div class="ap-grid-2col">';
+  h += '<div><div style="font-size:10px;font-weight:700;color:#475569;margin-bottom:6px">By Insurance Company</div><div class="ap-table-wrap"><table class="ap-mini-table"><thead><tr><th>Company</th><th>Calls</th><th>Connected</th><th>Rate</th><th>Premium</th></tr></thead><tbody>';
+  ik.slice(0,10).forEach(function(k){var v=im[k];var r=v.t>0?Math.round(v.c/v.t*100):0;h+='<tr><td style="font-weight:600">'+k+'</td><td>'+v.t+'</td><td style="color:#22c55e">'+v.c+'</td><td>'+r+'%</td><td>'+fmtPremium(v.p)+'</td></tr>';});
+  h += '</tbody></table></div></div>';
+  h += '<div><div style="font-size:10px;font-weight:700;color:#475569;margin-bottom:6px">By Vehicle Model</div><div class="ap-table-wrap"><table class="ap-mini-table"><thead><tr><th>Model</th><th>Calls</th><th>Connected</th><th>Rate</th><th>Premium</th></tr></thead><tbody>';
+  mk.slice(0,10).forEach(function(k){var v=md[k];var r=v.t>0?Math.round(v.c/v.t*100):0;h+='<tr><td style="font-weight:600">'+k+'</td><td>'+v.t+'</td><td style="color:#22c55e">'+v.c+'</td><td>'+r+'%</td><td>'+fmtPremium(v.p)+'</td></tr>';});
+  h += '</tbody></table></div></div></div>';
+  return h;
+}
+
+function renderAgentCards(agents) {
+  if (!agents.length) return '';
+  var h = '<div class="ap-section-title">&#128100; Agent Details</div><div class="ap-agent-cards">';
+  agents.forEach(function(a, i) {
+    var rank = i+1;
+    var rc = rank<=3?'rank-'+rank:'rank-other';
+    var bc = a.rate>=60?'#22c55e':a.rate>=30?'#f59e0b':'#ef4444';
+    h += '<div class="ap-agent-card"><div class="ac-head"><div class="ac-rank '+rc+'">'+rank+'</div><div class="ac-name">'+a.name+'</div><div class="ac-rate" style="color:'+bc+'">'+a.rate+'%</div></div>'+
+      '<div class="ac-stats"><div class="ac-stat"><div class="num" style="color:#6366f1">'+a.total+'</div><div class="lbl">Total</div></div>'+
+      '<div class="ac-stat"><div class="num" style="color:#22c55e">'+a.connected+'</div><div class="lbl">Connected</div></div>'+
+      '<div class="ac-stat"><div class="num" style="color:#0ea5e9">'+a.policies+'</div><div class="lbl">Policies</div></div>'+
+      '<div class="ac-stat"><div class="num" style="color:#f59e0b">'+a.followup+'</div><div class="lbl">Follow-up</div></div>'+
+      '<div class="ac-stat"><div class="num" style="color:#f97316">'+a.nr+'</div><div class="lbl">Not Reach.</div></div>'+
+      '<div class="ac-stat"><div class="num" style="color:#ef4444">'+a.ni+'</div><div class="lbl">Not Int.</div></div></div>'+
+      '<div class="ac-extra"><span>&#128197; '+a.days+' days</span><span>&#128200; '+a.avgCalls+' avg/day</span><span>'+fmtPremium(a.premium)+'</span></div>'+
+      '<div class="ac-bar"><div class="ap-bar"><div class="ap-bar-fill" style="width:'+a.rate+'%;background:'+bc+'"></div></div></div></div>';
+  });
+  return h + '</div>';
+}
+
+function renderNotVisited() {
+  var nv = apCatData.notVisited || [];
+  if (!nv.length) return '';
+  var byAgent = {};
+  nv.forEach(function(r) {
+    var a = r._assignedAgent || 'Unassigned';
+    if (!byAgent[a]) byAgent[a] = [];
+    byAgent[a].push(r);
+  });
+  var h = '<div class="ap-section-title">&#128683; Not Visited Customers (' + nv.length + ')</div>';
+  h += '<div class="ap-table-wrap"><table class="ap-table"><thead><tr><th>#</th><th>Customer</th><th>Policy</th><th>Model</th><th>Insurer</th><th>Premium</th><th>Expiry</th><th>Source</th></tr></thead><tbody>';
+  nv.slice(0, 50).forEach(function(r, i) {
+    h += '<tr><td>' + (i+1) + '</td><td style="font-weight:600">' + (r.customer_name || '-') + '</td><td>' + (r.policyno || '-') + '</td><td>' + (r.model || '-') + '</td><td>' + (r.insurancecompany || '-') + '</td><td style="font-weight:600">' + fmtPremium(Number(r.grosspremium)||0) + '</td><td>' + (r.policy_expiry_date || '-') + '</td><td><span style="background:' + (r.source === 'manual' ? '#f59e0b' : '#6366f1') + ';color:#fff;padding:1px 6px;border-radius:4px;font-size:8px;font-weight:600">' + (r.source || 'kia_safety') + '</span></td></tr>';
+  });
+  if (nv.length > 50) h += '<tr><td colspan="8" style="text-align:center;color:#64748b;font-size:10px">...and ' + (nv.length - 50) + ' more</td></tr>';
+  h += '</tbody></table></div>';
+  return h;
+}
+
+function renderAgentPerf() {
+  var content = document.getElementById('apContent');
+  if (!apAllLogs.length && !apAllInsurance.length) {
+    content.innerHTML = '<div class="ap-cats" id="apCats"></div><div style="text-align:center;padding:40px;color:#64748b;font-size:13px">&#128203; No data found. Start logging calls to see agent performance.</div>';
+    return;
+  }
+
+  var dateFrom = document.getElementById('apDateFrom').value || '';
+  var dateTo = document.getElementById('apDateTo').value || '';
+  var agentFilter = document.getElementById('apAgentFilter').value || 'all';
+
+  var filteredLogs = apAllLogs.filter(function(l) {
+    var d = (l.call_date || '').slice(0,10);
+    if (dateFrom && d < dateFrom) return false;
+    if (dateTo && d > dateTo) return false;
+    if (agentFilter !== 'all' && l._agent !== agentFilter) return false;
+    if (apCategory !== 'overall' && apCategory !== 'not-visited' && l._cat !== apCategory) return false;
+    return true;
+  });
+
+  renderCategoryTabs();
+
+  if (apCategory === 'not-visited') {
+    var nv = (apCatData.notVisited || []).filter(function(r) {
+      if (agentFilter !== 'all') return false;
+      return true;
+    });
+    var stats = { total:0, connected:0, followup:0, nr:0, ni:0, pending:nv.length, policies:new Set(), premium:0, days:new Set() };
+    nv.forEach(function(r) { if (r.policyno) stats.policies.add(r.policyno); stats.premium += Number(r.grosspremium)||0; });
+    var h = renderOverview(stats);
+    h += '<div style="text-align:center;padding:12px;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;margin-bottom:14px;font-size:12px;color:#991b1b;font-weight:600">&#128683; ' + nv.length + ' customers have not been contacted yet</div>';
+    h += renderNotVisited();
+    content.innerHTML = h;
+    return;
+  }
+
+  var stats = buildStats(filteredLogs);
+  var agents = buildAgentStats(filteredLogs);
+  var h = renderOverview(stats);
+  h += renderTopAgent(agents);
+  h += renderLeaderboard(agents);
+  h += renderMonthly(filteredLogs);
+  h += renderPolicyBreakdown(filteredLogs);
+  h += renderAgentCards(agents);
   content.innerHTML = h;
 }
 
