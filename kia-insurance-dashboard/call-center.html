@@ -222,6 +222,73 @@ tr:last-child td { border-bottom:none; }
 .ms-item:hover { background:rgba(255,255,255,.1); }
 .ms-item input[type="checkbox"] { width:10px; height:10px; accent-color:#3b82f6; cursor:pointer; flex-shrink:0; }
 .ms-count { font-size:8px; color:rgba(255,255,255,.6); padding:3px 6px; border-top:1px solid rgba(255,255,255,.1); text-align:center; }
+
+/* AGENT PERFORMANCE */
+.ap-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:2000; overflow-y:auto; }
+.ap-overlay.show { display:block; }
+.ap-container { max-width:1100px; margin:20px auto; background:#fff; border-radius:12px; box-shadow:0 20px 60px rgba(0,0,0,.25); animation:modalIn .25s ease; }
+.ap-head { padding:16px 24px; background:linear-gradient(135deg,#1e293b,#334155); border-radius:12px 12px 0 0; display:flex; align-items:center; justify-content:space-between; }
+.ap-head h2 { font-size:18px; font-weight:700; color:#fff; display:flex; align-items:center; gap:8px; }
+.ap-head .close { width:30px; height:30px; border:none; border-radius:6px; background:rgba(255,255,255,.15); color:#fff; cursor:pointer; font-size:18px; display:flex; align-items:center; justify-content:center; }
+.ap-head .close:hover { background:rgba(255,255,255,.25); }
+.ap-body { padding:20px 24px; }
+
+/* OVERVIEW CARDS */
+.ap-overview { display:grid; grid-template-columns:repeat(6,1fr); gap:10px; margin-bottom:20px; }
+.ap-ov-card { background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:12px; text-align:center; position:relative; overflow:hidden; }
+.ap-ov-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; }
+.ap-ov-card.ov-total::before { background:linear-gradient(90deg,#6366f1,#818cf8); }
+.ap-ov-card.ov-connected::before { background:linear-gradient(90deg,#22c55e,#4ade80); }
+.ap-ov-card.ov-followup::before { background:linear-gradient(90deg,#f59e0b,#fbbf24); }
+.ap-ov-card.ov-nr::before { background:linear-gradient(90deg,#f97316,#fb923c); }
+.ap-ov-card.ov-ni::before { background:linear-gradient(90deg,#ef4444,#f87171); }
+.ap-ov-card.ov-pending::before { background:linear-gradient(90deg,#6b7280,#9ca3af); }
+.ap-ov-card .ov-num { font-size:24px; font-weight:800; line-height:1.1; }
+.ap-ov-card .ov-lbl { font-size:9px; color:#64748b; text-transform:uppercase; letter-spacing:0.5px; font-weight:600; margin-top:2px; }
+.ap-ov-card.ov-total .ov-num { color:#6366f1; }
+.ap-ov-card.ov-connected .ov-num { color:#22c55e; }
+.ap-ov-card.ov-followup .ov-num { color:#f59e0b; }
+.ap-ov-card.ov-nr .ov-num { color:#f97316; }
+.ap-ov-card.ov-ni .ov-num { color:#ef4444; }
+.ap-ov-card.ov-pending .ov-num { color:#6b7280; }
+
+/* TOP AGENT */
+.ap-top { background:linear-gradient(135deg,#f0fdf4,#ecfdf5); border:1px solid #bbf7d0; border-radius:10px; padding:16px 20px; margin-bottom:20px; display:flex; align-items:center; gap:16px; }
+.ap-top .trophy { font-size:36px; }
+.ap-top .top-info h3 { font-size:15px; font-weight:700; color:#15803d; margin-bottom:2px; }
+.ap-top .top-info p { font-size:11px; color:#166534; }
+.ap-top .top-stats { margin-left:auto; display:flex; gap:16px; }
+.ap-top .top-stat { text-align:center; }
+.ap-top .top-stat .ts-num { font-size:20px; font-weight:800; color:#15803d; }
+.ap-top .top-stat .ts-lbl { font-size:8px; color:#166534; text-transform:uppercase; font-weight:600; }
+
+/* AGENT TABLE */
+.ap-table-wrap { overflow-x:auto; margin-bottom:20px; }
+.ap-table { width:100%; border-collapse:collapse; font-size:11px; }
+.ap-table th { padding:8px 10px; text-align:left; font-size:9px; text-transform:uppercase; letter-spacing:0.4px; font-weight:700; color:#475569; background:#f1f5f9; border-bottom:2px solid #e2e8f0; white-space:nowrap; }
+.ap-table td { padding:8px 10px; border-bottom:1px solid #f1f5f9; vertical-align:middle; }
+.ap-table tr:hover td { background:#f8fafc; }
+.ap-table .agent-name-cell { font-weight:600; color:#1e293b; display:flex; align-items:center; gap:6px; }
+.ap-table .rank-badge { display:inline-flex; align-items:center; justify-content:center; width:20px; height:20px; border-radius:50%; font-size:9px; font-weight:800; flex-shrink:0; }
+.rank-1 { background:linear-gradient(135deg,#fbbf24,#f59e0b); color:#78350f; }
+.rank-2 { background:linear-gradient(135deg,#d1d5db,#9ca3af); color:#374151; }
+.rank-3 { background:linear-gradient(135deg,#fb923c,#f97316); color:#7c2d12; }
+.rank-other { background:#f1f5f9; color:#64748b; }
+
+/* BAR */
+.ap-bar-wrap { display:flex; align-items:center; gap:6px; }
+.ap-bar { flex:1; height:8px; background:#f1f5f9; border-radius:4px; overflow:hidden; min-width:60px; }
+.ap-bar-fill { height:100%; border-radius:4px; transition:width .4s ease; }
+.ap-bar-pct { font-size:10px; font-weight:700; min-width:36px; text-align:right; }
+
+/* SECTION TITLE */
+.ap-section-title { font-size:13px; font-weight:700; color:#1e293b; margin-bottom:12px; display:flex; align-items:center; gap:6px; }
+
+@media(max-width:768px) {
+  .ap-overview { grid-template-columns:repeat(3,1fr); }
+  .ap-top { flex-direction:column; text-align:center; }
+  .ap-top .top-stats { margin-left:0; }
+}
 </style>
 </head>
 <body>
@@ -258,6 +325,7 @@ tr:last-child td { border-bottom:none; }
   <button class="fu-panel-btn" id="fuPanelBtn" onclick="setStatusFilter('follow-up')">&#128197; Follow-up Panel <span id="fuCount">0</span></button>
   <div style="width:1px;height:16px;background:var(--border)"></div>
   <button class="filter-btn" onclick="openManualEntryModal()" style="background:rgba(34,197,94,.85);color:#fff;border-color:rgba(34,197,94,.5);font-weight:600">+ Add Entry</button>
+  <button class="filter-btn" onclick="openAgentPerf()" style="background:rgba(139,92,246,.85);color:#fff;border-color:rgba(139,92,246,.5);font-weight:600">&#128200; Agent Performance</button>
   <div class="search-box">
     <div class="search-wrap">
       <span class="ico">&#128269;</span>
@@ -483,6 +551,19 @@ tr:last-child td { border-bottom:none; }
         <button class="btn-cancel" onclick="closeManualEntryModal()">Cancel</button>
         <button class="btn-save" onclick="saveManualEntry()" id="meSaveBtn">&#128190; Save Entry</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- AGENT PERFORMANCE OVERLAY -->
+<div class="ap-overlay" id="agentPerfOverlay">
+  <div class="ap-container">
+    <div class="ap-head">
+      <h2>&#128200; Agent Performance Dashboard</h2>
+      <button class="close" onclick="closeAgentPerf()">&times;</button>
+    </div>
+    <div class="ap-body" id="apBody">
+      <div style="text-align:center;padding:40px;color:#64748b"><div class="spin" style="border-color:#e2e8f0;border-top-color:#6366f1"></div><br>Loading...</div>
     </div>
   </div>
 </div>
@@ -1096,6 +1177,117 @@ document.getElementById('meAgentName').addEventListener('change', function() {
     } else { this.value = ''; }
   }
 });
+
+// AGENT PERFORMANCE DASHBOARD
+function openAgentPerf() {
+  document.getElementById('agentPerfOverlay').classList.add('show');
+  renderAgentPerf();
+}
+function closeAgentPerf() {
+  document.getElementById('agentPerfOverlay').classList.remove('show');
+}
+document.getElementById('agentPerfOverlay').addEventListener('click', function(e) {
+  if (e.target === e.currentTarget) closeAgentPerf();
+});
+
+async function renderAgentPerf() {
+  var body = document.getElementById('apBody');
+  try {
+    var logsData = await cachedFetch('/api/call-center/logs', 60000, true);
+    var logs = logsData.logs || [];
+    if (!logs.length) {
+      body.innerHTML = '<div style="text-align:center;padding:40px;color:#64748b;font-size:13px">&#128203; No call logs found. Start logging calls to see agent performance.</div>';
+      return;
+    }
+
+    var agentMap = {};
+    logs.forEach(function(log) {
+      var name = (log.agent_name || '').trim();
+      if (!name) return;
+      if (!agentMap[name]) agentMap[name] = { total:0, connected:0, nr:0, ni:0, followup:0, wrong:0, pending:0, policies: new Set(), premium: 0 };
+      var a = agentMap[name];
+      a.total++;
+      var outcome = (log.call_outcome || '').toLowerCase();
+      if (outcome === 'connected') a.connected++;
+      else if (outcome === 'not reachable') a.nr++;
+      else if (outcome === 'not interested') a.ni++;
+      else if (outcome === 'follow-up') a.followup++;
+      else if (outcome === 'wrong number') a.wrong++;
+      else a.pending++;
+      if (log.policyno) a.policies.add(log.policyno);
+      if (log.grosspremium) a.premium += Number(log.grosspremium);
+    });
+
+    var agents = Object.keys(agentMap).map(function(name) {
+      var a = agentMap[name];
+      var rate = a.total > 0 ? Math.round((a.connected / a.total) * 100) : 0;
+      return { name: name, total: a.total, connected: a.connected, nr: a.nr, ni: a.ni, followup: a.followup, wrong: a.wrong, policies: a.policies.size, premium: a.premium, rate: rate };
+    }).sort(function(x,y) { return y.total - x.total; });
+
+    var maxTotal = agents.length ? agents[0].total : 1;
+    var ovTotal = agents.reduce(function(s,a){return s+a.total;},0);
+    var ovConnected = agents.reduce(function(s,a){return s+a.connected;},0);
+    var ovNr = agents.reduce(function(s,a){return s+a.nr;},0);
+    var ovNi = agents.reduce(function(s,a){return s+a.ni;},0);
+    var ovFollowup = agents.reduce(function(s,a){return s+a.followup;},0);
+    var ovPending = agents.reduce(function(s,a){return s+a.pending;},0);
+    var topAgent = agents.length ? agents.reduce(function(b,a){return a.rate>b.rate?a:(a.rate===b.rate&&a.total>b.total?a:b);},agents[0]) : null;
+
+    var h = '';
+
+    // OVERVIEW
+    h += '<div class="ap-overview">' +
+      '<div class="ap-ov-card ov-total"><div class="ov-num">' + ovTotal + '</div><div class="ov-lbl">Total Calls</div></div>' +
+      '<div class="ap-ov-card ov-connected"><div class="ov-num">' + ovConnected + '</div><div class="ov-lbl">Connected</div></div>' +
+      '<div class="ap-ov-card ov-followup"><div class="ov-num">' + ovFollowup + '</div><div class="ov-lbl">Follow-up</div></div>' +
+      '<div class="ap-ov-card ov-nr"><div class="ov-num">' + ovNr + '</div><div class="ov-lbl">Not Reachable</div></div>' +
+      '<div class="ap-ov-card ov-ni"><div class="ov-num">' + ovNi + '</div><div class="ov-lbl">Not Interested</div></div>' +
+      '<div class="ap-ov-card ov-pending"><div class="ov-num">' + ovPending + '</div><div class="ov-lbl">Pending</div></div>' +
+      '</div>';
+
+    // TOP AGENT
+    if (topAgent) {
+      h += '<div class="ap-top">' +
+        '<div class="trophy">&#127942;</div>' +
+        '<div class="top-info"><h3>' + topAgent.name + '</h3><p>Best performing agent — highest connection rate</p></div>' +
+        '<div class="top-stats">' +
+          '<div class="top-stat"><div class="ts-num">' + topAgent.rate + '%</div><div class="ts-lbl">Connect Rate</div></div>' +
+          '<div class="top-stat"><div class="ts-num">' + topAgent.connected + '</div><div class="ts-lbl">Connected</div></div>' +
+          '<div class="top-stat"><div class="ts-num">' + topAgent.total + '</div><div class="ts-lbl">Total Calls</div></div>' +
+        '</div></div>';
+    }
+
+    // AGENT TABLE
+    h += '<div class="ap-section-title">&#128101; Agent Leaderboard</div>';
+    h += '<div class="ap-table-wrap"><table class="ap-table"><thead><tr>' +
+      '<th>#</th><th>Agent</th><th>Total</th><th>Connected</th><th>Follow-up</th><th>Not Reachable</th><th>Not Interested</th><th>Policies</th><th>Premium</th><th>Connect Rate</th>' +
+      '</tr></thead><tbody>';
+
+    agents.forEach(function(a, i) {
+      var rank = i + 1;
+      var rankClass = rank <= 3 ? 'rank-' + rank : 'rank-other';
+      var barColor = a.rate >= 60 ? '#22c55e' : a.rate >= 30 ? '#f59e0b' : '#ef4444';
+      h += '<tr>' +
+        '<td><span class="rank-badge ' + rankClass + '">' + rank + '</span></td>' +
+        '<td class="agent-name-cell">' + a.name + '</td>' +
+        '<td style="font-weight:700">' + a.total + '</td>' +
+        '<td style="color:#22c55e;font-weight:600">' + a.connected + '</td>' +
+        '<td style="color:#f59e0b;font-weight:600">' + a.followup + '</td>' +
+        '<td style="color:#f97316">' + a.nr + '</td>' +
+        '<td style="color:#ef4444">' + a.ni + '</td>' +
+        '<td>' + a.policies + '</td>' +
+        '<td style="font-weight:600">\u20B9' + a.premium.toLocaleString('en-IN') + '</td>' +
+        '<td><div class="ap-bar-wrap"><div class="ap-bar"><div class="ap-bar-fill" style="width:' + a.rate + '%;background:' + barColor + '"></div></div><div class="ap-bar-pct" style="color:' + barColor + '">' + a.rate + '%</div></div></td>' +
+        '</tr>';
+    });
+
+    h += '</tbody></table></div>';
+
+    body.innerHTML = h;
+  } catch(e) {
+    body.innerHTML = '<div style="text-align:center;padding:40px;color:#ef4444">&#10060; Error loading data: ' + e.message + '</div>';
+  }
+}
 
 // Settings modal - KIA credentials
 function openSettings() {
