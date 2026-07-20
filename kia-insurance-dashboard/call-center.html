@@ -641,9 +641,9 @@ tr:last-child td { border-bottom:none; }
         <button class="ap-apply-btn" onclick="renderAgentPerf()">&#10003; Apply</button>
         <button class="ap-reset-btn" onclick="resetApFilters()">Reset</button>
       </div>
+      <div class="ap-cats" id="apCats"></div>
+      <div class="ap-cat-stats" id="apCatStats"></div>
       <div id="apContent">
-        <div class="ap-cats" id="apCats"></div>
-        <div class="ap-cat-stats" id="apCatStats"></div>
         <div style="text-align:center;padding:40px;color:#64748b"><div class="spin" style="border-color:#e2e8f0;border-top-color:#6366f1"></div><br>Loading...</div>
       </div>
     </div>
@@ -1650,7 +1650,8 @@ function renderNotVisited() {
 function renderAgentPerf() {
   var content = document.getElementById('apContent');
   if (!apAllLogs.length && !apAllInsurance.length) {
-    content.innerHTML = '<div class="ap-cats" id="apCats"></div><div style="text-align:center;padding:40px;color:#64748b;font-size:13px">&#128203; No data found. Start logging calls to see agent performance.</div>';
+    document.getElementById('apCats').innerHTML = '';
+    content.innerHTML = '<div style="text-align:center;padding:40px;color:#64748b;font-size:13px">&#128203; No data found. Start logging calls to see agent performance.</div>';
     return;
   }
 
