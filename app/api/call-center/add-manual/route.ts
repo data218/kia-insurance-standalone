@@ -22,8 +22,8 @@ export async function POST(req: Request) {
 
     const {
       policyno, vinno, customer_name, model, insurancecompany,
-      grosspremium, policy_expiry_date, policy_effective_date,
-      mobile_no, state, create_date, source_agent
+      grosspremium, totalidv, policy_expiry_date, policy_effective_date,
+      mobile_no, state, create_date, source_agent, follow_up_date
     } = body
 
     if (!policyno || !customer_name) {
@@ -31,6 +31,7 @@ export async function POST(req: Request) {
     }
 
     const today = new Date().toISOString().slice(0, 10)
+    const supabase = getSupabaseAdmin()
 
     const payload: Record<string, any> = {
       policyno: policyno || '',
@@ -39,6 +40,7 @@ export async function POST(req: Request) {
       model: model || '',
       insurancecompany: insurancecompany || '',
       grosspremium: grosspremium ? Number(grosspremium) : 0,
+      totalidv: totalidv ? Number(totalidv) : null,
       policy_expiry_date: policy_expiry_date || '',
       policy_effective_date: policy_effective_date || '',
       state: state || '',
@@ -50,13 +52,12 @@ export async function POST(req: Request) {
       policytype: null,
       mfg_year: null,
       paymentmode: null,
-      totalidv: null,
       netodpremiuma: null,
       source: 'manual',
       uploaded_at: new Date().toISOString(),
     }
 
-    const { data, error } = await getSupabaseAdmin()
+    const { data, error } = await supabase
       .from('kia_insurance')
       .insert(payload)
       .select()
@@ -70,6 +71,19 @@ export async function POST(req: Request) {
         }, { status: 400 })
       }
       throw error
+    }
+
+    if (follow_up_date && policyno) {
+      await supabase.from('call_logs').insert({
+        policyno, vinno: vinno || '', customer_name: customer_name || '',
+        model: model || '', insurancecompany: insurancecompany || '',
+        grosspremium: grosspremium ? Number(grosspremium) : null,
+        policy_expiry_date: policy_expiry_date || '',
+        call_outcome: 'Follow-up', follow_up_date,
+        agent_name: source_agent || '', mobile_no: mobile_no || '',
+        call_date: new Date().toISOString(),
+        remarks: 'Initial follow-up set during manual entry',
+      }).then(() => {}).catch(() => {})
     }
 
     return NextResponse.json({ success: true, entry: data })

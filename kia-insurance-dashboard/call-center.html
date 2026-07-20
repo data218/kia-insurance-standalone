@@ -187,6 +187,25 @@ tr:last-child td { border-bottom:none; }
   .table-wrap { padding:4px 10px 6px; }
   .search-box input { width:110px; }
 }
+
+/* AUTOCOMPLETE */
+.ac-wrap { position:relative; }
+.ac-wrap input { width:100%; }
+.ac-list { position:absolute; top:100%; left:0; right:0; background:#fff; border:1px solid var(--border); border-radius:0 0 5px 5px; max-height:140px; overflow-y:auto; z-index:50; display:none; box-shadow:0 4px 12px rgba(0,0,0,.1); }
+.ac-list.show { display:block; }
+.ac-item { padding:5px 8px; font-size:10px; cursor:pointer; border-bottom:1px solid #f1f5f9; }
+.ac-item:hover { background:#f0f5ff; }
+.ac-item.new-item { color:#1d4ed8; font-weight:600; font-style:italic; }
+
+/* AGENT TAG */
+.agent-tag { display:inline-flex; align-items:center; gap:4px; padding:2px 8px; border-radius:5px; font-size:9px; font-weight:500; background:#f1f5f9; border:1px solid var(--border); }
+.agent-tag .rm { cursor:pointer; color:#ef4444; font-weight:700; font-size:10px; margin-left:2px; }
+.agent-tag .rm:hover { color:#b91c1c; }
+
+/* TH FILTER */
+.th-filter { display:flex; flex-direction:column; gap:1px; }
+.th-filter select { padding:1px 3px; border:none; border-radius:3px; background:rgba(255,255,255,.2); color:#fff; font-size:7px; cursor:pointer; outline:none; max-width:100%; }
+.th-filter select option { background:#2d2d2d; color:#fff; }
 </style>
 </head>
 <body>
@@ -199,6 +218,7 @@ tr:last-child td { border-bottom:none; }
   </div>
   <div style="display:flex;align-items:center;gap:0;flex-shrink:0">
     <span id="welcomeUser" style="font-size:10px;color:rgba(255,255,255,.85);font-weight:500;margin-right:8px"></span>
+    <button onclick="openAgentModal()" title="Manage Agents" style="background:none;border:none;color:rgba(255,255,255,.85);font-size:14px;cursor:pointer;padding:0 6px;line-height:1">&#128101;</button>
     <button onclick="openSettings()" title="KIA Credentials" style="background:none;border:none;color:rgba(255,255,255,.85);font-size:14px;cursor:pointer;padding:0 6px;line-height:1">&#x2699;</button>
     <button class="btn-icon" id="viewToggle" onclick="toggleToolbar()" title="Toggle Toolbar" style="font-size:14px;font-weight:700;background:none;border:none;color:rgba(255,255,255,.85);cursor:pointer;width:24px;height:24px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">&#x2630;</button>
     <span id="liveClock" style="font-size:11px;color:#fff;font-family:'Courier New',monospace;background:rgba(255,255,255,.15);padding:3px 10px;border-radius:5px;letter-spacing:1px;border:1px solid rgba(255,255,255,.2);white-space:nowrap;font-weight:700;box-shadow:0 1px 4px rgba(0,0,0,0.1);flex-shrink:0"></span>
@@ -268,7 +288,7 @@ tr:last-child td { border-bottom:none; }
       <div class="form-row">
         <div class="form-group">
           <label>Agent Name</label>
-          <input type="text" id="agentName" placeholder="Your name">
+          <select id="agentName"><option value="">Select agent...</option></select>
         </div>
         <div class="form-group">
           <label>Mobile Number</label>
@@ -388,13 +408,13 @@ tr:last-child td { border-bottom:none; }
         </div>
         <div class="form-group">
           <label>Model</label>
-          <input type="text" id="meModel" placeholder="Vehicle model">
+          <div class="ac-wrap"><input type="text" id="meModel" placeholder="Type or select model" autocomplete="off"><div class="ac-list" id="meModelAC"></div></div>
         </div>
       </div>
       <div class="form-row">
         <div class="form-group">
           <label>Insurance Company</label>
-          <input type="text" id="meInsurer" placeholder="Insurance company">
+          <div class="ac-wrap"><input type="text" id="meInsurer" placeholder="Type or select insurer" autocomplete="off"><div class="ac-list" id="meInsurerAC"></div></div>
         </div>
         <div class="form-group">
           <label>Gross Premium (₹)</label>
@@ -403,32 +423,42 @@ tr:last-child td { border-bottom:none; }
       </div>
       <div class="form-row">
         <div class="form-group">
+          <label>IDV (₹)</label>
+          <input type="number" id="meIdv" placeholder="0" min="0">
+        </div>
+        <div class="form-group">
           <label>Policy Expiry Date</label>
           <input type="date" id="meExpiryDate">
         </div>
+      </div>
+      <div class="form-row">
         <div class="form-group">
           <label>Policy Effective Date</label>
           <input type="date" id="meEffectiveDate">
         </div>
-      </div>
-      <div class="form-row">
         <div class="form-group">
           <label>Mobile Number</label>
           <input type="text" id="meMobile" placeholder="Customer mobile">
         </div>
+      </div>
+      <div class="form-row">
         <div class="form-group">
           <label>State</label>
           <input type="text" id="meState" placeholder="State">
         </div>
-      </div>
-      <div class="form-row">
         <div class="form-group">
           <label>Policy Date (Created)</label>
           <input type="date" id="meCreateDate">
         </div>
+      </div>
+      <div class="form-row">
         <div class="form-group">
           <label>Agent Name</label>
-          <input type="text" id="meAgentName" placeholder="Your name">
+          <select id="meAgentName"><option value="">Select agent...</option></select>
+        </div>
+        <div class="form-group">
+          <label>Next Follow-up Date</label>
+          <input type="date" id="meFollowUpDate">
         </div>
       </div>
       <div id="meErrorMsg" style="font-size:11px;color:#dc2626;margin-bottom:8px;display:none"></div>
@@ -441,11 +471,87 @@ tr:last-child td { border-bottom:none; }
   </div>
 </div>
 
+<!-- AGENT MANAGEMENT MODAL -->
+<div class="modal-overlay" id="agentModal">
+  <div class="modal" style="max-width:400px;">
+    <div class="modal-head">
+      <h2>&#128101; Manage Agents</h2>
+      <button class="close" onclick="closeAgentModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div style="font-size:10px;color:#64748b;margin-bottom:10px">Add or remove call center agents. Agents appear in dropdowns across the app.</div>
+      <div style="display:flex;gap:4px;margin-bottom:10px">
+        <input type="text" id="newAgentInput" placeholder="Agent name..." style="flex:1;padding:5px 8px;border:1px solid var(--border);border-radius:5px;font-size:11px;outline:none">
+        <button class="btn-save" onclick="addAgent()" style="padding:5px 14px;font-size:11px">+ Add</button>
+      </div>
+      <div id="agentList" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+      <div id="agentMsg" style="font-size:11px;margin-top:8px;display:none"></div>
+    </div>
+  </div>
+</div>
+
 <script>
 let allDue = [];
 let statusFilter = 'all';
 let currentPage = 0;
 const PAGE_SIZE = 20;
+let filterModel = 'all';
+let filterInsurer = 'all';
+let dropdownOptions = { models: [], insurers: [] };
+
+function getAgents() { try { return JSON.parse(localStorage.getItem('cc_agents') || '[]'); } catch(e) { return []; } }
+function saveAgents(a) { localStorage.setItem('cc_agents', JSON.stringify(a)); }
+function populateAgentDropdowns() {
+  var agents = getAgents();
+  var opts = '<option value="">Select agent...</option>';
+  agents.forEach(function(a) { opts += '<option value="' + a + '">' + a + '</option>'; });
+  opts += '<option value="__add__">+ Add New Agent...</option>';
+  document.querySelectorAll('select#agentName, select#meAgentName').forEach(function(sel) {
+    var current = sel.value;
+    sel.innerHTML = opts;
+    if (current) sel.value = current;
+  });
+}
+
+function setupAutocomplete(inputId, listId, options) {
+  var input = document.getElementById(inputId);
+  var list = document.getElementById(listId);
+  if (!input || !list) return;
+  input.addEventListener('input', function() {
+    var val = input.value.toLowerCase().trim();
+    list.innerHTML = '';
+    if (!val) { list.classList.remove('show'); return; }
+    var filtered = options.filter(function(o) { return o.toLowerCase().includes(val); });
+    var exactMatch = options.some(function(o) { return o.toLowerCase() === val; });
+    if (!exactMatch && val.length > 0) {
+      var addDiv = document.createElement('div');
+      addDiv.className = 'ac-item new-item';
+      addDiv.textContent = '+ Add "' + input.value + '"';
+      addDiv.addEventListener('mousedown', function(e) { e.preventDefault(); input.value = input.value; list.classList.remove('show'); });
+      list.appendChild(addDiv);
+    }
+    filtered.forEach(function(o) {
+      var div = document.createElement('div');
+      div.className = 'ac-item';
+      div.textContent = o;
+      div.addEventListener('mousedown', function(e) { e.preventDefault(); input.value = o; list.classList.remove('show'); });
+      list.appendChild(div);
+    });
+    list.classList.toggle('show', list.children.length > 0);
+  });
+  input.addEventListener('blur', function() { setTimeout(function() { list.classList.remove('show'); }, 150); });
+  input.addEventListener('focus', function() { if (input.value && list.children.length > 0) list.classList.add('show'); });
+}
+
+async function loadDropdownOptions() {
+  try {
+    var d = await cachedFetch('/api/call-center/options', 300000);
+    dropdownOptions.models = d.models || [];
+    dropdownOptions.insurers = d.insurers || [];
+    setupAutocomplete('meModel', 'meModelAC', dropdownOptions.models);
+    setupAutocomplete('meInsurer', 'meInsurerAC', dropdownOptions.insurers);
+  } catch(e) {}
+}
 
 function fmtDate(d) {
   if (!d) return '-';
@@ -550,6 +656,12 @@ function renderStats() {
 
 function renderTable() {
   let filtered = allDue;
+  if (filterModel !== 'all') {
+    filtered = filtered.filter(function(x){return (x.model||'-') === filterModel;});
+  }
+  if (filterInsurer !== 'all') {
+    filtered = filtered.filter(function(x){return (x.insurancecompany||'-') === filterInsurer;});
+  }
   if (statusFilter !== 'all') {
     const targetStatus = statusFilter.replace(/-/g,' ').toLowerCase();
     if (targetStatus === 'follow up') {
@@ -575,9 +687,15 @@ function renderTable() {
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE) || 1;
   const start = currentPage * PAGE_SIZE;
   const pageData = filtered.slice(start, start + PAGE_SIZE);
+  var models = [...new Set(allDue.map(function(r){return r.model||'-';}))].sort();
+  var insurers = [...new Set(allDue.map(function(r){return r.insurancecompany||'-';}))].sort();
+  var modelOpts = '<option value="all">All</option>';
+  models.forEach(function(m){ modelOpts += '<option value="'+m.replace(/"/g,'&quot;')+'"'+(filterModel===m?' selected':'')+'>'+m+'</option>'; });
+  var insurerOpts = '<option value="all">All</option>';
+  insurers.forEach(function(ins){ insurerOpts += '<option value="'+ins.replace(/"/g,'&quot;')+'"'+(filterInsurer===ins?' selected':'')+'>'+ins+'</option>'; });
   var h = '<div class="table-scroll"><table><thead><tr>' +
-    '<th>#</th><th>Customer</th><th>Contact</th><th>VIN</th><th>Model</th><th>Policy</th>' +
-    '<th>Expiry</th><th>Insurer</th><th>Risk Start</th><th>Created</th><th>Premium</th><th>Attempts</th><th>Status</th><th>Last Call</th><th>Remarks</th><th>Next Followup Date</th><th>Action</th><th>History</th>' +
+    '<th>#</th><th>Customer</th><th>Contact</th><th>VIN</th><th><div class="th-filter"><span>Model</span><select onchange="filterModel=this.value;currentPage=0;renderTable()">'+modelOpts+'</select></div></th><th>Policy</th>' +
+    '<th>Expiry</th><th><div class="th-filter"><span>Insurer</span><select onchange="filterInsurer=this.value;currentPage=0;renderTable()">'+insurerOpts+'</select></div></th><th>Risk Start</th><th>Created</th><th>Premium</th><th>Attempts</th><th>Status</th><th>Last Call</th><th>Remarks</th><th>Next Followup Date</th><th>Action</th><th>History</th>' +
     '</tr></thead><tbody>';
   if (!pageData.length) {
     h += '<tr><td colspan="18" style="text-align:center;padding:20px;color:var(--muted);font-size:11px">&#128203; No due policies found' + (q ? ' matching "' + q + '"' : '') + '</td></tr>';
@@ -665,11 +783,12 @@ function openCallModal(idx) {
       '<div class="ci"><div class="lbl">Status</div><div class="val"><span class="status-badge ' + statusClass(sc) + '">' + statusIcon(sc) + ' ' + sc + '</span></div></div>' +
     '</div>';
 
-  // Hide last remarks and history boxes in call modal - only show form
   document.getElementById('lastRemarksBox').style.display = 'none';
   document.getElementById('historyBox').style.display = 'none';
 
-  document.getElementById('agentName').value = item.last_agent || '';
+  populateAgentDropdowns();
+  var agentSel = document.getElementById('agentName');
+  if (item.last_agent) agentSel.value = item.last_agent;
   document.getElementById('mobileNo').value = item.mobile || '';
   document.getElementById('callOutcome').value = '';
   document.getElementById('followUpDate').value = item.follow_up_date || '';
@@ -793,7 +912,7 @@ async function saveCallLog() {
     call_outcome: outcome,
     remarks: document.getElementById('remarks').value,
     follow_up_date: document.getElementById('followUpDate').value || null,
-    agent_name: document.getElementById('agentName').value,
+    agent_name: document.getElementById('agentName').value === '__add__' ? '' : document.getElementById('agentName').value,
     mobile_no: document.getElementById('mobileNo').value
   };
   const btn = document.querySelector('.btn-save');
@@ -846,6 +965,78 @@ function startClock() {
   if (sr) sr.style.top = '34px';
 })();
 
+// AGENT MANAGEMENT
+function openAgentModal() {
+  document.getElementById('newAgentInput').value = '';
+  document.getElementById('agentMsg').style.display = 'none';
+  renderAgentList();
+  document.getElementById('agentModal').classList.add('show');
+}
+function closeAgentModal() {
+  document.getElementById('agentModal').classList.remove('show');
+  populateAgentDropdowns();
+}
+document.getElementById('agentModal').addEventListener('click', function(e) {
+  if (e.target === e.currentTarget) closeAgentModal();
+});
+
+function renderAgentList() {
+  var agents = getAgents();
+  var el = document.getElementById('agentList');
+  if (!agents.length) { el.innerHTML = '<div style="font-size:10px;color:var(--muted)">No agents added yet</div>'; return; }
+  el.innerHTML = agents.map(function(a) {
+    return '<span class="agent-tag">' + a + ' <span class="rm" onclick="removeAgent(\'' + a.replace(/'/g,"\\'") + '\')">&times;</span></span>';
+  }).join('');
+}
+
+function addAgent() {
+  var input = document.getElementById('newAgentInput');
+  var name = input.value.trim();
+  var msg = document.getElementById('agentMsg');
+  if (!name) { msg.textContent = 'Enter a name'; msg.style.color = '#dc2626'; msg.style.display = 'block'; return; }
+  var agents = getAgents();
+  if (agents.indexOf(name) !== -1) { msg.textContent = 'Agent already exists'; msg.style.color = '#dc2626'; msg.style.display = 'block'; return; }
+  agents.push(name);
+  agents.sort();
+  saveAgents(agents);
+  input.value = '';
+  msg.textContent = name + ' added!';
+  msg.style.color = '#16a34a';
+  msg.style.display = 'block';
+  renderAgentList();
+}
+
+function removeAgent(name) {
+  if (!confirm('Remove agent "' + name + '"?')) return;
+  var agents = getAgents().filter(function(a) { return a !== name; });
+  saveAgents(agents);
+  renderAgentList();
+}
+
+// Handle agent "Add New" in call modal
+document.getElementById('agentName').addEventListener('change', function() {
+  if (this.value === '__add__') {
+    var name = prompt('Enter new agent name:');
+    if (name && name.trim()) {
+      var agents = getAgents();
+      if (agents.indexOf(name.trim()) === -1) { agents.push(name.trim()); agents.sort(); saveAgents(agents); }
+      populateAgentDropdowns();
+      document.getElementById('agentName').value = name.trim();
+    } else { this.value = ''; }
+  }
+});
+document.getElementById('meAgentName').addEventListener('change', function() {
+  if (this.value === '__add__') {
+    var name = prompt('Enter new agent name:');
+    if (name && name.trim()) {
+      var agents = getAgents();
+      if (agents.indexOf(name.trim()) === -1) { agents.push(name.trim()); agents.sort(); saveAgents(agents); }
+      populateAgentDropdowns();
+      document.getElementById('meAgentName').value = name.trim();
+    } else { this.value = ''; }
+  }
+});
+
 // Settings modal - KIA credentials
 function openSettings() {
   document.getElementById('settingsUsername').value = localStorage.getItem('kiaUsername') || '';
@@ -867,11 +1058,14 @@ function openManualEntryModal() {
   document.getElementById('meModel').value = '';
   document.getElementById('meInsurer').value = '';
   document.getElementById('mePremium').value = '';
+  document.getElementById('meIdv').value = '';
   document.getElementById('meExpiryDate').value = '';
   document.getElementById('meEffectiveDate').value = '';
   document.getElementById('meMobile').value = '';
   document.getElementById('meState').value = '';
   document.getElementById('meCreateDate').value = new Date().toISOString().slice(0,10);
+  document.getElementById('meFollowUpDate').value = '';
+  populateAgentDropdowns();
   document.getElementById('meAgentName').value = '';
   document.getElementById('meErrorMsg').style.display = 'none';
   document.getElementById('meSuccessMsg').style.display = 'none';
@@ -911,12 +1105,14 @@ async function saveManualEntry() {
       model: document.getElementById('meModel').value.trim(),
       insurancecompany: document.getElementById('meInsurer').value.trim(),
       grosspremium: document.getElementById('mePremium').value || 0,
+      totalidv: document.getElementById('meIdv').value || 0,
       policy_expiry_date: document.getElementById('meExpiryDate').value || '',
       policy_effective_date: document.getElementById('meEffectiveDate').value || '',
       mobile_no: document.getElementById('meMobile').value.trim(),
       state: document.getElementById('meState').value.trim(),
       create_date: document.getElementById('meCreateDate').value || '',
-      source_agent: document.getElementById('meAgentName').value.trim()
+      source_agent: document.getElementById('meAgentName').value === '__add__' ? '' : document.getElementById('meAgentName').value,
+      follow_up_date: document.getElementById('meFollowUpDate').value || null
     };
     var res = await fetch('/api/call-center/add-manual', {
       method: 'POST',
@@ -976,6 +1172,8 @@ async function saveSettings() {
 
 (function(){ var t=new URLSearchParams(window.location.search).get('token'); if(t) localStorage.setItem('authToken',t); t=localStorage.getItem('authToken'); if(!t) { location.href='/login'; return; } document.querySelectorAll('a[href^="/"]').forEach(function(a){ if(a.href.includes('token=')) return; a.href+=((a.href.includes('?')?'&':'?')+'token='+encodeURIComponent(t)); }); var el=document.getElementById('welcomeUser');if(el){var ll=localStorage.getItem('lastLogin');if(ll){var d=new Date(ll);el.textContent='Admin | Last: '+d.toLocaleDateString('en-GB')+' '+d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}else{el.textContent='Admin'}}fetch('/api/auth/log-activity',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:t,action:'view',page:'call-center'}),keepalive:true}).catch(function(){}) })();
 populateMonths();
+populateAgentDropdowns();
+loadDropdownOptions();
 loadDue();
 startClock();
 </script>
