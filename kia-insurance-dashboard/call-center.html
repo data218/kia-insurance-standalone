@@ -493,10 +493,10 @@ function renderTable() {
   const pageData = filtered.slice(start, start + PAGE_SIZE);
   var h = '<div class="table-scroll"><table><thead><tr>' +
     '<th>#</th><th>Customer</th><th>Contact</th><th>VIN</th><th>Model</th><th>Policy</th>' +
-    '<th>Expiry</th><th>Insurer</th><th>Risk Start</th><th>Created</th><th>Premium</th><th>Attempts</th><th>Status</th><th>Last Call</th><th>Remarks</th><th>Action</th><th>History</th>' +
+    '<th>Expiry</th><th>Insurer</th><th>Risk Start</th><th>Created</th><th>Premium</th><th>Attempts</th><th>Status</th><th>Last Call</th><th>Remarks</th><th>Next Followup Date</th><th>Action</th><th>History</th>' +
     '</tr></thead><tbody>';
   if (!pageData.length) {
-    h += '<tr><td colspan="17" style="text-align:center;padding:20px;color:var(--muted);font-size:11px">&#128203; No due policies found' + (q ? ' matching "' + q + '"' : '') + '</td></tr>';
+    h += '<tr><td colspan="18" style="text-align:center;padding:20px;color:var(--muted);font-size:11px">&#128203; No due policies found' + (q ? ' matching "' + q + '"' : '') + '</td></tr>';
     h += '</tbody></table></div>';
     document.getElementById('tableContainer').innerHTML = h;
     document.getElementById('paginationContainer').innerHTML = '';
@@ -527,6 +527,7 @@ function renderTable() {
       '<td><span class="status-badge ' + statusClass(sc) + '">' + statusIcon(sc) + ' ' + sc + '</span></td>' +
       '<td style="color:var(--muted);font-size:9px">' + callDate + '</td>' +
       '<td style="max-width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted);font-size:9px" title="' + fullRemarks.replace(/"/g,'&quot;') + '">' + displayRemarks + '</td>' +
+      '<td style="font-size:9px;font-weight:500;color:' + (r.follow_up_date ? 'var(--blue)' : 'var(--muted)') + '">' + (r.follow_up_date ? fmtDate(r.follow_up_date) : '-') + '</td>' +
       '<td><button class="call-btn" onclick="openCallModal(' + absIdx + ')" title="Customer details &amp; call log">&#128222; Call</button></td>' +
       '<td><button class="hist-btn" onclick="openHistoryModal(' + absIdx + ')" title="View calling history">&#128196; History</button></td>' +
       '</tr>';
