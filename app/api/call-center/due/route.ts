@@ -65,7 +65,9 @@ export async function GET(req: Request) {
 
     const pendingVins = [...candidateVins].filter(v => {
       const periodDate = vinLatest[v]?.create_date
-      return periodDate && vinNewestDate[v] === periodDate
+      if (!periodDate) return false
+      if (vinLatest[v]?.source === 'manual') return true
+      return vinNewestDate[v] === periodDate
     })
     let allLogs: any[] = []
     try { allLogs = await fetchAll('call_logs') } catch (_) {}
@@ -110,6 +112,7 @@ export async function GET(req: Request) {
         follow_up_date: lastLog ? lastLog.follow_up_date : null,
         log_id: lastLog ? lastLog.id : null,
         attempt_count: logCount[pno] || 0,
+        source: r.source || 'kia_safety',
         history,
       })
     }

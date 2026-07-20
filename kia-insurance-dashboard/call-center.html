@@ -112,6 +112,9 @@ tr:last-child td { border-bottom:none; }
 .rt-rollover { background:#fef3c7; color:#b45309; }
 .rt-lapsed { background:#fee2e2; color:#b91c1c; }
 
+/* MANUAL ENTRY BADGE */
+.manual-tag { display:inline-block; padding:0 5px; border-radius:4px; font-size:7px; font-weight:700; background:#dbeafe; color:#1d4ed8; margin-left:3px; vertical-align:middle; letter-spacing:0.3px; }
+
 /* MODAL */
 .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.4); z-index:1000; align-items:center; justify-content:center; }
 .modal-overlay.show { display:flex; }
@@ -217,6 +220,8 @@ tr:last-child td { border-bottom:none; }
     <button class="filter-btn s-not-interested" data-sf="not-interested" onclick="setStatusFilter('not-interested')">Not Interested</button>
   </div>
   <button class="fu-panel-btn" id="fuPanelBtn" onclick="setStatusFilter('follow-up')">&#128197; Follow-up Panel <span id="fuCount">0</span></button>
+  <div style="width:1px;height:16px;background:var(--border)"></div>
+  <button class="filter-btn" onclick="openManualEntryModal()" style="background:rgba(34,197,94,.85);color:#fff;border-color:rgba(34,197,94,.5);font-weight:600">+ Add Entry</button>
   <div class="search-box">
     <div class="search-wrap">
       <span class="ico">&#128269;</span>
@@ -352,6 +357,85 @@ tr:last-child td { border-bottom:none; }
       <div class="form-actions">
         <button class="btn-cancel" onclick="closeSettings()">Cancel</button>
         <button class="btn-save" onclick="saveSettings()" id="settingsSaveBtn">&#128190; Save Credentials</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MANUAL ENTRY MODAL -->
+<div class="modal-overlay" id="manualEntryModal">
+  <div class="modal" style="max-width:540px;">
+    <div class="modal-head">
+      <h2>&#128221; Add Insurance Entry</h2>
+      <button class="close" onclick="closeManualEntryModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div style="font-size:10px;color:#64748b;margin-bottom:10px">Manually add a policy not available in KIA Safety portal. Fields marked * are required.</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Policy Number *</label>
+          <input type="text" id="mePolicyNo" placeholder="Policy number">
+        </div>
+        <div class="form-group">
+          <label>Customer Name *</label>
+          <input type="text" id="meCustomerName" placeholder="Customer name">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>VIN Number</label>
+          <input type="text" id="meVinNo" placeholder="Vehicle Identification Number">
+        </div>
+        <div class="form-group">
+          <label>Model</label>
+          <input type="text" id="meModel" placeholder="Vehicle model">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Insurance Company</label>
+          <input type="text" id="meInsurer" placeholder="Insurance company">
+        </div>
+        <div class="form-group">
+          <label>Gross Premium (₹)</label>
+          <input type="number" id="mePremium" placeholder="0" min="0">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Policy Expiry Date</label>
+          <input type="date" id="meExpiryDate">
+        </div>
+        <div class="form-group">
+          <label>Policy Effective Date</label>
+          <input type="date" id="meEffectiveDate">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Mobile Number</label>
+          <input type="text" id="meMobile" placeholder="Customer mobile">
+        </div>
+        <div class="form-group">
+          <label>State</label>
+          <input type="text" id="meState" placeholder="State">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Policy Date (Created)</label>
+          <input type="date" id="meCreateDate">
+        </div>
+        <div class="form-group">
+          <label>Agent Name</label>
+          <input type="text" id="meAgentName" placeholder="Your name">
+        </div>
+      </div>
+      <div id="meErrorMsg" style="font-size:11px;color:#dc2626;margin-bottom:8px;display:none"></div>
+      <div id="meSuccessMsg" style="font-size:11px;color:#16a34a;margin-bottom:8px;display:none"></div>
+      <div class="form-actions">
+        <button class="btn-cancel" onclick="closeManualEntryModal()">Cancel</button>
+        <button class="btn-save" onclick="saveManualEntry()" id="meSaveBtn">&#128190; Save Entry</button>
       </div>
     </div>
   </div>
@@ -511,7 +595,7 @@ function renderTable() {
     var displayRemarks = fullRemarks.length > 25 ? fullRemarks.substring(0,22)+'...' : fullRemarks;
     h += '<tr>' +
       '<td style="color:var(--muted);font-weight:500;font-size:9px">' + (start + i + 1) + '</td>' +
-      '<td style="font-size:9px">' + r.customer_name + '</td>' +
+      '<td style="font-size:9px">' + r.customer_name + (r.source === 'manual' ? '<span class="manual-tag">MANUAL</span>' : '') + '</td>' +
       '<td><span style="font-weight:500;color:var(--blue);font-size:9px">' + mob + '</span>' +
         (r.follow_up_date ? '<br><span style="font-size:8px;color:var(--orange)">&#128197; ' + fmtDateShort(r.follow_up_date) + '</span>' : '') +
       '</td>' +
@@ -773,6 +857,97 @@ function openSettings() {
 }
 function closeSettings() {
   document.getElementById('settingsModal').classList.remove('show');
+}
+
+// MANUAL ENTRY
+function openManualEntryModal() {
+  document.getElementById('mePolicyNo').value = '';
+  document.getElementById('meCustomerName').value = '';
+  document.getElementById('meVinNo').value = '';
+  document.getElementById('meModel').value = '';
+  document.getElementById('meInsurer').value = '';
+  document.getElementById('mePremium').value = '';
+  document.getElementById('meExpiryDate').value = '';
+  document.getElementById('meEffectiveDate').value = '';
+  document.getElementById('meMobile').value = '';
+  document.getElementById('meState').value = '';
+  document.getElementById('meCreateDate').value = new Date().toISOString().slice(0,10);
+  document.getElementById('meAgentName').value = '';
+  document.getElementById('meErrorMsg').style.display = 'none';
+  document.getElementById('meSuccessMsg').style.display = 'none';
+  document.getElementById('meSaveBtn').disabled = false;
+  document.getElementById('meSaveBtn').textContent = 'Save Entry';
+  document.getElementById('manualEntryModal').classList.add('show');
+}
+
+function closeManualEntryModal() {
+  document.getElementById('manualEntryModal').classList.remove('show');
+}
+document.getElementById('manualEntryModal').addEventListener('click', function(e) {
+  if (e.target === e.currentTarget) closeManualEntryModal();
+});
+
+async function saveManualEntry() {
+  var policyno = document.getElementById('mePolicyNo').value.trim();
+  var customer_name = document.getElementById('meCustomerName').value.trim();
+  var errEl = document.getElementById('meErrorMsg');
+  var sucEl = document.getElementById('meSuccessMsg');
+  errEl.style.display = 'none';
+  sucEl.style.display = 'none';
+  if (!policyno || !customer_name) {
+    errEl.textContent = 'Policy Number and Customer Name are required';
+    errEl.style.display = 'block';
+    return;
+  }
+  var btn = document.getElementById('meSaveBtn');
+  btn.disabled = true;
+  btn.textContent = 'Saving...';
+  try {
+    var payload = {
+      token: localStorage.getItem('authToken'),
+      policyno: policyno,
+      vinno: document.getElementById('meVinNo').value.trim(),
+      customer_name: customer_name,
+      model: document.getElementById('meModel').value.trim(),
+      insurancecompany: document.getElementById('meInsurer').value.trim(),
+      grosspremium: document.getElementById('mePremium').value || 0,
+      policy_expiry_date: document.getElementById('meExpiryDate').value || '',
+      policy_effective_date: document.getElementById('meEffectiveDate').value || '',
+      mobile_no: document.getElementById('meMobile').value.trim(),
+      state: document.getElementById('meState').value.trim(),
+      create_date: document.getElementById('meCreateDate').value || '',
+      source_agent: document.getElementById('meAgentName').value.trim()
+    };
+    var res = await fetch('/api/call-center/add-manual', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    var d = await res.json();
+    if (!res.ok) {
+      if (d.sql) {
+        errEl.innerHTML = d.error + '<br><code style="font-size:9px;background:#f1f5f9;padding:2px 6px;border-radius:3px;display:block;margin-top:4px;word-break:break-all">' + d.sql + '</code>';
+      } else {
+        errEl.textContent = d.error || 'Save failed';
+      }
+      errEl.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Save Entry';
+      return;
+    }
+    sucEl.textContent = 'Entry saved successfully!';
+    sucEl.style.display = 'block';
+    btn.textContent = 'Saved';
+    setTimeout(function() {
+      closeManualEntryModal();
+      loadDue(true);
+    }, 1200);
+  } catch (e) {
+    errEl.textContent = 'Connection error: ' + e.message;
+    errEl.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = 'Save Entry';
+  }
 }
 async function saveSettings() {
   const u = document.getElementById('settingsUsername').value.trim();
