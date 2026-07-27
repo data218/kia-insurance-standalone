@@ -237,14 +237,15 @@ tr.total td { font-weight:800; background:#e8f0fe; border-top:3px solid #ccc; pa
         <tr><td>New (LY)</td><td>VINs with <b>policytype="New"</b> in the LY month.</td></tr>
         <tr><td>New (CY)</td><td>VINs with <b>policytype="New"</b> in the CY month.</td></tr>
         <tr><td>Renewal (LY)</td><td>VINs present in <b>both</b> the LY month and the same LY-1 month (<b>VIN overlap</b>).</td></tr>
-        <tr><td>Renewal (CY)</td><td>A VIN is classified as <b>CY Renewal</b> if it had <b>policytype="New"</b> in <b>any LY month</b> (whole year) AND has <b>policytype="Renewal"</b> in CY. The renewal is counted in the CY month matching the <b><code>policy_expiry_date</code></b> from that LY New record (not <code>create_date</code>). Handles early/late renewals correctly for all months.</td></tr>
+        <tr><td>Renewal (CY)</td><td>A VIN is classified as <b>CY Renewal</b> if it had <b>policytype="New"</b> in <b>any LY month within the selected range</b> AND has <b>policytype="Renewal"</b> in CY. The renewal is counted in the CY month matching the <b><code>policy_expiry_date</code></b> from that LY New record (not <code>create_date</code>). <b>LY and CY always compare the same months</b> (e.g. Jan-Jul 2025 vs Jan-Jul 2026).</td></tr>
         <tr><td>Rollover (LY)</td><td>LY VINs with <b>policytype="Renewal"</b> that are <b>not</b> in the same LY-1 month (= previously-renewed policies).</td></tr>
         <tr><td>Rollover (CY)</td><td>Remaining CY VINs with <b>policytype="Renewal"</b> that are <b>not</b> CY Renewal and <b>not</b> LY Rollover VINs that came back. Formula: <code>Total CY Renewal-type &#8722; CY Renewal &#8722; LY Rollover in CY</code>.</td></tr>
         <tr><td>Rollover&#8594;Renew</td><td>LY Rollover VINs that <b>came to CY</b> in the same month. Shows how many previously-renewed policies returned.</td></tr>
-        <tr><td>Not Visited</td><td>LY VINs that <b>do not appear</b> in any CY month within the selected range.</td></tr>
+        <tr><td>Overall</td><td>LY = <b>New + Renewal + Rollover</b> (all LY VINs). CY = <b>Renewal + Rollover + Rollover&#8594;Renew</b> (renewed policies, excludes CY New).</td></tr>
+        <tr><td>Not Visited</td><td>LY VINs within the <b>same date range</b> that <b>do not appear</b> in any CY month. Only compares matching months (e.g. Jan-Jul only).</td></tr>
         <tr><td>LY #</td><td>Count of unique VINs in the <b>Previous Year (LY = CY &#8722; 1)</b> for the given month.</td></tr>
         <tr><td>CY #</td><td>Count of unique VINs in the <b>Current Year</b> for the given month.</td></tr>
-        <tr><td>Growth</td><td><code>((CY &#8722; LY) / LY) &#215; 100</code>. Shows &#9650; for positive, &#9660; for negative, &#9670; for flat. For Renewal, the base is <b>LY New</b> (not LY Renewal) since New policies are the pool that become Renewal.</td></tr>
+        <tr><td>Achieved %</td><td><code>(CY / LY) &#215; 100</code>. Shows how much of last year's count has been achieved this year. <b style="color:#166534">Green</b> if &#8805;100% (target met), <b style="color:#dc2626">Red</b> if &lt;100% (below target).</td></tr>
         <tr><td>Unique VINs (Annual)</td><td>Each VIN is counted <b>only once per year</b>, regardless of how many months it appears. Info bar shows the true unique count.</td></tr>
         <tr><td>Sum of Months vs Unique</td><td>Monthly columns count unique VINs <b>per month</b>. A VIN in Jan AND Feb gets counted in both. The total row shows the correct unique count across all months.</td></tr>
         <tr><td>Duplicate Policy Check</td><td>Detects rows where the <b>same policy number</b> appears more than once in the <b>same year</b>.</td></tr>
@@ -602,24 +603,25 @@ function render() {
     cyVm[ym].add(r.vinno);
   });
 
-  // Build VIN sets per LY year-month (for full year Jan-Dec)
+  // Build VIN sets per LY year-month (same months as CY range)
   const lyVm = {}; // lyYm -> Set of VINs
   companyFiltered.forEach(r => {
     if (!r.vinno || !r.create_date) return;
     const year = getYear(r.create_date);
     const month = getMonth(r.create_date);
-    if (year !== ly) return;
+    if (year !== ly || month < minMonth || month > maxMonth) return;
     const ym = year + '-' + String(month).padStart(2,'0');
     if (!lyVm[ym]) lyVm[ym] = new Set();
     lyVm[ym].add(r.vinno);
   });
 
-  // Get ALL LY VINs (any month) for Not Visited & CY Renewal
+  // Get LY VINs within same date range as CY (for Not Visited & CY Renewal)
   const allLyVins = new Set();
   companyFiltered.forEach(r => {
     if (!r.vinno || !r.create_date) return;
     const year = getYear(r.create_date);
-    if (year === ly) allLyVins.add(r.vinno);
+    const month = getMonth(r.create_date);
+    if (year === ly && month >= minMonth && month <= maxMonth) allLyVins.add(r.vinno);
   });
 
   // Build VIN sets per LY-1 year-month (for same-month LY-1 comparison)
@@ -646,13 +648,13 @@ function render() {
     cyNewVm[ym].add(r.vinno);
   });
 
-  // Build VIN sets per LY year-month for policytype='New'
+  // Build VIN sets per LY year-month for policytype='New' (same months as CY range)
   const lyNewVm = {};
   companyFiltered.forEach(r => {
     if (!r.vinno || !r.create_date || r.policytype !== 'New') return;
     const year = getYear(r.create_date);
     const month = getMonth(r.create_date);
-    if (year !== ly) return;
+    if (year !== ly || month < minMonth || month > maxMonth) return;
     const ym = year + '-' + String(month).padStart(2,'0');
     if (!lyNewVm[ym]) lyNewVm[ym] = new Set();
     lyNewVm[ym].add(r.vinno);
@@ -668,6 +670,8 @@ function render() {
   companyFiltered.forEach(r => {
     if (!r.vinno || !r.policy_expiry_date || r.policytype !== 'New') return;
     if (getYear(r.create_date) !== ly) return;
+    const month = getMonth(r.create_date);
+    if (month < minMonth || month > maxMonth) return;
     vinExpiryMonth[r.vinno] = getMonth(r.policy_expiry_date);
   });
   companyFiltered.forEach(r => {
@@ -685,13 +689,13 @@ function render() {
     cyRenewalByExpiry[ym].add(v);
   });
 
-  // Build VIN sets per LY year-month for policytype='Renewal'
+  // Build VIN sets per LY year-month for policytype='Renewal' (same months as CY range)
   const lyRenewalVm = {};
   companyFiltered.forEach(r => {
     if (!r.vinno || !r.create_date || r.policytype !== 'Renewal') return;
     const year = getYear(r.create_date);
     const month = getMonth(r.create_date);
-    if (year !== ly) return;
+    if (year !== ly || month < minMonth || month > maxMonth) return;
     const ym = year + '-' + String(month).padStart(2,'0');
     if (!lyRenewalVm[ym]) lyRenewalVm[ym] = new Set();
     lyRenewalVm[ym].add(r.vinno);
@@ -784,14 +788,16 @@ function render() {
   }
 
   // Totals from unique VIN sets (no double counting)
-  const totals = { cy: { new: 0, renewal: 0, rollover: 0, rolloverRenew: 0, notVisited: 0 }, ly: { new: 0, renewal: 0, rollover: 0 } };
+  const totals = { cy: { new: 0, renewal: 0, rollover: 0, rolloverRenew: 0, notVisited: 0, overall: 0 }, ly: { new: 0, renewal: 0, rollover: 0, overall: 0 } };
   totals.cy.new = allCyNew.size;
   totals.cy.renewal = allCyRenewal.size;
   totals.cy.rollover = allCyRollover.size;
   totals.cy.rolloverRenew = allCyRolloverRenew.size;
+  totals.cy.overall = allCyVins.size;
   totals.ly.new = allLyNew.size;
   totals.ly.renewal = allLyRenewal.size;
   totals.ly.rollover = allLyRollover.size;
+  totals.ly.overall = allLyVins.size;
   
   // Calculate total Not Visited (unique VINs in LY but not in CY)
   const totalNotVisited = [...allLyVins].filter(v => !allCyVins.has(v)).length;
@@ -809,11 +815,10 @@ function growthArrow(v) { return ''; }
 
 function growthBox(a,b) {
   if (!b) return '<span class="growth-box">&nbsp;</span>';
-  const v = ((a - b) / b * 100);
-  const abs = Math.abs(v).toFixed(1);
-  if (v < 0) return `<span style="font-weight:600;color:#dc2626">${abs}%</span>`;
-  if (v > 0) return `<span style="font-weight:600;color:#166534">${abs}%</span>`;
-  return `<span style="font-weight:600">${abs}%</span>`;
+  const v = (a / b * 100);
+  const abs = v.toFixed(1);
+  if (v < 100) return `<span style="font-weight:600;color:#dc2626">${abs}%</span>`;
+  return `<span style="font-weight:600;color:#166534">${abs}%</span>`;
 }
 
 function renderInfo(stats, totals, ly, cy, allCyVins, allLyVins) {
@@ -825,15 +830,15 @@ function renderInfo(stats, totals, ly, cy, allCyVins, allLyVins) {
   const periodLabel = checkedPeriod.length ? checkedPeriod.map(q => ({q1:'Q1',q2:'Q2',q3:'Q3',q4:'Q4'}[q])).join('+') : (periodLabels[periodTrigger.textContent === 'Custom' ? 'custom' : periodTrigger.textContent === 'MTD' ? 'mtd' : 'ytd'] || 'Custom');
   let growthHtml = '';
   if (totalLy) {
-    const g = ((totalCy - totalLy) / totalLy * 100);
-    const absG = Math.abs(g).toFixed(1);
-    const gColor = g < 0 ? '#dc2626' : g > 0 ? '#166534' : 'inherit';
+    const g = (totalCy / totalLy * 100);
+    const absG = g.toFixed(1);
+    const gColor = g < 100 ? '#dc2626' : '#166534';
     growthHtml = `<span style="font-weight:600;color:${gColor}">${absG}%</span>`;
   }
   document.getElementById('infoBar').innerHTML = `
     <div class="info-box" style="border-left:3px solid #333"><div class="num">${fmt(totalLy)}</div><div><div class="lbl">${ly} Total VINs</div><div class="sub">LY policies</div></div></div>
     <div class="info-box" style="border-left:3px solid #444"><div class="num">${fmt(totalCy)}</div><div><div class="lbl">${cy} Total VINs</div><div class="sub">CY policies</div></div></div>
-    <div class="info-box" style="border-left:3px solid #555"><div class="num">${growthHtml}</div><div><div class="lbl">Growth</div><div class="sub">CY vs LY</div></div></div>
+    <div class="info-box" style="border-left:3px solid #555"><div class="num">${growthHtml}</div><div><div class="lbl">Achieved %</div><div class="sub">CY vs LY</div></div></div>
     <div class="info-box" style="border-left:3px solid #ccc"><div class="num">${fmt(totals.cy.notVisited)}</div><div><div class="lbl">Not Visited</div><div class="sub">In LY not in CY</div></div></div>
     <div class="info-box" style="border-left:3px solid #ccc"><div class="num">${periodLabel}</div><div><div class="lbl">Period</div><div class="sub">${cy} vs ${ly}</div></div></div>
   `;
@@ -867,7 +872,7 @@ function renderTable(stats, totals, ly, cy, typeFilter, minMonth, maxMonth) {
     if (t === 'notVisited') {
       html += `<th style="color:#fff;padding:2px 3px;font-size:7px;min-width:30px" colspan="3">Count</th>`;
     } else {
-      html += `<th style="color:#fff;padding:2px 3px;font-size:7px;min-width:22px">LY #</th><th style="color:#fff;padding:2px 3px;font-size:7px;min-width:22px">CY #</th><th style="color:#fff;padding:2px 3px;font-size:7px;min-width:30px">Growth</th>`;
+      html += `<th style="color:#fff;padding:2px 3px;font-size:7px;min-width:22px">LY #</th><th style="color:#fff;padding:2px 3px;font-size:7px;min-width:22px">CY #</th><th style="color:#fff;padding:2px 3px;font-size:7px;min-width:30px">Achieved %</th>`;
     }
   });
   html += '</tr></thead><tbody>';
@@ -885,7 +890,7 @@ function renderTable(stats, totals, ly, cy, typeFilter, minMonth, maxMonth) {
 html += `<td style="padding:2px 3px;${growthBorder}" colspan="3"><span class="val-box" style="font-size:8px;min-width:32px;padding:1px 3px;background:#fee2e2;color:#dc2626;border:none">${fmt(cyVal)}</span></td>`;
       } else if (t === 'overall') {
         const lyGrowth = (r.ly ? (r.ly.new || 0) + (r.ly.renewal || 0) + (r.ly.rollover || 0) : 0);
-        const cyVal = (r.cy.renewal || 0) + (r.cy.rollover || 0) + (r.cy.rolloverRenew || 0);
+        const cyVal = (r.cy.new || 0) + (r.cy.renewal || 0) + (r.cy.rollover || 0) + (r.cy.rolloverRenew || 0);
         html += `<td style="padding:2px 3px;${growthBorder}"><span class="val-box val-ly" style="font-size:8px;min-width:22px;padding:1px 2px">${fmt(lyGrowth)}</span></td>`;
         html += `<td style="padding:2px 3px;${growthBorder}"><span class="val-box val-cy" style="font-size:8px;min-width:22px;padding:1px 2px">${fmt(cyVal)}</span></td>`;
         html += `<td style="padding:2px 3px;${growthBorder}">${r.month > currentMonth ? '<span class="growth-box">&nbsp;</span>' : growthBox(cyVal, lyGrowth)}</td>`;
@@ -914,8 +919,8 @@ html += `<td style="padding:2px 3px;${growthBorder}" colspan="3"><span class="va
       const cyVal = ttl.cy[t] || 0;
       html += `<td style="padding:5px 4px;${growthBorder}" colspan="3"><span class="val-box" style="font-size:10px;min-width:32px;padding:2px 4px;background:#fee2e2;color:#dc2626;border:none;font-weight:800">${fmt(cyVal)}</span></td>`;
     } else if (t === 'overall') {
-      const lyGrowth = (ttl.ly.new || 0) + (ttl.ly.renewal || 0) + (ttl.ly.rollover || 0);
-      const cyVal = (ttl.cy.renewal || 0) + (ttl.cy.rollover || 0) + (ttl.cy.rolloverRenew || 0);
+      const lyGrowth = ttl.ly.overall || 0;
+      const cyVal = ttl.cy.overall || 0;
       html += `<td style="padding:5px 4px;${growthBorder}"><span class="val-box val-ly" style="font-size:10px;font-weight:800;min-width:22px;padding:2px 3px">${fmt(lyGrowth)}</span></td>`;
       html += `<td style="padding:5px 4px;${growthBorder}"><span class="val-box val-cy" style="font-size:10px;font-weight:800;min-width:22px;padding:2px 3px">${fmt(cyVal)}</span></td>`;
       html += `<td style="padding:5px 4px;${growthBorder}">${growthBox(cyVal, lyGrowth)}</td>`;
@@ -1577,7 +1582,7 @@ function startFetch() {
   btn.textContent = '\u21BB Fetching...';
   closeFetchModal();
 
-  var body = { token: localStorage.getItem('authToken') };
+  var body = { token: localStorage.getItem('authToken'), mode: mode };
   if (mode === 'custom') {
     var from = document.getElementById('fetchFromDate').value;
     var to = document.getElementById('fetchToDate').value;
@@ -1587,41 +1592,30 @@ function startFetch() {
     body.to = to;
   }
 
-  fetch('/api/fetch-kia-data', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+  fetch('/api/fetch-kia-data', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body), signal: AbortSignal.timeout(300000) })
     .then(function(r) {
       if (!r.ok) { return r.json().then(function(j) { throw new Error(j.error || j.detail || 'HTTP ' + r.status); }).catch(function(e) { if (e.message && e.message !== 'Unexpected end of JSON input') throw e; throw new Error('HTTP ' + r.status); }); }
       return r.json();
     })
     .then(function(j) {
       if (j.success) {
-        if (j.insertedRowCount === 0 || j.duplicateRowCount > 0) {
-          // Show green button state
-          btn.classList.remove('loading');
-          btn.classList.add('success');
-          btn.textContent = '\u2713 Data Saved';
-          btn.style.background = '#059669';
-          btn.style.borderColor = '#059669';
-          showToast('Data saved successfully', 'success');
-        } else {
-          btn.classList.remove('loading');
-          btn.classList.add('success');
-          btn.textContent = '\u2713 Data Saved';
-          btn.style.background = '#059669';
-          btn.style.borderColor = '#059669';
-          showToast('Data saved successfully', 'success');
+        var msg = j.message || 'Fetched ' + (j.totalRows || 0) + ' records';
+        btn.classList.remove('loading');
+        btn.classList.add('success');
+        btn.textContent = '\u2713 Data Saved';
+        btn.style.background = '#059669';
+        btn.style.borderColor = '#059669';
+        showToast(msg, 'success');
+        if (j.failedMonths && j.failedMonths.length > 0) {
+          showToast('Failed months: ' + j.failedMonths.join(', '), 'warning');
         }
         loadData();
-        // Reset button after 3 seconds
         setTimeout(function() {
           btn.classList.remove('success', 'loading');
           btn.textContent = 'Fetch Now';
           btn.style.background = '';
           btn.style.borderColor = '';
         }, 3000);
-      } else if (j.urlError) {
-        showToast('Kia Safety website not reachable', 'error');
-        btn.classList.remove('loading');
-        btn.textContent = 'Fetch Now';
       } else {
         showToast(j.error || 'Error fetching data', 'error');
         btn.classList.remove('loading');
