@@ -1,0 +1,1385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Leads - KIA Insurance</title>
+<style>
+:root {
+  --bg: #eef2f7;
+  --panel: #fff;
+  --card: #fff;
+  --card-hover: #f4f8ff;
+  --border: #d5deea;
+  --text: #0f172a;
+  --muted: #64748b;
+  --accent: #8b5cf6;
+  --green: #22c55e;
+  --red: #ef4444;
+  --blue: #3b82f6;
+  --orange: #f97316;
+  --purple: #8b5cf6;
+  --teal: #14b8a6;
+  --yellow: #eab308;
+  --radius: 10px;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Inter','Segoe UI',system-ui,sans-serif; background:var(--bg); color:var(--text); height:100vh; display:flex; flex-direction:column; overflow:hidden; font-weight:500; }
+body td, body th, body span, body div, body label, body p, body option { font-weight:inherit; }
+body td { font-weight:600 !important; }
+body th { font-weight:700 !important; }
+
+/* TOP BAR */
+.topbar { background:linear-gradient(135deg,#17182b,#2b2d4d); border-bottom:1px solid rgba(255,255,255,.08); padding:0 14px; height:42px; display:flex; align-items:center; justify-content:space-between; flex-shrink:0; position:sticky; top:0; z-index:100; }
+.topbar-left { display:flex; align-items:center; gap:10px; }
+.topbar-left .back { width:26px; height:26px; border-radius:6px; border:1px solid rgba(255,255,255,.25); background:rgba(255,255,255,.12); display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:13px; color:#fff; text-decoration:none; transition:.15s; }
+.topbar-left .back:hover { background:rgba(255,255,255,.25); }
+.topbar-left h1 { font-size:14px; font-weight:800; color:#fff; letter-spacing:.2px; }
+.leads-badge { font-size:9px; color:#c4b5fd; background:rgba(139,92,246,.25); border:1px solid rgba(139,92,246,.4); padding:2px 10px; border-radius:12px; font-weight:700; }
+
+/* SEARCH + ACTIONS */
+.search-box { display:flex; align-items:center; gap:6px; }
+.search-wrap { position:relative; }
+.search-wrap .ico { position:absolute; left:7px; top:50%; transform:translateY(-50%); font-size:11px; color:#9ca3af; pointer-events:none; }
+.search-box input { padding:5px 10px 5px 26px; border:1px solid rgba(255,255,255,.25); border-radius:6px; background:rgba(255,255,255,.12); color:#fff; font-size:11px; width:170px; outline:none; transition:.15s; }
+.search-box input::placeholder { color:rgba(255,255,255,.45); }
+.search-box input:focus { border-color:#a78bfa; background:rgba(255,255,255,.2); }
+.tool-btn { padding:5px 12px; border:1px solid rgba(255,255,255,.25); border-radius:6px; background:rgba(255,255,255,.12); color:#fff; font-size:10px; font-weight:700; cursor:pointer; white-space:nowrap; transition:.15s; display:inline-flex; align-items:center; gap:4px; }
+.tool-btn:hover { background:rgba(255,255,255,.25); }
+.tool-btn.gradient { background:linear-gradient(135deg,#8b5cf6,#6366f1); border-color:rgba(139,92,246,.6); }
+.tool-btn.gradient:hover { background:linear-gradient(135deg,#a78bfa,#818cf8); }
+
+/* TOOLBAR FILTERS */
+.toolbar { background:linear-gradient(135deg,#17182b,#2b2d4d); border-bottom:1px solid rgba(255,255,255,.08); padding:6px 14px; display:flex; gap:6px; flex-wrap:wrap; align-items:center; flex-shrink:0; position:sticky; top:42px; z-index:99; }
+.toolbar .g-label { font-size:8px; color:rgba(255,255,255,.6); text-transform:uppercase; letter-spacing:.6px; margin-right:1px; font-weight:700; }
+.toolbar select { padding:3px 6px; border:1px solid rgba(255,255,255,.25); border-radius:5px; background:#fff; color:#0f172a; font-size:10px; font-weight:600; cursor:pointer; outline:none; max-width:150px; }
+.toolbar select:focus { border-color:#a78bfa; }
+#tbToggleBtn { font-size:12px; padding:5px 10px; cursor:pointer; }
+#tbToggleBtn.tb-hidden { background:rgba(139,92,246,.45); border-color:#a78bfa; }
+.toolbar.hidden-tb { display:none; }
+
+/* STATS */
+.stats-row { display:grid; grid-template-columns:repeat(auto-fit, minmax(130px,1fr)); gap:8px; padding:10px 14px 0; flex-shrink:0; position:sticky; top:84px; z-index:98; background:var(--bg); }
+.stat-box { background:var(--panel); border-radius:10px; padding:10px 12px; border:1px solid var(--border); box-shadow:0 1px 3px rgba(15,23,42,.04); transition:.15s; }
+.stat-box:hover { box-shadow:0 4px 14px rgba(15,23,42,.08); transform:translateY(-1px); }
+.stat-box .num { font-size:20px; font-weight:800; line-height:1.1; color:var(--text); }
+.stat-box .lbl { font-size:9px; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; font-weight:700; margin-top:3px; }
+.stat-box .sub { font-size:9px; color:var(--muted); margin-top:2px; font-weight:600; }
+
+/* MODEL CHIPS */
+.chip-row { display:flex; gap:6px; flex-wrap:wrap; padding:8px 14px 0; flex-shrink:0; max-height:64px; overflow-y:auto; }
+.chip { padding:4px 12px; border-radius:14px; background:var(--panel); border:1px solid var(--border); font-size:10px; font-weight:700; color:var(--text); }
+.chip b { color:var(--accent); }
+
+/* TABLE */
+.table-wrap { flex:1; padding:8px 14px 0; overflow:auto; min-height:0; }
+.table-wrap::-webkit-scrollbar { width:5px; height:5px; }
+.table-wrap::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px; }
+.table-scroll { min-width:fit-content; }
+table { width:100%; border-collapse:separate; border-spacing:0; background:var(--panel); border-radius:var(--radius); border:1px solid var(--border); font-size:10px; min-width:1150px; box-shadow:0 1px 3px rgba(15,23,42,.04); }
+thead th { padding:7px 8px; text-align:left; font-weight:800; font-size:8px; color:#fff; text-transform:uppercase; letter-spacing:.6px; border-bottom:1px solid rgba(255,255,255,.15); white-space:nowrap; position:sticky; top:0; z-index:5; background:linear-gradient(135deg,#17182b,#2b2d4d); }
+tbody td { padding:6px 8px; border-bottom:1px solid #edf2f7; vertical-align:middle; }
+tbody tr:hover td { background:var(--card-hover); }
+tbody tr:last-child td { border-bottom:none; }
+
+/* BADGES */
+.status-badge { display:inline-flex; align-items:center; gap:2px; padding:1px 8px; border-radius:8px; font-size:8px; font-weight:700; line-height:1.7; white-space:nowrap; }
+.s-pending { background:#e2e8f0; color:#475569; }
+.s-connected { background:#dcfce7; color:#15803d; }
+.s-not-reachable { background:#fef3c7; color:#b45309; }
+.s-follow-up { background:#c7d2fe; color:#4338ca; }
+.s-not-interested { background:#fee2e2; color:#b91c1c; }
+.s-policy-done { background:#d1fae5; color:#047857; }
+.s-wrong-number { background:#f1f5f9; color:#64748b; }
+
+/* EXPIRY BADGES */
+.exp-badge { display:inline-flex; align-items:center; gap:2px; padding:1px 7px; border-radius:8px; font-size:8px; font-weight:800; line-height:1.7; white-space:nowrap; }
+.expired { background:#fee2e2; color:#b91c1c; }
+.exp-soon { background:#ffedd5; color:#c2410c; }
+.exp-next { background:#fef9c3; color:#a16207; }
+.exp-ok { background:#dcfce7; color:#15803d; }
+.exp-none { background:#f1f5f9; color:#94a3b8; }
+
+/* AGENT + SOURCE TAGS */
+.agent-tag { display:inline-flex; align-items:center; gap:3px; padding:1px 8px; border-radius:8px; font-size:8px; font-weight:700; background:#ede9fe; color:#6d28d9; line-height:1.7; }
+.src-tag { display:inline-flex; align-items:center; padding:1px 7px; border-radius:8px; font-size:8px; font-weight:700; background:#e0f2fe; color:#0369a1; line-height:1.7; text-transform:capitalize; }
+.fu-tag { display:inline-flex; align-items:center; gap:3px; padding:1px 7px; border-radius:8px; font-size:8px; font-weight:700; line-height:1.7; white-space:nowrap; }
+.fu-normal { background:#eff6ff; color:#1d4ed8; }
+.fu-today { background:#dcfce7; color:#15803d; }
+.fu-overdue { background:#fee2e2; color:#b91c1c; }
+.attempt-badge { display:inline-flex; align-items:center; justify-content:center; min-width:17px; height:17px; border-radius:6px; font-size:8px; font-weight:800; padding:0 3px; }
+.attempt-0 { background:#f1f5f9; color:#94a3b8; }
+.attempt-1 { background:#e0e7ff; color:#4338ca; }
+.attempt-2 { background:#fef3c7; color:#b45309; }
+.attempt-3p { background:#fee2e2; color:#b91c1c; }
+.mono { font-family:Consolas,Menlo,monospace; }
+
+/* ACTION BUTTONS */
+.act-btn { padding:3px 9px; border:none; border-radius:5px; color:#fff; font-size:9px; font-weight:700; cursor:pointer; transition:.15s; display:inline-flex; align-items:center; gap:3px; white-space:nowrap; }
+.act-btn.call { background:linear-gradient(135deg,#6366f1,#8b5cf6); }
+.act-btn.hist { background:linear-gradient(135deg,#334155,#475569); }
+.act-btn.edit { background:linear-gradient(135deg,#0ea5e9,#3b82f6); }
+.act-btn:hover { transform:translateY(-1px); box-shadow:0 3px 10px rgba(15,23,42,.25); }
+
+/* PAGINATION */
+.pagination { display:flex; align-items:center; justify-content:center; gap:5px; padding:10px 14px; flex-shrink:0; background:var(--bg); }
+.pagination button { padding:4px 10px; border:1px solid var(--border); border-radius:5px; background:var(--panel); color:var(--text); font-size:10px; font-weight:700; cursor:pointer; transition:.12s; }
+.pagination button:hover { background:#f1f5f9; }
+.pagination button.active { background:linear-gradient(135deg,#6366f1,#8b5cf6); color:#fff; border-color:transparent; }
+.pagination button:disabled { opacity:.4; cursor:not-allowed; }
+.pagination .pg-info { font-size:10px; color:var(--muted); font-weight:700; padding:0 6px; }
+
+/* MODALS */
+.modal-overlay { position:fixed; top:0; left:0; width:100%; height:100%; z-index:200; background:rgba(15,23,42,.6); backdrop-filter:blur(3px); display:none; align-items:center; justify-content:center; }
+.modal-overlay.show { display:flex; }
+.modal { background:#fff; border-radius:14px; width:640px; max-width:94vw; max-height:92vh; overflow:hidden; display:flex; flex-direction:column; box-shadow:0 24px 70px rgba(15,23,42,.35); }
+.modal.wide { width:760px; }
+.modal.small { width:460px; }
+.modal-head { padding:14px 18px; background:linear-gradient(135deg,#17182b,#2b2d4d); color:#fff; display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
+.modal-head h2 { font-size:14px; font-weight:800; }
+.modal-head .close { width:28px; height:28px; border-radius:50%; border:none; background:rgba(255,255,255,.15); color:#fff; font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:.15s; }
+.modal-head .close:hover { background:rgba(255,255,255,.3); }
+.modal-body { padding:16px 18px; overflow-y:auto; flex:1; }
+.modal-body::-webkit-scrollbar { width:5px; }
+.modal-body::-webkit-scrollbar-thumb { background:#cbd5e1; border-radius:4px; }
+.cust-card { border:1px solid var(--border); border-radius:10px; padding:10px 12px; background:#f8fafc; margin-bottom:14px; }
+.cust-card-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:8px 14px; }
+.ci .lbl { font-size:8px; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; font-weight:700; margin-bottom:2px; }
+.ci .val { font-size:11px; font-weight:700; color:var(--text); word-break:break-word; }
+.form-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.form-group { display:flex; flex-direction:column; gap:3px; }
+.form-group.full { grid-column:1 / -1; }
+.form-group label { font-size:9px; font-weight:800; color:var(--muted); text-transform:uppercase; letter-spacing:.4px; }
+.form-group input, .form-group select, .form-group textarea { padding:7px 10px; border:1px solid #cbd5e1; border-radius:7px; font-size:11px; font-weight:600; outline:none; transition:.15s; color:var(--text); background:#fff; font-family:inherit; }
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(139,92,246,.12); }
+.form-actions { display:flex; gap:8px; justify-content:flex-end; margin-top:14px; }
+.btn-cancel { padding:8px 16px; border:1px solid #cbd5e1; border-radius:7px; background:#f1f5f9; color:#475569; font-size:11px; font-weight:700; cursor:pointer; }
+.btn-cancel:hover { background:#e2e8f0; }
+.btn-save { padding:8px 18px; border:none; border-radius:7px; background:linear-gradient(135deg,#6366f1,#8b5cf6); color:#fff; font-size:11px; font-weight:800; cursor:pointer; transition:.15s; }
+.btn-save:hover { transform:translateY(-1px); box-shadow:0 4px 14px rgba(99,102,241,.35); }
+.btn-save:disabled { opacity:.55; cursor:not-allowed; transform:none; }
+.history-table { width:100%; border-collapse:collapse; font-size:10px; }
+.history-table th { text-align:left; padding:6px 8px; background:#f8fafc; color:var(--muted); font-size:8px; text-transform:uppercase; letter-spacing:.4px; border-bottom:1px solid var(--border); }
+.history-table td { padding:6px 8px; border-bottom:1px solid #edf2f7; }
+.empty { text-align:center; padding:50px 20px; color:var(--muted); font-size:13px; }
+.loader { text-align:center; padding:50px 20px; color:var(--muted); font-size:12px; }
+.spin { width:26px; height:26px; border:3px solid #e2e8f0; border-top-color:#8b5cf6; border-radius:50%; animation:sp 1s linear infinite; margin:0 auto 10px; }
+@keyframes sp { to { transform:rotate(360deg); } }
+.ac-list { position:absolute; z-index:50; background:#fff; border:1px solid var(--border); border-radius:7px; max-height:160px; overflow:auto; display:none; box-shadow:0 8px 20px rgba(15,23,42,.15); width:100%; }
+.ac-list.show { display:block; }
+.ac-item { padding:6px 10px; font-size:11px; font-weight:600; cursor:pointer; }
+.ac-item:hover { background:#f1f0ff; }
+.ac-item.new-item { color:var(--accent); }
+.ac-wrap { position:relative; }
+.upload-drop { border:2px dashed #c4b5fd; border-radius:10px; padding:26px 16px; text-align:center; cursor:pointer; transition:.15s; background:#faf9ff; margin-top:12px; }
+.upload-drop:hover, .upload-drop.drag { border-color:var(--accent); background:#f3f0ff; }
+.upload-drop .ud-txt { font-size:12px; font-weight:800; color:var(--text); }
+.upload-drop .ud-sub { font-size:9px; color:var(--muted); margin-top:4px; font-weight:600; }
+.upload-preview-wrap { max-height:260px; overflow:auto; border:1px solid var(--border); border-radius:8px; margin-top:8px; }
+.upload-preview { width:100%; border-collapse:collapse; font-size:9px; }
+.upload-preview th { padding:5px 7px; text-align:left; background:#f1f0ff; color:#5b4b9e; font-size:8px; text-transform:uppercase; letter-spacing:.3px; border-bottom:1px solid var(--border); white-space:nowrap; }
+.upload-preview td { padding:4px 7px; border-bottom:1px solid #edf2f7; white-space:nowrap; max-width:160px; overflow:hidden; text-overflow:ellipsis; }
+.up-status { font-size:10px; font-weight:800; margin-top:10px; }
+.up-status .ok { color:var(--green); }
+.up-status .bad { color:var(--red); }
+.agent-item { display:flex; align-items:center; justify-content:space-between; padding:7px 10px; border:1px solid var(--border); border-radius:7px; margin-bottom:5px; background:#fff; transition:.12s; }
+.agent-item:hover { background:#f8fafc; border-color:#c4b5fd; }
+.agent-item .agent-name { font-size:11px; font-weight:700; color:var(--text); }
+.agent-item .agent-remove { padding:2px 8px; border:none; border-radius:5px; background:#fee2e2; color:#b91c1c; font-size:9px; font-weight:700; cursor:pointer; transition:.12s; }
+.agent-item .agent-remove:hover { background:#fecaca; }
+.agent-empty { text-align:center; padding:20px; color:var(--muted); font-size:11px; font-weight:600; }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="topbar-left">
+    <a class="back" href="/" title="Home">&#8962;</a>
+    <h1>&#128203; Leads Dashboard</h1>
+    <span class="leads-badge" id="leadsCount">0 Leads</span>
+  </div>
+  <div class="search-box">
+    <div class="search-wrap">
+      <span class="ico">&#128269;</span>
+      <input id="searchInput" placeholder="Search customer, VIN, policy, mobile..." oninput="currentPage=0;renderTable()">
+    </div>
+    <button class="tool-btn" id="tbToggleBtn" onclick="toggleToolbar()" title="Hide filters">&#9776;</button>
+    <button class="tool-btn" onclick="loadLeads(true)" title="Refresh data">&#8635; Refresh</button>
+    <button class="tool-btn" onclick="exportCsv()" title="Download filtered data as CSV">&#128196; CSV</button>
+    <button class="tool-btn" onclick="openUploadModal()" title="Upload multiple leads from a CSV file">&#128228; Bulk Upload</button>
+    <button class="tool-btn" onclick="openAgentModal()" title="Manage agents">&#128101; Agents</button>
+    <button class="tool-btn gradient" onclick="openAddLead()">&#10133; Add Lead</button>
+  </div>
+</div>
+
+<div class="toolbar" id="toolbarPanel">
+  <span class="g-label">Model</span>
+  <select id="filterModel" onchange="filterModel=this.value;currentPage=0;renderTable()"></select>
+  <span class="g-label">Insurer</span>
+  <select id="filterInsurer" onchange="filterInsurer=this.value;currentPage=0;renderTable()"></select>
+  <span class="g-label">Agent</span>
+  <select id="filterAgent" onchange="filterAgent=this.value;currentPage=0;renderTable()"></select>
+  <span class="g-label">Source</span>
+  <select id="filterSource" onchange="filterSource=this.value;currentPage=0;renderTable()"></select>
+  <span class="g-label">Expiry</span>
+  <select id="filterExpiry" onchange="filterExpiry=this.value;currentPage=0;renderTable()">
+    <option value="all">All</option>
+    <option value="expired">Expired</option>
+    <option value="soon">Expiring &le;30d</option>
+    <option value="later">Upcoming &gt;30d</option>
+    <option value="none">No Expiry</option>
+  </select>
+  <span class="g-label">Status</span>
+  <select id="filterStatus" onchange="filterStatus=this.value;currentPage=0;renderTable()"></select>
+  <span class="g-label">Follow-up</span>
+  <select id="filterFollowup" onchange="filterFollowup=this.value;currentPage=0;renderTable()">
+    <option value="all">All</option>
+    <option value="overdue">Overdue</option>
+    <option value="today">Today</option>
+    <option value="upcoming">Upcoming</option>
+    <option value="scheduled">Scheduled</option>
+    <option value="none">No Follow-up</option>
+  </select>
+</div>
+
+<div class="stats-row" id="statsRow"></div>
+<div class="chip-row" id="chipRow"></div>
+
+<div class="table-wrap" id="tableWrap">
+  <div class="loader" id="loader"><div class="spin"></div>Loading leads...</div>
+</div>
+<div class="pagination" id="paginationContainer"></div>
+
+<!-- CALL MODAL -->
+<div class="modal-overlay" id="callModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h2>&#128222; Call Customer</h2>
+      <button class="close" onclick="closeModal('callModal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="cust-card" id="custInfo"></div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Agent Name</label>
+          <select id="agentName"><option value="">Select agent...</option></select>
+        </div>
+        <div class="form-group">
+          <label>Mobile Number</label>
+          <input type="text" id="mobileNo" placeholder="Customer mobile number">
+        </div>
+        <div class="form-group full">
+          <label>Call Outcome *</label>
+          <select id="callOutcome">
+            <option value="">Select outcome...</option>
+            <option value="Connected">Connected</option>
+            <option value="Not Reachable">Not Reachable</option>
+            <option value="Follow-up">Follow-up</option>
+            <option value="Not Interested">Not Interested</option>
+            <option value="Policy Done">Policy Done</option>
+            <option value="Wrong Number">Wrong Number</option>
+          </select>
+        </div>
+        <div class="form-group full" id="followUpGroup">
+          <label>Follow-up Date</label>
+          <input type="date" id="followUpDate">
+        </div>
+        <div class="form-group full">
+          <label>Remarks</label>
+          <textarea id="remarks" rows="3" placeholder="Call notes, customer response, next steps..."></textarea>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn-cancel" onclick="closeModal('callModal')">Cancel</button>
+        <button class="btn-save" onclick="saveCallLog()">&#128190; Save Call Log</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- HISTORY MODAL -->
+<div class="modal-overlay" id="historyModal">
+  <div class="modal wide">
+    <div class="modal-head">
+      <h2>&#128200; Call History</h2>
+      <button class="close" onclick="closeModal('historyModal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="cust-card" id="histCustInfo"></div>
+      <div id="histList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD LEAD MODAL -->
+<div class="modal-overlay" id="addModal">
+  <div class="modal wide">
+    <div class="modal-head">
+      <h2>&#10133; Add Lead</h2>
+      <button class="close" onclick="closeModal('addModal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Customer Name *</label>
+          <input type="text" id="alCustomerName" placeholder="Customer name">
+        </div>
+        <div class="form-group">
+          <label>Mobile Number</label>
+          <input type="text" id="alMobileNo" placeholder="10-digit mobile">
+        </div>
+        <div class="form-group">
+          <label>Policy Number</label>
+          <input type="text" id="alPolicyno" placeholder="Policy number (optional)" onblur="autofillLead()">
+        </div>
+        <div class="form-group">
+          <label>Reg. Number</label>
+          <input type="text" id="alRegNo" placeholder="e.g. JK02AB1234" onblur="autofillLead()">
+        </div>
+        <div class="form-group full">
+          <label>VIN</label>
+          <input type="text" id="alVinno" placeholder="VIN number" onblur="autofillLead()">
+        </div>
+        <div class="form-group">
+          <label>Model</label>
+          <div class="ac-wrap"><input type="text" id="alModel" placeholder="e.g. SELTOS"><div class="ac-list" id="alModelAC"></div></div>
+        </div>
+        <div class="form-group">
+          <label>Insurance Company</label>
+          <div class="ac-wrap"><input type="text" id="alInsurer" placeholder="Insurance company"><div class="ac-list" id="alInsurerAC"></div></div>
+        </div>
+        <div class="form-group">
+          <label>Policy Expiry Date</label>
+          <input type="date" id="alExpiry">
+        </div>
+        <div class="form-group">
+          <label>Lead Source</label>
+          <select id="alLeadSource">
+            <option value="workshop">Workshop</option>
+            <option value="walk-in">Walk-in</option>
+            <option value="call">Call</option>
+            <option value="reference">Reference</option>
+            <option value="online">Online</option>
+            <option value="showroom visit">Showroom Visit</option>
+            <option value="telecall">Telecall</option>
+            <option value="interakt">Interakt</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Source Agent</label>
+          <input type="text" id="alSourceAgent" placeholder="Agent name">
+        </div>
+        <div class="form-group full">
+          <label>Follow-up Date</label>
+          <input type="date" id="alFollowUp">
+        </div>
+        <div class="form-group full">
+          <label>Remarks</label>
+          <textarea id="alRemarks" rows="2" placeholder="Notes / remarks (optional)"></textarea>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn-cancel" onclick="closeModal('addModal')">Cancel</button>
+        <button class="btn-save" onclick="saveAddLead()">&#10133; Add Lead</button>
+      </div>
+      <div class="autofill-note" id="autofillNote" style="display:none;font-size:10px;color:var(--green);font-weight:700;margin-top:8px"></div>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT LEAD MODAL -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal wide">
+    <div class="modal-head">
+      <h2>&#9998;&#65039; Edit Lead</h2>
+      <button class="close" onclick="closeModal('editModal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Customer Name *</label>
+          <input type="text" id="elCustomerName" placeholder="Customer name">
+        </div>
+        <div class="form-group">
+          <label>Mobile Number</label>
+          <input type="text" id="elMobileNo" placeholder="10-digit mobile">
+        </div>
+        <div class="form-group">
+          <label>Policy Number</label>
+          <input type="text" id="elPolicyno" placeholder="Policy number">
+        </div>
+        <div class="form-group">
+          <label>Reg. Number</label>
+          <input type="text" id="elRegNo" placeholder="e.g. JK02AB1234">
+        </div>
+        <div class="form-group full">
+          <label>VIN</label>
+          <input type="text" id="elVinno" placeholder="VIN number">
+        </div>
+        <div class="form-group">
+          <label>Model</label>
+          <input type="text" id="elModel" placeholder="e.g. SELTOS">
+        </div>
+        <div class="form-group">
+          <label>Insurance Company</label>
+          <input type="text" id="elInsurer" placeholder="Insurance company">
+        </div>
+        <div class="form-group">
+          <label>Policy Expiry Date</label>
+          <input type="date" id="elExpiry">
+        </div>
+        <div class="form-group">
+          <label>Lead Source</label>
+          <select id="elLeadSource">
+            <option value="workshop">Workshop</option>
+            <option value="walk-in">Walk-in</option>
+            <option value="call">Call</option>
+            <option value="reference">Reference</option>
+            <option value="online">Online</option>
+            <option value="showroom visit">Showroom Visit</option>
+            <option value="telecall">Telecall</option>
+            <option value="interakt">Interakt</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Source Agent</label>
+          <input type="text" id="elSourceAgent" placeholder="Agent name">
+        </div>
+        <div class="form-group full">
+          <label>Follow-up Date</label>
+          <input type="date" id="elFollowUp">
+        </div>
+        <div class="form-group full">
+          <label>Remarks</label>
+          <textarea id="elRemarks" rows="2" placeholder="Notes / remarks"></textarea>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn-cancel" onclick="closeModal('editModal')">Cancel</button>
+        <button class="btn-save" onclick="saveEditLead()">&#128190; Save Changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BULK UPLOAD MODAL -->
+<div class="modal-overlay" id="uploadModal">
+  <div class="modal wide">
+    <div class="modal-head">
+      <h2>&#128228; Bulk Upload Leads</h2>
+      <button class="close" onclick="closeModal('uploadModal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div style="font-size:10px;color:var(--muted);line-height:1.5;font-weight:600">
+        Download the template, fill in your leads, then upload the CSV file.
+        Required column: <b>Customer Name</b> (Policy Number and dates are optional).
+        Dates should be <b>YYYY-MM-DD</b>, <b>DD-MM-YYYY</b>, or <b>DD-Mon-YY</b>.
+        Duplicate policy numbers or VINs are skipped automatically.
+      </div>
+      <div class="form-actions" style="margin-top:10px;justify-content:flex-start">
+        <button class="btn-save" onclick="downloadTemplate()">&#8681; Download Template</button>
+      </div>
+      <div class="upload-drop" id="uploadDrop">
+        <div class="ud-txt">&#128228; Click here or drag &amp; drop your CSV file</div>
+        <div class="ud-sub">Only .csv files are supported</div>
+      </div>
+      <input type="file" id="csvFile" accept=".csv,text/csv,text/plain" style="display:none">
+      <div id="uploadPreview"></div>
+      <div class="form-actions">
+        <button class="btn-cancel" onclick="closeModal('uploadModal')">Cancel</button>
+        <button class="btn-save" id="uploadBtn" onclick="uploadLeads()" disabled>&#10514; Upload Leads</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MANAGE AGENTS MODAL -->
+<div class="modal-overlay" id="agentModal">
+  <div class="modal small">
+    <div class="modal-head">
+      <h2>&#128101; Manage Agents</h2>
+      <button class="close" onclick="closeModal('agentModal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group" style="margin-bottom:12px">
+        <label>Add New Agent</label>
+        <div style="display:flex;gap:6px">
+          <input type="text" id="newAgentInput" placeholder="Enter agent name" style="flex:1">
+          <button class="btn-save" onclick="addAgent()" style="white-space:nowrap">&#10133; Add</button>
+        </div>
+      </div>
+      <div id="agentList"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+let allLeads = [];
+let currentPage = 0;
+let pageSize = 'all';
+let filterModel = 'all';
+let filterInsurer = 'all';
+let filterAgent = 'all';
+let filterSource = 'all';
+let filterExpiry = 'all';
+let filterStatus = 'all';
+let filterFollowup = 'all';
+let dropdownOptions = { models: [], insurers: [] };
+
+function getAgents() { try { return JSON.parse(localStorage.getItem('cc_agents') || '[]'); } catch(e) { return []; } }
+function saveAgents(list) { localStorage.setItem('cc_agents', JSON.stringify(list)); }
+function getAllAgentsList() {
+  var agents = getAgents();
+  var fromLeads = allLeads.map(function(l){ return l.source_agent||''; }).filter(Boolean);
+  fromLeads.forEach(function(a){ if (agents.indexOf(a) === -1) agents.push(a); });
+  return agents.sort();
+}
+function openAgentModal() {
+  document.getElementById('newAgentInput').value = '';
+  renderAgentList();
+  document.getElementById('agentModal').classList.add('show');
+  setTimeout(function(){ document.getElementById('newAgentInput').focus(); }, 100);
+}
+function renderAgentList() {
+  var agents = getAllAgentsList();
+  var stored = getAgents();
+  if (!agents.length) {
+    document.getElementById('agentList').innerHTML = '<div class="agent-empty">No agents yet. Add one above.</div>';
+    return;
+  }
+  var h = '';
+  agents.forEach(function(a) {
+    var isCustom = stored.indexOf(a) !== -1;
+    h += '<div class="agent-item">' +
+      '<span class="agent-name">' + a + (isCustom ? '' : ' <span style="font-size:8px;color:var(--muted)">(from leads)</span>') + '</span>' +
+      (isCustom ? '<button class="agent-remove" onclick="removeAgent(\'' + a.replace(/'/g,"\\'") + '\')">Remove</button>' : '') +
+      '</div>';
+  });
+  document.getElementById('agentList').innerHTML = h;
+}
+function addAgent() {
+  var name = document.getElementById('newAgentInput').value.trim();
+  if (!name) { alert('Please enter an agent name'); return; }
+  var agents = getAgents();
+  var all = getAllAgentsList();
+  if (all.indexOf(name) !== -1) { alert('Agent "' + name + '" already exists'); return; }
+  agents.push(name);
+  saveAgents(agents);
+  document.getElementById('newAgentInput').value = '';
+  renderAgentList();
+  populateAgentDropdowns();
+  renderFilters();
+}
+function removeAgent(name) {
+  if (!confirm('Remove agent "' + name + '"?')) return;
+  var agents = getAgents().filter(function(a){ return a !== name; });
+  saveAgents(agents);
+  renderAgentList();
+  populateAgentDropdowns();
+  renderFilters();
+}
+function populateAgentDropdowns() {
+  var agents = getAllAgentsList();
+  var opts = '<option value="">Select agent...</option>';
+  agents.forEach(function(a) { opts += '<option value="' + a + '">' + a + '</option>'; });
+  var sel = document.getElementById('agentName');
+  var current = sel.value;
+  sel.innerHTML = opts;
+  if (current) sel.value = current;
+}
+
+function setupAutocomplete(inputId, listId, options) {
+  var input = document.getElementById(inputId);
+  var list = document.getElementById(listId);
+  if (!input || !list) return;
+  input.addEventListener('input', function() {
+    var val = input.value.toLowerCase().trim();
+    list.innerHTML = '';
+    if (!val) { list.classList.remove('show'); return; }
+    var filtered = options.filter(function(o) { return o.toLowerCase().includes(val); });
+    filtered.forEach(function(o) {
+      var div = document.createElement('div');
+      div.className = 'ac-item';
+      div.textContent = o;
+      div.addEventListener('mousedown', function(e) { e.preventDefault(); input.value = o; list.classList.remove('show'); });
+      list.appendChild(div);
+    });
+    list.classList.toggle('show', list.children.length > 0);
+  });
+  input.addEventListener('blur', function() { setTimeout(function() { list.classList.remove('show'); }, 150); });
+}
+
+function authUrl(url) {
+  var token = localStorage.getItem('authToken');
+  return url + (url.includes('?') ? '&' : '?') + 'token=' + encodeURIComponent(token || '');
+}
+
+async function loadLeads(bypass) {
+  var loaderEl = document.getElementById('loader');
+  if (loaderEl) loaderEl.innerHTML = '<div class="spin"></div>Loading leads...';
+  try {
+    var res = await fetch(authUrl('/api/leads'), { cache: 'no-store' });
+    if (!res.ok) throw new Error(((await res.json()).error) || 'Failed to load');
+    var data = await res.json();
+    allLeads = data.leads || [];
+    document.getElementById('leadsCount').textContent = allLeads.length + ' Leads';
+    renderStats();
+    renderFilters();
+    renderTable();
+  } catch (e) {
+    document.getElementById('tableWrap').innerHTML = '<div class="empty">&#10060; Error: ' + e.message + '</div>';
+    document.getElementById('paginationContainer').innerHTML = '';
+  }
+}
+
+function daysUntil(d) {
+  if (!d) return null;
+  var v = d.slice(0,10);
+  var t = new Date(v + 'T00:00:00');
+  if (isNaN(t.getTime())) return null;
+  var today = new Date(); today.setHours(0,0,0,0);
+  return Math.round((t.getTime() - today.getTime()) / 86400000);
+}
+
+function expiryInfo(d) {
+  var dd = daysUntil(d);
+  if (dd === null) return { cls: 'exp-none', txt: 'No Expiry' };
+  if (dd < 0) return { cls: 'expired', txt: 'Expired' };
+  if (dd <= 30) return { cls: 'exp-soon', txt: dd + 'd left' };
+  if (dd <= 60) return { cls: 'exp-next', txt: dd + 'd left' };
+  return { cls: 'exp-ok', txt: dd + 'd left' };
+}
+
+function statusClass(s) {
+  var map = { 'Pending':'s-pending','Connected':'s-connected','Not Reachable':'s-not-reachable',"Follow-up":'s-follow-up','Not Interested':'s-not-interested','Policy Done':'s-policy-done','Done':'s-policy-done','Renewed':'s-policy-done','Wrong Number':'s-wrong-number' };
+  return map[s]||'s-pending';
+}
+function statusIcon(s) {
+  var map = { 'Pending':'\u23F3','Connected':'\u2705','Not Reachable':'\uD83D\uDCF1',"Follow-up":'\uD83D\uDD04','Not Interested':'\u274C','Policy Done':'\u2705','Done':'\u2705','Renewed':'\u2705','Wrong Number':'\u2753' };
+  return map[s]||'';
+}
+function attemptClass(n) {
+  if (n >= 3) return 'attempt-3p';
+  if (n === 2) return 'attempt-2';
+  if (n === 1) return 'attempt-1';
+  return 'attempt-0';
+}
+
+function fmtDate(d) {
+  if (!d) return '-';
+  var v = d.slice(0,10);
+  if (!v || v.indexOf('-') !== 2 && v.indexOf('-') !== 4) return d;
+  var p = v.split('-');
+  if (p.length === 3 && p[0].length === 4) return p[2] + '-' + p[1] + '-' + p[0];
+  return v;
+}
+function fmtDateShort(d) {
+  if (!d) return '-';
+  var v = d.slice(0,10);
+  if (v.indexOf('-') !== 2 && v.indexOf('-') !== 4) return v;
+  var p = v.split('-');
+  if (p.length === 3) return p[1] + '-' + p[0];
+  return v;
+}
+function fmtDT(d) {
+  if (!d) return '-';
+  var dt = new Date(d);
+  if (isNaN(dt.getTime())) return d;
+  var pad = function(n){ return String(n).padStart(2,'0'); };
+  return pad(dt.getDate()) + '-' + pad(dt.getMonth()+1) + ' ' + pad(dt.getHours()) + ':' + pad(dt.getMinutes());
+}
+
+function renderStats() {
+  var now = new Date();
+  var total = allLeads.length;
+  var expired = allLeads.filter(function(l){ var dd = daysUntil(l.policy_expiry_date); return dd !== null && dd < 0; }).length;
+  var soon = allLeads.filter(function(l){ var dd = daysUntil(l.policy_expiry_date); return dd !== null && dd >= 0 && dd <= 30; }).length;
+  var fuDue = allLeads.filter(function(l){ return l.follow_up_date && l.follow_up_date.slice(0,10) <= now.toISOString().slice(0,10); }).length;
+  var agents = new Set(allLeads.map(function(l){return l.source_agent||'';}).filter(Boolean)).size;
+  var insurers = new Set(allLeads.map(function(l){return l.insurancecompany||'';}).filter(Boolean)).size;
+  var done = allLeads.filter(function(l){ var s=(l.call_status||'').toLowerCase(); return s==='not interested'||s==='policy done'||s==='done'||s==='renewed'||s==='completed'; }).length;
+
+  var cards =
+    '<div class="stat-box" style="border-left:3px solid #8b5cf6"><div class="num">' + total + '</div><div class="lbl">Total Leads</div><div class="sub">' + insurers + ' insurers</div></div>' +
+    '<div class="stat-box" style="border-left:3px solid #f97316"><div class="num">' + soon + '</div><div class="lbl">Expiring &le;30d</div><div class="sub">hot pipeline</div></div>' +
+    '<div class="stat-box" style="border-left:3px solid #ef4444"><div class="num">' + expired + '</div><div class="lbl">Expired</div><div class="sub">need action</div></div>' +
+    '<div class="stat-box" style="border-left:3px solid #3b82f6"><div class="num">' + fuDue + '</div><div class="lbl">Follow-ups Due</div><div class="sub">today or overdue</div></div>' +
+    '<div class="stat-box" style="border-left:3px solid #14b8a6"><div class="num">' + done + '</div><div class="lbl">Done / Closed</div><div class="sub">renewed or NI</div></div>' +
+    '<div class="stat-box" style="border-left:3px solid #22c55e"><div class="num">' + agents + '</div><div class="lbl">Active Agents</div><div class="sub">across leads</div></div>';
+  document.getElementById('statsRow').innerHTML = cards;
+
+  var byModel = {};
+  allLeads.forEach(function(l){ var m = (l.model || '-').trim().toUpperCase(); byModel[m] = (byModel[m]||0) + 1; });
+  var chips = '';
+  Object.keys(byModel).sort().forEach(function(m){ chips += '<span class="chip">' + m + ' <b>' + byModel[m] + '</b></span>'; });
+  document.getElementById('chipRow').innerHTML = chips || '';
+}
+
+function renderFilters() {
+  var modelOpts = '<option value="all">All Models</option>';
+  var modelKeys = new Set(allLeads.map(function(l){ return (l.model||'-').trim().toUpperCase(); }));
+  [...modelKeys].sort().forEach(function(m){ modelOpts += '<option value="' + m.replace(/"/g,'&quot;') + '"' + (filterModel===m?' selected':'') + '>' + m + '</option>'; });
+  document.getElementById('filterModel').innerHTML = modelOpts;
+
+  var insOpts = '<option value="all">All Insurers</option>';
+  [...new Set(allLeads.map(function(l){return l.insurancecompany||'-';}))].sort().forEach(function(ins){ insOpts += '<option value="' + ins.replace(/"/g,'&quot;') + '"' + (filterInsurer===ins?' selected':'') + '>' + ins + '</option>'; });
+  document.getElementById('filterInsurer').innerHTML = insOpts;
+
+  var agOpts = '<option value="all">All Agents</option>';
+  getAllAgentsList().forEach(function(a){ agOpts += '<option value="' + a.replace(/"/g,'&quot;') + '"' + (filterAgent===a?' selected':'') + '>' + a + '</option>'; });
+  document.getElementById('filterAgent').innerHTML = agOpts;
+
+  var srcOpts = '<option value="all">All Sources</option>';
+  [...new Set(allLeads.map(function(l){return l.lead_source||'';}).filter(Boolean))].sort().forEach(function(s){ srcOpts += '<option value="' + s.replace(/"/g,'&quot;') + '"' + (filterSource===s?' selected':'') + '>' + s + '</option>'; });
+  document.getElementById('filterSource').innerHTML = srcOpts;
+
+  var stOpts = '<option value="all">All Statuses</option>';
+  var order = ['Pending','Connected','Not Reachable','Follow-up','Not Interested','Policy Done','Wrong Number'];
+  [...new Set(allLeads.map(function(l){return l.call_status||'Pending';}))].sort().forEach(function(s){
+    stOpts += '<option value="' + s + '"' + (filterStatus===s?' selected':'') + '>' + s + '</option>';
+  });
+  document.getElementById('filterStatus').innerHTML = stOpts;
+
+  var fuDates = [...new Set(allLeads.filter(function(l){ return l.follow_up_date; }).map(function(l){ return l.follow_up_date.slice(0,10); }))].sort();
+  var fuOpts = '<option value="all">All</option>' +
+    '<option value="overdue"' + (filterFollowup==='overdue'?' selected':'') + '>Overdue</option>' +
+    '<option value="today"' + (filterFollowup==='today'?' selected':'') + '>Today</option>' +
+    '<option value="upcoming"' + (filterFollowup==='upcoming'?' selected':'') + '>Upcoming</option>' +
+    '<option value="scheduled"' + (filterFollowup==='scheduled'?' selected':'') + '>Scheduled</option>' +
+    '<option value="none"' + (filterFollowup==='none'?' selected':'') + '>No Follow-up</option>';
+  fuDates.forEach(function(dt){
+    fuOpts += '<option value="' + dt + '"' + (filterFollowup===dt?' selected':'') + '>' + dt + '</option>';
+  });
+  document.getElementById('filterFollowup').innerHTML = fuOpts;
+}
+
+function filteredLeads() {
+  var q = document.getElementById('searchInput').value.toLowerCase().trim();
+  var list = allLeads.filter(function(l) {
+    if (filterModel !== 'all' && (l.model||'-').trim().toUpperCase() !== filterModel) return false;
+    if (filterInsurer !== 'all' && (l.insurancecompany||'-') !== filterInsurer) return false;
+    if (filterAgent !== 'all' && (l.source_agent||'') !== filterAgent) return false;
+    if (filterSource !== 'all' && (l.lead_source||'') !== filterSource) return false;
+    if (filterStatus !== 'all' && (l.call_status||'Pending') !== filterStatus) return false;
+    if (filterExpiry === 'expired') { var dd = daysUntil(l.policy_expiry_date); if (dd === null || dd >= 0) return false; }
+    if (filterExpiry === 'soon') { var dd2 = daysUntil(l.policy_expiry_date); if (dd2 === null || dd2 < 0 || dd2 > 30) return false; }
+    if (filterExpiry === 'later') { var dd3 = daysUntil(l.policy_expiry_date); if (dd3 === null || dd3 <= 30) return false; }
+    if (filterExpiry === 'none') { if (daysUntil(l.policy_expiry_date) !== null) return false; }
+    if (filterFollowup !== 'all') {
+      if (/^\d{4}-\d{2}-\d{2}$/.test(filterFollowup)) {
+        if (!l.follow_up_date || l.follow_up_date.slice(0,10) !== filterFollowup) return false;
+      } else {
+        var fd = daysUntil(l.follow_up_date);
+        if (filterFollowup === 'overdue') { if (fd === null || fd >= 0) return false; }
+        if (filterFollowup === 'today') { if (fd !== 0) return false; }
+        if (filterFollowup === 'upcoming') { if (fd === null || fd <= 0) return false; }
+        if (filterFollowup === 'scheduled') { if (fd === null) return false; }
+        if (filterFollowup === 'none') { if (fd !== null) return false; }
+      }
+    }
+    if (q) {
+      return (l.customer_name||'').toLowerCase().includes(q) ||
+             (l.vinno||'').toLowerCase().includes(q) ||
+             (l.policyno||'').toLowerCase().includes(q) ||
+             (l.reg_no||'').toLowerCase().includes(q) ||
+             (l.model||'').toLowerCase().includes(q) ||
+             (l.mobile_no||'').includes(q);
+    }
+    return true;
+  });
+  return list;
+}
+
+function fuTag(l) {
+  if (!l.follow_up_date) return '<span class="fu-tag fu-normal" style="color:var(--text);background:transparent">-</span>';
+  var dd = daysUntil(l.follow_up_date);
+  var cls = dd === 0 ? 'fu-today' : (dd < 0 ? 'fu-overdue' : 'fu-normal');
+  var txt = dd === 0 ? 'Today' : (dd < 0 ? (-dd) + 'd overdue' : 'In ' + dd + 'd');
+  return '<span class="fu-tag ' + cls + '">&#128197; ' + fmtDateShort(l.follow_up_date) + ' (' + txt + ')</span>';
+}
+
+function renderTable() {
+  var list = filteredLeads();
+  var size = pageSize === 'all' ? list.length : pageSize;
+  if (size <= 0) size = list.length || 1;
+  if (currentPage * size >= list.length) currentPage = 0;
+  var totalPages = Math.ceil(list.length / size) || 1;
+  var start = currentPage * size;
+  var pageData = list.slice(start, start + size);
+
+  if (!pageData.length) {
+    document.getElementById('tableWrap').innerHTML = '<div class="empty">&#128203; No leads found</div>';
+    document.getElementById('paginationContainer').innerHTML = '';
+    return;
+  }
+
+  var h = '<div class="table-scroll"><table><thead><tr>' +
+    '<th>#</th><th>Customer</th><th>Contact</th><th>VIN</th><th>Reg</th><th>Model</th><th>Policy No</th><th>Expiry</th><th>Insurer</th><th>Source</th><th>Agent</th><th>Follow-up</th><th>Created</th><th>Status</th><th>Last Call</th><th>Remarks</th><th>Action</th>' +
+    '</tr></thead><tbody>';
+
+  pageData.forEach(function(l, i) {
+    var absIdx = allLeads.indexOf(l);
+    var sc = l.call_status || 'Pending';
+    var exp = expiryInfo(l.policy_expiry_date);
+    var created = l.created_at ? fmtDate(l.created_at) : '-';
+    var lastCall = l.last_call_date ? fmtDate(l.last_call_date) : '-';
+    var nameHtml = l.customer_name + (l.source_agent ? '<div style="font-size:8px;color:#8b5cf6;font-weight:700">' + l.source_agent + '</div>' : '');
+    h += '<tr>' +
+      '<td style="color:var(--text);font-weight:700;font-size:9px">' + (start + i + 1) + '</td>' +
+      '<td style="font-size:10px;font-weight:800">' + nameHtml + '</td>' +
+      '<td><span style="font-weight:800;color:#1d4ed8;font-size:10px">' + (l.mobile_no||'-') + '</span></td>' +
+      '<td style="font-size:9px;font-family:monospace;color:var(--text)">' + (l.vinno||'-') + '</td>' +
+      '<td style="font-size:9px;font-family:monospace;color:#0ea5e9;font-weight:700">' + (l.reg_no||'-') + '</td>' +
+      '<td style="font-size:9px;font-weight:800">' + (l.model||'-').toUpperCase() + '</td>' +
+      '<td style="font-size:9px;font-family:monospace;color:var(--text)">' + l.policyno + '</td>' +
+      '<td><span class="exp-badge ' + exp.cls + '">' + exp.txt + '</span><div style="font-size:9px;color:var(--text);margin-top:1px">' + fmtDate(l.policy_expiry_date) + '</div></td>' +
+      '<td style="font-size:8px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)" title="' + (l.insurancecompany||'').replace(/"/g,'&quot;') + '">' + (l.insurancecompany||'-') + '</td>' +
+      '<td><span class="src-tag">' + (l.lead_source||'-') + '</span></td>' +
+      '<td>' + (l.source_agent ? '<span class="agent-tag">&#128100; ' + l.source_agent + '</span>' : '-') + '</td>' +
+      '<td>' + fuTag(l) + '</td>' +
+      '<td style="font-size:10px;font-weight:800;color:var(--text)">' + created + '</td>' +
+      '<td><span class="status-badge ' + statusClass(sc) + '">' + statusIcon(sc) + ' ' + sc + '</span></td>' +
+      '<td style="font-size:10px;font-weight:800;color:var(--text)">' + lastCall + '</td>' +
+      '<td style="font-size:9px;max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)" title="' + ((l.remarks || l.last_remarks)||'').replace(/"/g,'&quot;') + '">' + (l.remarks || l.last_remarks || '-') + '</td>' +
+      '<td><div style="display:flex;gap:4px">' +
+        '<button class="act-btn call" onclick="openCallModal(' + absIdx + ')" title="Log a call">&#128222; Call</button>' +
+        '<button class="act-btn edit" onclick="openEditModal(' + absIdx + ')" title="Edit lead">&#9998;&#65039;</button>' +
+        '<button class="act-btn hist" onclick="openHistoryModal(' + absIdx + ')" title="View history">&#128200;</button>' +
+      '</div></td>' +
+    '</tr>';
+  });
+  h += '</tbody></table></div>';
+  document.getElementById('tableWrap').innerHTML = h;
+
+  var pg = '';
+  pg += '<span class="pg-info">Rows per page:</span>' +
+    '<select style="padding:4px 6px;border:1px solid var(--border);border-radius:5px;font-size:10px;font-weight:700;color:var(--text);background:#fff;cursor:pointer;outline:none" onchange="pageSize=this.value;currentPage=0;renderTable()">' +
+    '<option value="all"' + (pageSize === 'all' ? ' selected' : '') + '>All</option>' +
+    '<option value="15"' + (pageSize === 15 ? ' selected' : '') + '>15 / page</option>' +
+    '<option value="30"' + (pageSize === 30 ? ' selected' : '') + '>30 / page</option>' +
+    '<option value="50"' + (pageSize === 50 ? ' selected' : '') + '>50 / page</option>' +
+    '</select>';
+  if (pageSize !== 'all') {
+    var maxBtns = 5;
+    var pgStart = Math.max(0, Math.min(currentPage - Math.floor(maxBtns/2), totalPages - maxBtns));
+    pgStart = Math.max(0, pgStart);
+    pg += '<button ' + (currentPage === 0 ? 'disabled' : '') + ' onclick="currentPage--;renderTable()">&#8249; Prev</button>';
+    for (var p = pgStart; p < Math.min(pgStart + maxBtns, totalPages); p++) {
+      pg += '<button class="' + (p === currentPage ? 'active' : '') + '" onclick="currentPage=' + p + ';renderTable()">' + (p + 1) + '</button>';
+    }
+    pg += '<button ' + (currentPage >= totalPages - 1 ? 'disabled' : '') + ' onclick="currentPage++;renderTable()">Next &#8250;</button>';
+  }
+  pg += '<span class="pg-info">' + list.length + ' of ' + allLeads.length + ' leads</span>';
+  document.getElementById('paginationContainer').innerHTML = pg;
+}
+
+function openCallModal(idx) {
+  var l = allLeads[idx];
+  var sc = l.call_status || 'Pending';
+  document.getElementById('custInfo').innerHTML =
+    '<div class="cust-card-row">' +
+      '<div class="ci"><div class="lbl">Customer</div><div class="val">' + l.customer_name + '</div></div>' +
+      '<div class="ci"><div class="lbl">Contact</div><div class="val" style="color:#1d4ed8">' + (l.mobile_no || '<span style="color:#94a3b8">Not available</span>') + '</div></div>' +
+      '<div class="ci"><div class="lbl">Model</div><div class="val">' + l.model + '</div></div>' +
+      '<div class="ci"><div class="lbl">Reg No</div><div class="val mono">' + (l.reg_no || '-') + '</div></div>' +
+      '<div class="ci"><div class="lbl">Policy No</div><div class="val mono" style="font-size:10px">' + l.policyno + '</div></div>' +
+      '<div class="ci"><div class="lbl">VIN No</div><div class="val mono" style="font-size:10px">' + l.vinno + '</div></div>' +
+      '<div class="ci"><div class="lbl">Insurance</div><div class="val">' + (l.insurancecompany || '-') + '</div></div>' +
+      '<div class="ci"><div class="lbl">Policy Expiry</div><div class="val">' + fmtDate(l.policy_expiry_date) + '</div></div>' +
+      '<div class="ci"><div class="lbl">Status</div><div class="val"><span class="status-badge ' + statusClass(sc) + '">' + statusIcon(sc) + ' ' + sc + '</span></div></div>' +
+    '</div>';
+  populateAgentDropdowns();
+  var agentSel = document.getElementById('agentName');
+  if (l.last_agent) agentSel.value = l.last_agent;
+  document.getElementById('mobileNo').value = l.mobile_no || '';
+  document.getElementById('callOutcome').value = '';
+  document.getElementById('followUpDate').value = l.follow_up_date || '';
+  document.getElementById('remarks').value = '';
+  var modal = document.getElementById('callModal');
+  modal.classList.add('show');
+  modal.dataset.idx = idx;
+}
+
+async function saveCallLog() {
+  var idx = Number(document.getElementById('callModal').dataset.idx);
+  var l = allLeads[idx];
+  var outcome = document.getElementById('callOutcome').value;
+  if (!outcome) { alert('Please select a call outcome'); return; }
+  var btn = document.querySelector('#callModal .btn-save');
+  btn.disabled = true; btn.textContent = 'Saving...';
+  try {
+    var res = await fetch(authUrl('/api/call-center/log'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        token: localStorage.getItem('authToken'),
+        policyno: l.policyno, vinno: l.vinno, reg_no: l.reg_no,
+        customer_name: l.customer_name, model: l.model, insurancecompany: l.insurancecompany,
+        policy_expiry_date: l.policy_expiry_date,
+        call_outcome: outcome,
+        remarks: document.getElementById('remarks').value,
+        follow_up_date: document.getElementById('followUpDate').value || null,
+        agent_name: document.getElementById('agentName').value,
+        mobile_no: document.getElementById('mobileNo').value
+      })
+    });
+    if (!res.ok) throw new Error(((await res.json()).error) || 'Save failed');
+    closeModal('callModal');
+    await loadLeads(true);
+  } catch (e) { alert('Error: ' + e.message); }
+  finally { btn.disabled = false; btn.textContent = '\uD83D\uDCBE Save Call Log'; }
+}
+
+function openHistoryModal(idx) {
+  var l = allLeads[idx];
+  document.getElementById('histCustInfo').innerHTML =
+    '<div class="cust-card-row">' +
+      '<div class="ci"><div class="lbl">Customer</div><div class="val">' + l.customer_name + '</div></div>' +
+      '<div class="ci"><div class="lbl">Contact</div><div class="val" style="color:#1d4ed8">' + (l.mobile_no || '-') + '</div></div>' +
+      '<div class="ci"><div class="lbl">Model</div><div class="val">' + l.model + '</div></div>' +
+      '<div class="ci"><div class="lbl">Policy No</div><div class="val mono" style="font-size:10px">' + l.policyno + '</div></div>' +
+      '<div class="ci"><div class="lbl">Status</div><div class="val"><span class="status-badge ' + statusClass(l.call_status||'Pending') + '">' + (l.call_status||'Pending') + '</span></div></div>' +
+    '</div>';
+  if (l.history && l.history.length) {
+    var hh = '<table class="history-table"><tr><th>Date</th><th>Outcome</th><th>Agent</th><th>Remarks</th><th>Next Follow-up</th></tr>';
+    l.history.forEach(function(h) {
+      hh += '<tr><td>' + fmtDT(h.date) + '</td><td><span class="status-badge ' + statusClass(h.outcome) + '">' + statusIcon(h.outcome) + ' ' + h.outcome + '</span></td><td>' + (h.agent||'-') + '</td><td style="font-size:10px;color:var(--muted)">' + (h.remarks||'-') + '</td><td>' + (h.follow_up ? fmtDateShort(h.follow_up) : '-') + '</td></tr>';
+    });
+    hh += '</table>';
+    document.getElementById('histList').innerHTML = hh;
+  } else {
+    document.getElementById('histList').innerHTML = '<div class="empty">No call history yet</div>';
+  }
+  document.getElementById('historyModal').classList.add('show');
+}
+
+function openAddLead() {
+  ['alCustomerName','alMobileNo','alPolicyno','alRegNo','alVinno','alModel','alInsurer','alExpiry','alSourceAgent','alFollowUp','alRemarks'].forEach(function(id){ document.getElementById(id).value = ''; });
+  document.getElementById('alLeadSource').value = 'workshop';
+  var note = document.getElementById('autofillNote');
+  if (note) note.style.display = 'none';
+  document.getElementById('addModal').classList.add('show');
+}
+
+async function autofillLead() {
+  var q = (document.getElementById('alVinno').value || document.getElementById('alRegNo').value || document.getElementById('alPolicyno').value || '').trim();
+  var note = document.getElementById('autofillNote');
+  if (!q) { if (note) note.style.display = 'none'; return; }
+  try {
+    var res = await fetch(authUrl('/api/leads/autofill?q=' + encodeURIComponent(q)), { cache: 'no-store' });
+    if (!res.ok) return;
+    var data = await res.json();
+    if (!data.found || !data.data) { if (note) { note.style.display = 'none'; } return; }
+    var d = data.data;
+    var filled = 0;
+    function fill(id, val) {
+      if (val == null) return;
+      var el = document.getElementById(id);
+      if (el && !el.value.trim() && String(val).trim()) { el.value = String(val).trim(); filled++; }
+    }
+    fill('alCustomerName', d.customer_name);
+    fill('alMobileNo', d.mobile_no);
+    fill('alPolicyno', d.policyno);
+    fill('alRegNo', d.reg_no || d.veh_regist_no);
+    fill('alVinno', d.vinno);
+    fill('alModel', d.model);
+    fill('alInsurer', d.insurancecompany);
+    fill('alExpiry', d.policy_expiry_date);
+    fill('alRemarks', d.remarks);
+    if (note) {
+      if (filled > 0) { note.style.display = 'block'; note.textContent = '&#10003; Auto-filled from ' + (data.source === 'lead' ? 'an existing lead' : 'policy data'); }
+      else { note.style.display = 'none'; }
+    }
+  } catch (e) {}
+}
+
+async function saveAddLead() {
+  var customer_name = document.getElementById('alCustomerName').value.trim();
+  if (!customer_name) { alert('Customer name is required'); return; }
+  var btn = document.querySelector('#addModal .btn-save');
+  btn.disabled = true; btn.textContent = 'Saving...';
+  try {
+    var res = await fetch(authUrl('/api/call-center/add-manual'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        token: localStorage.getItem('authToken'),
+        customer_name: customer_name,
+        policyno: document.getElementById('alPolicyno').value.trim(),
+        mobile_no: document.getElementById('alMobileNo').value.trim(),
+        reg_no: document.getElementById('alRegNo').value.trim(),
+        vinno: document.getElementById('alVinno').value.trim(),
+        model: document.getElementById('alModel').value.trim(),
+        insurancecompany: document.getElementById('alInsurer').value.trim(),
+        policy_expiry_date: document.getElementById('alExpiry').value || '',
+        lead_source: document.getElementById('alLeadSource').value,
+        source_agent: document.getElementById('alSourceAgent').value.trim(),
+        follow_up_date: document.getElementById('alFollowUp').value || null,
+        remarks: document.getElementById('alRemarks').value.trim()
+      })
+    });
+    if (!res.ok) throw new Error(((await res.json()).error) || 'Save failed');
+    closeModal('addModal');
+    await loadLeads(true);
+  } catch (e) { alert('Error: ' + e.message); }
+  finally { btn.disabled = false; btn.textContent = '\u2795 Add Lead'; }
+}
+
+function openEditModal(idx) {
+  var l = allLeads[idx];
+  document.getElementById('editModal').dataset.idx = idx;
+  document.getElementById('elCustomerName').value = l.customer_name;
+  document.getElementById('elMobileNo').value = l.mobile_no || '';
+  document.getElementById('elPolicyno').value = l.policyno || '';
+  document.getElementById('elRegNo').value = l.reg_no || '';
+  document.getElementById('elVinno').value = l.vinno || '';
+  document.getElementById('elModel').value = l.model || '';
+  document.getElementById('elInsurer').value = l.insurancecompany || '';
+  document.getElementById('elExpiry').value = (l.policy_expiry_date || '').slice(0,10);
+  document.getElementById('elSourceAgent').value = l.source_agent || '';
+  document.getElementById('elFollowUp').value = (l.follow_up_date || '').slice(0,10);
+  document.getElementById('elRemarks').value = l.remarks || '';
+  var src = document.getElementById('elLeadSource');
+  var found = false;
+  for (var i = 0; i < src.options.length; i++) {
+    if (src.options[i].value.toLowerCase() === String(l.lead_source || '').toLowerCase()) { src.selectedIndex = i; found = true; break; }
+  }
+  if (!found && l.lead_source) {
+    var o = document.createElement('option');
+    o.value = l.lead_source;
+    o.textContent = l.lead_source;
+    src.appendChild(o);
+    src.value = l.lead_source;
+  }
+  document.getElementById('editModal').classList.add('show');
+}
+
+async function saveEditLead() {
+  var idx = Number(document.getElementById('editModal').dataset.idx);
+  var l = allLeads[idx];
+  var customer_name = document.getElementById('elCustomerName').value.trim();
+  if (!customer_name) { alert('Customer name is required'); return; }
+  var btn = document.querySelector('#editModal .btn-save');
+  btn.disabled = true; btn.textContent = 'Saving...';
+  try {
+    var res = await fetch(authUrl('/api/leads/update'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        token: localStorage.getItem('authToken'),
+        id: l.id,
+        customer_name: customer_name,
+        mobile_no: document.getElementById('elMobileNo').value.trim(),
+        policyno: document.getElementById('elPolicyno').value.trim(),
+        reg_no: document.getElementById('elRegNo').value.trim(),
+        vinno: document.getElementById('elVinno').value.trim(),
+        model: document.getElementById('elModel').value.trim(),
+        insurancecompany: document.getElementById('elInsurer').value.trim(),
+        policy_expiry_date: document.getElementById('elExpiry').value || '',
+        lead_source: document.getElementById('elLeadSource').value,
+        source_agent: document.getElementById('elSourceAgent').value.trim(),
+        follow_up_date: document.getElementById('elFollowUp').value || null,
+        remarks: document.getElementById('elRemarks').value.trim()
+      })
+    });
+    if (!res.ok) throw new Error(((await res.json()).error) || 'Save failed');
+    closeModal('editModal');
+    await loadLeads(true);
+  } catch (e) { alert('Error: ' + e.message); }
+  finally { btn.disabled = false; btn.textContent = '\uD83D\uDCBE Save Changes'; }
+}
+
+function exportCsv() {
+  var list = filteredLeads();
+  if (!list.length) { alert('No data to export'); return; }
+  var cols = ['Customer Name','Mobile','Reg No','VIN','Model','Policy No','Insurance Company','Policy Expiry','Lead Source','Source Agent','Follow-up Date','Created At','Call Status','Last Call Date','Remarks'];
+  var rows = [cols];
+  list.forEach(function(l) {
+    rows.push([
+      l.customer_name, l.mobile_no, l.reg_no, l.vinno, l.model, l.policyno,
+      l.insurancecompany, l.policy_expiry_date, l.lead_source, l.source_agent,
+      l.follow_up_date || '', l.created_at || '', l.call_status || 'Pending',
+      l.last_call_date || '', (l.remarks || l.last_remarks || '').replace(/[\r\n]+/g,' ')
+    ]);
+  });
+  var csv = rows.map(function(r) { return r.map(function(c) { c = String(c==null?'':c); return '"' + c.replace(/"/g,'""') + '"'; }).join(','); }).join('\r\n');
+  var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'kia-leads-' + new Date().toISOString().slice(0,10) + '.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(a.href);
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+document.querySelectorAll('.modal-overlay').forEach(function(m){
+  m.addEventListener('click', function(e) { if (e.target === e.currentTarget) m.classList.remove('show'); });
+});
+
+function toggleToolbar() {
+  var tb = document.getElementById('toolbarPanel');
+  var isHidden = tb.classList.toggle('hidden-tb');
+  var sr = document.getElementById('statsRow');
+  if (sr) sr.style.top = isHidden ? '42px' : '84px';
+  var b = document.getElementById('tbToggleBtn');
+  if (b) {
+    b.title = isHidden ? 'Show filters' : 'Hide filters';
+    b.classList.toggle('tb-hidden', isHidden);
+  }
+}
+
+var LEAD_COLUMNS = [
+  ['customer_name','Customer Name'],
+  ['mobile_no','Mobile Number'],
+  ['policyno','Policy Number'],
+  ['reg_no','Reg Number'],
+  ['vinno','VIN'],
+  ['model','Model'],
+  ['insurancecompany','Insurance Company'],
+  ['policy_expiry_date','Policy Expiry Date (YYYY-MM-DD)'],
+  ['remarks','Remarks'],
+  ['lead_source','Lead Source'],
+  ['source_agent','Source Agent'],
+  ['follow_up_date','Follow-up Date (YYYY-MM-DD)']
+];
+
+var HEADER_ALIASES = {
+  'customer name':'customer_name','name':'customer_name','customername':'customer_name',
+  'mobile no':'mobile_no','mobile':'mobile_no','phone':'mobile_no','contact no':'mobile_no','mobileno':'mobile_no',
+  'policy no':'policyno','policy number':'policyno','policyno':'policyno','policy':'policyno',
+  'reg no':'reg_no','reg number':'reg_no','regno':'reg_no','registration no':'reg_no','registration':'reg_no',
+  'vin':'vinno','vinno':'vinno','vin no':'vinno','vin number':'vinno',
+  'model':'model','car model':'model',
+  'insurance company':'insurancecompany','insurer':'insurancecompany','insurance':'insurancecompany','insurancecompany':'insurancecompany',
+  'policy expiry date':'policy_expiry_date','expiry':'policy_expiry_date','expiry date':'policy_expiry_date','policyexpirydate':'policy_expiry_date',
+  'remarks':'remarks','remark':'remarks','notes':'remarks','comment':'remarks',
+  'lead source':'lead_source','source':'lead_source','leadsource':'lead_source',
+  'source agent':'source_agent','agent':'source_agent','agent name':'source_agent','sourceagent':'source_agent',
+  'follow up date':'follow_up_date','follow-up date':'follow_up_date','followup date':'follow_up_date','followup':'follow_up_date'
+};
+
+var uploadRows = [];
+
+function parseCsv(text) {
+  var rows = [], row = [], cur = '', inQ = false;
+  for (var i = 0; i < text.length; i++) {
+    var ch = text[i];
+    if (inQ) {
+      if (ch === '"') {
+        if (text[i+1] === '"') { cur += '"'; i++; } else inQ = false;
+      } else cur += ch;
+    } else {
+      if (ch === '"') inQ = true;
+      else if (ch === ',') { row.push(cur); cur = ''; }
+      else if (ch === '\n' || ch === '\r') {
+        if (ch === '\r' && text[i+1] === '\n') i++;
+        row.push(cur); cur = '';
+        if (row.length && !(row.length === 1 && row[0] === '')) rows.push(row);
+        row = [];
+      }
+      else cur += ch;
+    }
+  }
+  if (cur !== '' || row.length) { row.push(cur); if (row.length && !(row.length === 1 && row[0] === '')) rows.push(row); }
+  return rows;
+}
+
+function normalizeDate(v) {
+  if (!v) return '';
+  var s = String(v).trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  var m = s.match(/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})$/);
+  if (m) {
+    var d = +m[1], mo = +m[2], y = +m[3];
+    if (mo >= 1 && mo <= 12 && d >= 1 && d <= 31) return y + '-' + String(mo).padStart(2,'0') + '-' + String(d).padStart(2,'0');
+  }
+  var months = {jan:1,feb:2,mar:3,apr:4,may:5,jun:6,jul:7,aug:8,sep:9,oct:10,nov:11,dec:12};
+  var ma = s.match(/^(\d{1,2})\s*[- ]?\s*([A-Za-z]{3})(?:\s*[- ]?\s*(\d{2,4}))?$/);
+  if (ma) {
+    var mo2 = months[ma[2].toLowerCase()];
+    if (mo2) {
+      var d2 = +ma[1];
+      var y2;
+      if (ma[3]) {
+        y2 = ma[3].length === 2 ? 2000 + +ma[3] : +ma[3];
+      } else {
+        var now = new Date();
+        y2 = now.getFullYear();
+        if (mo2 < now.getMonth() + 1) y2 += 1;
+      }
+      return y2 + '-' + String(mo2).padStart(2,'0') + '-' + String(d2).padStart(2,'0');
+    }
+  }
+  var dt = new Date(s);
+  if (!isNaN(dt.getTime())) return dt.toISOString().slice(0,10);
+  return '';
+}
+
+function normalizeHeader(h) {
+  h = String(h||'').trim().toLowerCase();
+  if (HEADER_ALIASES[h]) return HEADER_ALIASES[h];
+  for (var i = 0; i < LEAD_COLUMNS.length; i++) {
+    if (LEAD_COLUMNS[i][0] === h || LEAD_COLUMNS[i][1].toLowerCase() === h) return LEAD_COLUMNS[i][0];
+  }
+  return '';
+}
+
+function buildUploadRows(parsed) {
+  var headers = [];
+  var colIdx = {};
+  if (parsed.length) {
+    parsed[0].forEach(function(h, i) {
+      var key = normalizeHeader(h);
+      if (key) { headers.push(key); colIdx[i] = key; }
+    });
+  }
+  var errors = [], rows = [];
+  for (var i = 1; i < parsed.length; i++) {
+    var line = parsed[i];
+    if (line.length === 1 && String(line[0]).trim() === '') continue;
+    var obj = {};
+    headers.forEach(function(hk) { obj[hk] = ''; });
+    Object.keys(colIdx).forEach(function(idx) { obj[colIdx[idx]] = String(line[idx]||'').trim(); });
+    var ok = true;
+    if (!obj.customer_name) { errors.push('Row ' + (i+1) + ': missing Customer Name'); ok = false; }
+    if (!ok) continue;
+    obj.policyno = obj.policyno || '';
+    obj.policy_expiry_date = normalizeDate(obj.policy_expiry_date);
+    obj.follow_up_date = normalizeDate(obj.follow_up_date) || null;
+    rows.push(obj);
+  }
+  return { headers: headers, rows: rows, errors: errors };
+}
+
+function downloadCsv(name, content) {
+  var blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(a.href);
+}
+
+function downloadTemplate() {
+  var lines = [
+    LEAD_COLUMNS.map(function(c){ return c[1]; }).join(','),
+    'AJAY SHARMA,9419135176,OG-25-1021-1870-00018476,JK02DB5002,MZBFE811VPN305764,SONET,Go Digit General Insurance Ltd.,2026-10-20,workshop,ADARSH,2026-08-10'
+  ];
+  downloadCsv('kia-leads-template.csv', lines.join('\r\n'));
+}
+
+function openUploadModal() {
+  uploadRows = [];
+  var input = document.getElementById('csvFile');
+  input.value = '';
+  document.getElementById('uploadPreview').innerHTML = '';
+  document.getElementById('uploadBtn').disabled = true;
+  document.getElementById('uploadModal').classList.add('show');
+}
+
+function handleCsvFile(file) {
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      var parsed = parseCsv(String(e.target.result || ''));
+      var result = buildUploadRows(parsed);
+      uploadRows = result.rows;
+      var preview = document.getElementById('uploadPreview');
+      if (!result.headers.length) {
+        preview.innerHTML = '<div class="empty">&#10060; Could not read any known columns from the file. Please use the template headers.</div>';
+        document.getElementById('uploadBtn').disabled = true;
+        return;
+      }
+      var h = '<div class="up-status"><span class="ok">&#9989; ' + result.rows.length + ' valid row(s)</span>' +
+        (result.errors.length ? ' <span class="bad">| &#10060; ' + result.errors.length + ' invalid (skipped)</span>' : '') +
+        '</div>';
+      if (result.errors.length) {
+        h += '<div style="font-size:9px;color:var(--red);margin-top:4px;max-height:60px;overflow:auto">' + result.errors.slice(0,10).join('<br>') + '</div>';
+      }
+      h += '<div class="upload-preview-wrap"><table class="upload-preview"><tr>' +
+        result.headers.map(function(c){ return '<th>' + c + '</th>'; }).join('') + '</tr>';
+      result.rows.slice(0, 5).forEach(function(r) {
+        h += '<tr>' + result.headers.map(function(c){ return '<td>' + (r[c]===null?'':r[c]) + '</td>'; }).join('') + '</tr>';
+      });
+      if (result.rows.length > 5) {
+        h += '<tr><td colspan="' + result.headers.length + '" style="text-align:center;color:var(--muted);padding:8px">... and ' + (result.rows.length - 5) + ' more</td></tr>';
+      }
+      h += '</table></div>';
+      preview.innerHTML = h;
+      document.getElementById('uploadBtn').disabled = result.rows.length === 0;
+    } catch (err) {
+      document.getElementById('uploadPreview').innerHTML = '<div class="empty">&#10060; Error reading file: ' + err.message + '</div>';
+      document.getElementById('uploadBtn').disabled = true;
+    }
+  };
+  reader.readAsText(file);
+}
+
+async function uploadLeads() {
+  if (!uploadRows.length) { alert('No valid rows to upload'); return; }
+  var btn = document.getElementById('uploadBtn');
+  btn.disabled = true;
+  btn.textContent = 'Uploading...';
+  try {
+    var res = await fetch(authUrl('/api/leads/upload'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: localStorage.getItem('authToken'), rows: uploadRows })
+    });
+    var data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Upload failed');
+    var msg = 'Upload complete!\n\nInserted: ' + data.inserted + '\nSkipped (duplicate): ' + data.skipped + '\nFailed: ' + data.failed + ' of ' + data.total + ' rows';
+    if (data.errors && data.errors.length) {
+      msg += '\n\nErrors:\n' + data.errors.slice(0,5).map(function(e){ return 'Row ' + e.row + ': ' + e.error; }).join('\n');
+    }
+    alert(msg);
+    closeModal('uploadModal');
+    await loadLeads(true);
+  } catch (e) {
+    alert('Error: ' + e.message);
+    btn.disabled = false;
+    btn.textContent = '\u2B06 Upload Leads';
+  }
+}
+
+function setupUpload() {
+  var drop = document.getElementById('uploadDrop');
+  var input = document.getElementById('csvFile');
+  if (!drop || !input) return;
+  drop.addEventListener('click', function() { input.click(); });
+  drop.addEventListener('dragover', function(e) { e.preventDefault(); drop.classList.add('drag'); });
+  drop.addEventListener('dragleave', function() { drop.classList.remove('drag'); });
+  drop.addEventListener('drop', function(e) {
+    e.preventDefault();
+    drop.classList.remove('drag');
+    if (e.dataTransfer.files.length) handleCsvFile(e.dataTransfer.files[0]);
+  });
+  input.addEventListener('change', function() { if (input.files.length) handleCsvFile(input.files[0]); });
+}
+
+function init() {
+  setupAutocomplete('alModel', 'alModelAC', []);
+  setupAutocomplete('alInsurer', 'alInsurerAC', []);
+  setupUpload();
+  loadLeads(true);
+  fetch(authUrl('/api/call-center/options'), { cache: 'no-store' }).then(function(r){ return r.json(); }).then(function(d) {
+    if (d.models) { dropdownOptions.models = d.models; setupAutocomplete('alModel', 'alModelAC', d.models); }
+    if (d.insurers) { dropdownOptions.insurers = d.insurers; setupAutocomplete('alInsurer', 'alInsurerAC', d.insurers); }
+  }).catch(function(){});
+  var agentInput = document.getElementById('newAgentInput');
+  if (agentInput) {
+    agentInput.addEventListener('keydown', function(e) { if (e.key === 'Enter') { e.preventDefault(); addAgent(); } });
+  }
+  if (typeof window.addEventListener === 'function') {
+    window.addEventListener('keydown', function(e) { if (e.key === 'Escape') { document.querySelectorAll('.modal-overlay').forEach(function(m){ m.classList.remove('show'); }); } });
+  }
+}
+init();
+</script>
+</body>
+</html>
