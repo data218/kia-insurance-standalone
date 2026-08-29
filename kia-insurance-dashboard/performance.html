@@ -81,7 +81,7 @@ tr.total td { font-weight:800; background:#e8f0fe; border-top:3px solid #ccc; pa
 .btn-refresh:hover { background:rgba(255,255,255,0.25); }
 .btn-refresh:active { background:rgba(255,255,255,0.08); }
 .btn-refresh.loading { pointer-events:none; opacity:.6; }
-.btn-refresh .spin-sm { display:inline-block; width:10px; height:10px; border:1.5px solid rgba(255,255,255,0.3); border-top-color:#fff; border-radius:50%; animation:spin .6s linear infinite; }
+.btn-refresh .spin-sm, .btn-fetch .spin-sm { display:inline-block; width:10px; height:10px; border:1.5px solid rgba(255,255,255,0.3); border-top-color:#fff; border-radius:50%; animation:spin .6s linear infinite; }
 .btn-calc { padding:3px 8px; border:1px solid rgba(255,255,255,0.4); border-radius:4px; background:#333; color:#fff; font-size:10px; font-weight:600; cursor:pointer; outline:none; transition:.15s; display:inline-flex; align-items:center; gap:4px; white-space:nowrap; }
 .btn-calc:hover { background:#555; }
 .btn-dup { padding:3px 8px; border:1px solid rgba(255,255,255,0.4); border-radius:4px; background:#333; color:#fff; font-size:10px; font-weight:600; cursor:pointer; outline:none; transition:.15s; display:inline-flex; align-items:center; gap:4px; white-space:nowrap; }
@@ -90,6 +90,8 @@ tr.total td { font-weight:800; background:#e8f0fe; border-top:3px solid #ccc; pa
 .btn-track:hover { background:#555; }
 .btn-export { padding:3px 8px; border:1px solid rgba(255,255,255,0.4); border-radius:4px; background:#333; color:#fff; font-size:10px; font-weight:600; cursor:pointer; outline:none; transition:.15s; display:inline-flex; align-items:center; gap:4px; white-space:nowrap; }
 .btn-export:hover { background:#555; }
+.btn-excel { padding:3px 8px; border:1px solid rgba(255,255,255,0.4); border-radius:4px; background:#059669; color:#fff; font-size:10px; font-weight:600; cursor:pointer; outline:none; transition:.15s; display:inline-flex; align-items:center; gap:4px; white-space:nowrap; }
+.btn-excel:hover { background:#047857; }
 .btn-fetch { padding:3px 8px; border:1px solid rgba(255,255,255,0.4); border-radius:4px; background:#333; color:#fff; font-size:10px; font-weight:600; cursor:pointer; outline:none; transition:.15s; display:inline-flex; align-items:center; gap:4px; white-space:nowrap; }
 .btn-fetch:hover { background:#555; }
 .btn-fetch.loading { pointer-events:none; opacity:.6; }
@@ -109,6 +111,7 @@ tr.total td { font-weight:800; background:#e8f0fe; border-top:3px solid #ccc; pa
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
 </head>
 <body>
 <div class="topbar">
@@ -186,6 +189,12 @@ tr.total td { font-weight:800; background:#e8f0fe; border-top:3px solid #ccc; pa
   <button class="btn-dup" onclick="showDuplicates()">&#x26A0; Duplicate VINs</button>
   <button class="btn-track" onclick="showVinTrack()">&#x1F50D; VIN Track</button>
   <button class="btn-export" onclick="showExport()">&#x2913; Export Data</button>
+  <select id="excelMonth" style="padding:1px 3px;border:1px solid rgba(255,255,255,0.4);border-radius:3px;background:rgba(255,255,255,0.15);color:#fff;font-size:7px;font-weight:500;cursor:pointer;outline:none;max-width:70px">
+    <option value="0">All Months</option>
+    <option value="1">Jan</option><option value="2">Feb</option><option value="3">Mar</option><option value="4">Apr</option><option value="5">May</option><option value="6">Jun</option>
+    <option value="7">Jul</option><option value="8">Aug</option><option value="9">Sep</option><option value="10">Oct</option><option value="11">Nov</option><option value="12">Dec</option>
+  </select>
+  <button class="btn-excel" onclick="downloadCategoryExcel()">&#x1F4E5; Excel</button>
 <button class="btn-fetch" onclick="showFetchModal()">&#x21BB; Fetch KIA Data</button>
   <button class="btn-fetch" onclick="deleteAllData()" id="deleteAllBtn">&#x1F5D1; Delete All Data</button>
   <div style="width:1px;height:20px;background:#d0dce8"></div>
@@ -249,9 +258,9 @@ tr.total td { font-weight:800; background:#e8f0fe; border-top:3px solid #ccc; pa
         <tr><td>Unique VINs (Annual)</td><td>Each VIN is counted <b>only once per year</b>, regardless of how many months it appears. Info bar shows the true unique count.</td></tr>
         <tr><td>Sum of Months vs Unique</td><td>Monthly columns count unique VINs <b>per month</b>. A VIN in Jan AND Feb gets counted in both. The total row shows the correct unique count across all months.</td></tr>
         <tr><td>Duplicate Policy Check</td><td>Detects rows where the <b>same policy number</b> appears more than once in the <b>same year</b>.</td></tr>
-        <tr><td>Gross Premium (&#x20B9;L)</td><td>Sum of <code>grosspremium</code> for <b>all rows</b>, divided by 100,000.</td></tr>
-        <tr><td>Avg Premium</td><td><code>grosspremium / policy count</code> for the selected period.</td></tr>
-        <tr><td>Premium Share %</td><td>Each company's gross premium as a percentage of total.</td></tr>
+        <tr><td>Net OD Premium (&#x20B9;L)</td><td>Sum of <code>netodpremiuma</code> for <b>all rows</b>, divided by 100,000.</td></tr>
+        <tr><td>Avg Premium</td><td><code>netodpremiuma / policy count</code> for the selected period.</td></tr>
+        <tr><td>Premium Share %</td><td>Each company's Net OD Premium as a percentage of total.</td></tr>
         <tr><td style="color:#dc2626;font-weight:600">Cancelled / Dead</td><td>Policies where <b>cancelled=Yes</b> are <b style="color:#dc2626">excluded</b> from all dashboard calculations. View them in <b>Export Data &#8594; Cancelled</b>.</td></tr>
       </tbody>
     </table>
@@ -362,6 +371,11 @@ tr.total td { font-weight:800; background:#e8f0fe; border-top:3px solid #ccc; pa
         <span style="font-size:13px;font-weight:600;color:#0f172a">D-1 (Yesterday)</span>
         <span style="font-size:11px;color:#64748b">Fetch previous day data</span>
       </label>
+      <label style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;cursor:pointer;margin-bottom:6px">
+        <input type="radio" name="fetchMode" value="today" onchange="toggleFetchMode()">
+        <span style="font-size:13px;font-weight:600;color:#0f172a">Today</span>
+        <span style="font-size:11px;color:#64748b">Fetch current day data</span>
+      </label>
       <label style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;cursor:pointer">
         <input type="radio" name="fetchMode" value="custom" onchange="toggleFetchMode()">
         <span style="font-size:13px;font-weight:600;color:#0f172a">Custom Date Range</span>
@@ -384,6 +398,16 @@ tr.total td { font-weight:800; background:#e8f0fe; border-top:3px solid #ccc; pa
       <button class="btn-fetch" onclick="closeFetchModal()" style="background:#64748b">Cancel</button>
       <button class="btn-fetch" onclick="startFetch()" id="fetchStartBtn">Fetch Now</button>
     </div>
+  </div>
+</div>
+
+<!-- Fetch Processing Overlay (sibling, not child of fetchModal) -->
+<div class="modal-overlay" id="fetchOverlay">
+  <div class="modal-box" style="max-width:360px;text-align:center">
+    <div class="spin" style="margin:16px auto 12px;"></div>
+    <h3 style="margin:0 0 8px;">Fetching KIA Data...</h3>
+    <p style="margin:0;color:#64748b;font-size:13px;" id="fetchOverlayMsg">Connecting to portal...</p>
+    <p style="margin:12px 0 0;color:#94a3b8;font-size:11px;" id="fetchOverlayDetail">Please wait</p>
   </div>
 </div>
 
@@ -424,25 +448,25 @@ function pct(a,b) {
   return (a/b*100).toFixed(1)+'%';
 }
 
-function getYear(s) {
-  if (!s) return NaN;
-  const m = s.match(/(\d{4})/);
-  return m ? parseInt(m[1]) : NaN;
+function parseDate(s) {
+  if(!s) return null;
+  s = String(s).trim();
+  var m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if(m) return {year: parseInt(m[1]), month: parseInt(m[2]), day: parseInt(m[3])};
+  m = s.match(/^(\d{4})-(\d{2})$/);
+  if(m) return {year: parseInt(m[1]), month: parseInt(m[2]), day: 1};
+  m = s.match(/^(\d{1,2})-([A-Za-z]{3})-(\d{4})$/);
+  if(m) {
+    var months = {jan:1,feb:2,mar:3,apr:4,may:5,jun:6,jul:7,aug:8,sep:9,oct:10,nov:11,dec:12};
+    return {year: parseInt(m[3]), month: months[m[2].toLowerCase()] || NaN, day: parseInt(m[1])};
+  }
+  m = s.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})$/);
+  if(m) return {year: parseInt(m[3]), month: parseInt(m[2]), day: parseInt(m[1])};
+  return null;
 }
-function getMonth(s) {
-  if (!s) return NaN;
-  if (/^\d{4}-\d{2}/.test(s)) return parseInt(s.substring(5,7));
-  const parts = s.split('/');
-  if (parts.length >= 2) return parseInt(parts[0]);
-  return NaN;
-}
-function extractDay(s) {
-  if (!s) return NaN;
-  if (/^\d{4}-\d{2}-\d{2}/.test(s)) return parseInt(s.substring(8,10));
-  const m = s.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
-  if (m) return parseInt(m[2]);
-  return NaN;
-}
+function getYear(s) { var d = parseDate(s); return d ? d.year : NaN; }
+function getMonth(s) { var d = parseDate(s); return d ? d.month : NaN; }
+function extractDay(s) { var d = parseDate(s); return d ? d.day : NaN; }
 
 function setDefaults() {
   const now = new Date();
@@ -509,8 +533,22 @@ function cachedFetch(url, ttl, bypass) {
     } catch(e) {}
   }
   var token = localStorage.getItem('authToken');
+  if (!token) {
+    var urlParams = new URLSearchParams(window.location.search);
+    var token = urlParams.get('token');
+    if (token) localStorage.setItem('authToken', token);
+  }
   var authUrl = url + (url.includes('?') ? '&' : '?') + 'token=' + encodeURIComponent(token || '');
-  return fetch(authUrl).then(function(r){ return r.json().then(function(d){ if(!bypass) sessionStorage.setItem('cf_' + url, JSON.stringify({ts:Date.now(),data:d})); return d; }); });
+  return fetch(authUrl).then(function(r) {
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
+  }).then(function(d) {
+    if (!bypass) sessionStorage.setItem('cf_' + url, JSON.stringify({ts: Date.now(), data: d}));
+    return d;
+  }).catch(function(e) {
+    sessionStorage.removeItem('cf_' + url);
+    throw e;
+  });
 }
 
 async function onRefresh() {
@@ -532,7 +570,9 @@ async function onRefresh() {
 async function loadData(bypassCache) {
   document.getElementById('tableContainer').innerHTML = '<div class="loader"><div class="spin"></div>Loading...</div>';
   try {
-    const d = await cachedFetch('/api/data', 120000, bypassCache);
+    // Clear any cached errors
+    sessionStorage.removeItem('cf_/api/data');
+    const d = await cachedFetch('/api/data', 120000, true);
     if (d.error) throw Error(d.error);
     allData = d.rows || [];
     allDataRaw = allData; // preserve unfiltered for export
@@ -589,7 +629,16 @@ function render() {
 
   // Filter data by date range for display (CY months only)
   const minMonth = fromDate.getMonth() + 1;
-  const maxMonth = toDate.getMonth() + 1;
+  let maxMonth = toDate.getMonth() + 1;
+  // Include one month forward so advance-booked policies show in the table
+  const cm = new Date().getMonth() + 1;
+  if (maxMonth === cm || maxMonth === cm - 1) maxMonth = Math.min(maxMonth + 1, 12);
+
+  // LY date boundaries: same month+day as CY, but LY year (for fair MTD comparison)
+  const lyToDate = new Date(ly, maxMonth - 1, toDate.getDate());
+  const lyToStr = lyToDate.toISOString().split('T')[0];
+  const lyFromStr = ly + fromVal.substring(4);
+  function inLyRange(r) { return r.create_date && r.create_date >= lyFromStr && r.create_date <= lyToStr; }
 
   // Build VIN sets per CY year-month (only for months in range)
   const cyVm = {}; // cyYm -> Set of VINs
@@ -603,13 +652,13 @@ function render() {
     cyVm[ym].add(r.vinno);
   });
 
-  // Build VIN sets per LY year-month (same months as CY range)
+  // Build VIN sets per LY year-month (same date range as CY, LY year)
   const lyVm = {}; // lyYm -> Set of VINs
   companyFiltered.forEach(r => {
     if (!r.vinno || !r.create_date) return;
+    if (!inLyRange(r)) return;
     const year = getYear(r.create_date);
     const month = getMonth(r.create_date);
-    if (year !== ly || month < minMonth || month > maxMonth) return;
     const ym = year + '-' + String(month).padStart(2,'0');
     if (!lyVm[ym]) lyVm[ym] = new Set();
     lyVm[ym].add(r.vinno);
@@ -619,9 +668,7 @@ function render() {
   const allLyVins = new Set();
   companyFiltered.forEach(r => {
     if (!r.vinno || !r.create_date) return;
-    const year = getYear(r.create_date);
-    const month = getMonth(r.create_date);
-    if (year === ly && month >= minMonth && month <= maxMonth) allLyVins.add(r.vinno);
+    if (inLyRange(r)) allLyVins.add(r.vinno);
   });
 
   // Build VIN sets per LY-1 year-month (for same-month LY-1 comparison)
@@ -648,31 +695,32 @@ function render() {
     cyNewVm[ym].add(r.vinno);
   });
 
-  // Build VIN sets per LY year-month for policytype='New' (same months as CY range)
+  // Build VIN sets per LY year-month for policytype='New' (same date range as CY)
   const lyNewVm = {};
   companyFiltered.forEach(r => {
     if (!r.vinno || !r.create_date || r.policytype !== 'New') return;
+    if (!inLyRange(r)) return;
     const year = getYear(r.create_date);
     const month = getMonth(r.create_date);
-    if (year !== ly || month < minMonth || month > maxMonth) return;
     const ym = year + '-' + String(month).padStart(2,'0');
     if (!lyNewVm[ym]) lyNewVm[ym] = new Set();
     lyNewVm[ym].add(r.vinno);
   });
 
-  // Combined set of ALL VINs that were New in any LY month (no window restriction)
+  // Combined set of ALL VINs that were New in any LY month (within date range)
   const allLyNewVins = new Set();
   Object.values(lyNewVm).forEach(s => s.forEach(v => allLyNewVins.add(v)));
 
   // Map VIN → CY month from LY New policy_expiry_date (for Renewal categorization)
+  // Fallback: policy_expiry_date → policy_effective_date → create_date
   const vinExpiryMonth = {};
   const cyRenewalVins = new Set();
   companyFiltered.forEach(r => {
-    if (!r.vinno || !r.policy_expiry_date || r.policytype !== 'New') return;
-    if (getYear(r.create_date) !== ly) return;
+    if (!r.vinno || r.policytype !== 'New') return;
+    if (!inLyRange(r)) return;
     const month = getMonth(r.create_date);
-    if (month < minMonth || month > maxMonth) return;
-    vinExpiryMonth[r.vinno] = getMonth(r.policy_expiry_date);
+    const expMonth = getMonth(r.policy_expiry_date) || getMonth(r.policy_effective_date) || month;
+    vinExpiryMonth[r.vinno] = expMonth;
   });
   companyFiltered.forEach(r => {
     if (!r.vinno || r.policytype !== 'Renewal' || r.cancelled === 'Yes') return;
@@ -689,13 +737,13 @@ function render() {
     cyRenewalByExpiry[ym].add(v);
   });
 
-  // Build VIN sets per LY year-month for policytype='Renewal' (same months as CY range)
+  // Build VIN sets per LY year-month for policytype='Renewal' (same date range as CY)
   const lyRenewalVm = {};
   companyFiltered.forEach(r => {
     if (!r.vinno || !r.create_date || r.policytype !== 'Renewal') return;
+    if (!inLyRange(r)) return;
     const year = getYear(r.create_date);
     const month = getMonth(r.create_date);
-    if (year !== ly || month < minMonth || month > maxMonth) return;
     const ym = year + '-' + String(month).padStart(2,'0');
     if (!lyRenewalVm[ym]) lyRenewalVm[ym] = new Set();
     lyRenewalVm[ym].add(r.vinno);
@@ -793,7 +841,7 @@ function render() {
   totals.cy.renewal = allCyRenewal.size;
   totals.cy.rollover = allCyRollover.size;
   totals.cy.rolloverRenew = allCyRolloverRenew.size;
-  totals.cy.overall = allCyVins.size;
+  totals.cy.overall = allCyRenewal.size + allCyRollover.size + allCyRolloverRenew.size;
   totals.ly.new = allLyNew.size;
   totals.ly.renewal = allLyRenewal.size;
   totals.ly.rollover = allLyRollover.size;
@@ -845,7 +893,8 @@ function renderInfo(stats, totals, ly, cy, allCyVins, allLyVins) {
 }
 
 function renderTable(stats, totals, ly, cy, typeFilter, minMonth, maxMonth) {
-  const currentMonth = new Date().getMonth() + 1;
+  const cm = new Date().getMonth() + 1;
+  const currentMonth = cm === 12 ? 12 : cm + 1;
   const periodTrigger = document.getElementById('periodTrigger');
   const checkedPeriod = ['pcb1','pcb2','pcb3','pcb4'].filter(id => document.getElementById(id).checked);
   const isYtd = periodTrigger.textContent === 'YTD' && !checkedPeriod.length;
@@ -890,7 +939,7 @@ function renderTable(stats, totals, ly, cy, typeFilter, minMonth, maxMonth) {
 html += `<td style="padding:2px 3px;${growthBorder}" colspan="3"><span class="val-box" style="font-size:8px;min-width:32px;padding:1px 3px;background:#fee2e2;color:#dc2626;border:none">${fmt(cyVal)}</span></td>`;
       } else if (t === 'overall') {
         const lyGrowth = (r.ly ? (r.ly.new || 0) + (r.ly.renewal || 0) + (r.ly.rollover || 0) : 0);
-        const cyVal = (r.cy.new || 0) + (r.cy.renewal || 0) + (r.cy.rollover || 0) + (r.cy.rolloverRenew || 0);
+        const cyVal = (r.cy.renewal || 0) + (r.cy.rollover || 0) + (r.cy.rolloverRenew || 0);
         html += `<td style="padding:2px 3px;${growthBorder}"><span class="val-box val-ly" style="font-size:8px;min-width:22px;padding:1px 2px">${fmt(lyGrowth)}</span></td>`;
         html += `<td style="padding:2px 3px;${growthBorder}"><span class="val-box val-cy" style="font-size:8px;min-width:22px;padding:1px 2px">${fmt(cyVal)}</span></td>`;
         html += `<td style="padding:2px 3px;${growthBorder}">${r.month > currentMonth ? '<span class="growth-box">&nbsp;</span>' : growthBox(cyVal, lyGrowth)}</td>`;
@@ -947,83 +996,93 @@ function buildDailyTable(data, filter, label, yesterday, yyy, yesterdayLabel) {
   if (filter !== 'all') tblData = data.filter(r => r.policytype === filter);
   const now = new Date();
   const curYear = now.getFullYear();
-  const curMonth = String(now.getMonth() + 1).padStart(2, '0');
-  const curMonthPrefix = curYear + '-' + curMonth;
-  const curMonthMdy = '/' + curMonth + '/' + curYear;
+  const curMonth = now.getMonth() + 1;
+  const curDay = now.getDate();
   const compMap = {}, mtdVins = {};
   tblData.forEach(r => {
     if (!r.vinno) return;
     const comp = r.insurancecompany || 'Unknown';
-    if (!compMap[comp]) { compMap[comp] = { mtd: 0, mtdCount: 0, mtdIdv: 0, yesterday: 0, yesterdayPremium: 0, yesterdayIdv: 0 }; mtdVins[comp] = new Set(); }
-    const cd = (r.create_date || '').trim();
-    if (cd.startsWith(curMonthPrefix) || cd.includes(curMonthMdy)) {
+    if (!compMap[comp]) { compMap[comp] = { mtd: 0, mtdCount: 0, yesterday: 0, yesterdayPremium: 0, today: 0, todayPremium: 0 }; mtdVins[comp] = new Set(); }
+    const d = parseDate(r.create_date);
+    if (d && d.year === curYear && d.month === curMonth) {
       compMap[comp].mtd += Number(r.netodpremiuma) || 0;
-      compMap[comp].mtdIdv += Number(r.totalidv) || 0;
       if (!mtdVins[comp].has(r.vinno)) { mtdVins[comp].add(r.vinno); compMap[comp].mtdCount++; }
     }
-
   });
-  const yDateStr = String(yyy) + '-' + String(yesterday.getMonth()+1).padStart(2,'0') + '-' + String(yesterday.getDate()).padStart(2,'0');
-  const yMdyStr = String(yesterday.getMonth()+1) + '/' + String(yesterday.getDate()) + '/' + String(yyy);
-  const compMap2 = {}, compMap2Prem = {}, compMap2Idv = {};
+  const todayVins = {}, todayPrem = {};
   tblData.forEach(r => {
     if (!r.vinno || !r.create_date) return;
-    const comp = r.insurancecompany || 'Unknown';
-    if (!compMap2[comp]) compMap2[comp] = new Set();
-    if (!compMap2Prem[comp]) compMap2Prem[comp] = 0;
-    if (!compMap2Idv[comp]) compMap2Idv[comp] = 0;
-    const cd = (r.create_date||'').trim();
-    if (cd === yDateStr || cd === yMdyStr || cd.startsWith(yDateStr)) { compMap2[comp].add(r.vinno); compMap2Prem[comp] += Number(r.netodpremiuma) || 0; compMap2Idv[comp] += Number(r.totalidv) || 0; }
+    const d = parseDate(r.create_date);
+    if (d && d.year === curYear && d.month === curMonth && d.day === curDay) {
+      const comp = r.insurancecompany || 'Unknown';
+      if (!todayVins[comp]) todayVins[comp] = new Set();
+      if (!todayPrem[comp]) todayPrem[comp] = 0;
+      todayVins[comp].add(r.vinno);
+      todayPrem[comp] += Number(r.netodpremiuma) || 0;
+    }
   });
-  Object.keys(compMap2).forEach(comp => { if (compMap[comp]) { compMap[comp].yesterday = compMap2[comp].size; compMap[comp].yesterdayPremium = compMap2Prem[comp] || 0; compMap[comp].yesterdayIdv = compMap2Idv[comp] || 0; } });
+  Object.keys(todayVins).forEach(comp => { if (compMap[comp]) { compMap[comp].today = todayVins[comp].size; compMap[comp].todayPremium = todayPrem[comp] || 0; } });
+  const todayLabel = `${curDay}/${curMonth}/${curYear}`;
+  const yDate = new Date(yyy, yesterday.getMonth(), yesterday.getDate());
+  const compMap2 = {}, compMap2Prem = {};
+  tblData.forEach(r => {
+    if (!r.vinno || !r.create_date) return;
+    const d = parseDate(r.create_date);
+    if (d && d.year === yyy && d.month === yesterday.getMonth() + 1 && d.day === yesterday.getDate()) {
+      const comp = r.insurancecompany || 'Unknown';
+      if (!compMap2[comp]) compMap2[comp] = new Set();
+      if (!compMap2Prem[comp]) compMap2Prem[comp] = 0;
+      compMap2[comp].add(r.vinno);
+      compMap2Prem[comp] += Number(r.netodpremiuma) || 0;
+    }
+  });
+  Object.keys(compMap2).forEach(comp => { if (compMap[comp]) { compMap[comp].yesterday = compMap2[comp].size; compMap[comp].yesterdayPremium = compMap2Prem[comp] || 0; } });
   const sorted = Object.entries(compMap).sort((a,b) => b[1].mtd - a[1].mtd);
   if (!sorted.length) return '';
-  const maxMtd = sorted[0][1].mtd;
   const mtdSum = sorted.reduce((s,[_,v]) => s + v.mtd, 0);
   const labelColors = { all:'#333', New:'#333', Renewal:'#333' };
   const color = labelColors[filter] || '#333';
   let h = `<div style="margin-top:${label==='All'?'0':'6px'};border:1px solid #ccc;overflow:hidden">
     <div style="display:flex;align-items:center;padding:2px 8px;background:${color};color:#fff;font-size:8px;font-weight:600">${label}</div>
-    <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:8px;border:1px solid #ccc">
+    <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:7px;border:1px solid #ccc">
       <thead><tr style="background:${color}">
-        <th style="padding:1px 3px;text-align:center;font-size:6px;text-transform:uppercase;color:#fff;border:1px solid #ccc;white-space:nowrap">Company</th>
-        <th style="padding:1px 3px;text-align:center;font-size:6px;text-transform:uppercase;color:#fff;border:1px solid #ccc;white-space:nowrap">Y'day<div style="font-weight:400;font-size:5px;color:rgba(255,255,255,0.7);text-transform:none">${yesterdayLabel}</div></th>
-        <th style="padding:1px 3px;text-align:center;font-size:6px;text-transform:uppercase;color:#fff;border:1px solid #ccc;white-space:nowrap">Prem (₹)</th>
-        <th style="padding:1px 3px;text-align:center;font-size:6px;text-transform:uppercase;color:#fff;border:1px solid #ccc;white-space:nowrap">IDV (₹)</th>
-        <th style="padding:1px 3px;text-align:center;font-size:6px;text-transform:uppercase;color:#fff;border:1px solid #ccc;white-space:nowrap">MTD</th>
-        <th style="padding:1px 3px;text-align:center;font-size:6px;text-transform:uppercase;color:#fff;border:1px solid #ccc;white-space:nowrap">MTD Prem (₹)</th>
-        <th style="padding:1px 3px;text-align:center;font-size:6px;text-transform:uppercase;color:#fff;border:1px solid #ccc;white-space:nowrap">MTD IDV (₹)</th>
-        <th style="padding:1px 3px;text-align:center;font-size:6px;text-transform:uppercase;color:#fff;border:1px solid #ccc">Share %</th>
+        <th style="padding:1px 2px;text-align:center;font-size:6px;text-transform:uppercase;color:#fff;border:1px solid #ccc;white-space:nowrap">Company</th>
+        <th style="padding:1px 2px;text-align:center;font-size:6px;text-transform:uppercase;color:#fff;border:1px solid #ccc;white-space:nowrap">Y'day<div style="font-weight:400;font-size:5px;color:rgba(255,255,255,0.7);text-transform:none">${yesterdayLabel}</div></th>
+        <th style="padding:1px 2px;text-align:center;font-size:6px;text-transform:uppercase;color:#fff;border:1px solid #ccc;white-space:nowrap">Prem (&#8377;)<div style="font-weight:400;font-size:5px;color:rgba(255,255,255,0.7);text-transform:none">Y'day</div></th>
+        <th style="padding:1px 2px;text-align:center;font-size:6px;text-transform:uppercase;color:#fff;border:1px solid #ccc;white-space:nowrap">Today<div style="font-weight:400;font-size:5px;color:rgba(255,255,255,0.7);text-transform:none">${todayLabel}</div></th>
+        <th style="padding:1px 2px;text-align:center;font-size:6px;text-transform:uppercase;color:#fff;border:1px solid #ccc;white-space:nowrap">Today Prem (&#8377;)</th>
+        <th style="padding:1px 2px;text-align:center;font-size:6px;text-transform:uppercase;color:#fff;border:1px solid #ccc;white-space:nowrap">MTD<div style="font-weight:400;font-size:5px;color:rgba(255,255,255,0.7);text-transform:none">Count</div></th>
+        <th style="padding:1px 2px;text-align:center;font-size:6px;text-transform:uppercase;color:#fff;border:1px solid #ccc;white-space:nowrap">MTD Prem (&#8377;)</th>
+        <th style="padding:1px 2px;text-align:center;font-size:6px;text-transform:uppercase;color:#fff;border:1px solid #ccc">Share %</th>
       </tr></thead><tbody>`;
   sorted.forEach(([comp, vals], i) => {
-    const pct = maxMtd ? (vals.mtd / maxMtd * 100) : 0;
     const share = mtdSum ? (vals.mtd / mtdSum * 100).toFixed(1) : 0;
     h += `<tr style="border-bottom:1px solid #ccc">
-      <td style="padding:1px 3px;font-weight:600;color:#000;font-size:7px;text-align:center;border:1px solid #ccc">${comp}</td>
-      <td style="padding:1px 3px;text-align:center;border:1px solid #ccc"><span style="background:#555;color:#fff;padding:1px 4px;border-radius:4px;font-weight:700;font-size:8px">${fmt(vals.yesterday)}</span></td>
-      <td style="padding:1px 3px;text-align:center;border:1px solid #ccc;font-weight:600;color:#000;font-size:7px;white-space:nowrap">${fmtRs(vals.yesterdayPremium)}</td>
-      <td style="padding:1px 3px;text-align:center;border:1px solid #ccc;font-weight:600;color:#000;font-size:7px;white-space:nowrap">${fmtRs(vals.yesterdayIdv)}</td>
-      <td style="padding:1px 3px;text-align:center;border:1px solid #ccc;font-weight:600;color:#000;font-size:8px">${fmt(vals.mtdCount)}</td>
-      <td style="padding:1px 3px;text-align:center;border:1px solid #ccc;font-weight:600;color:#000;font-size:7px;white-space:nowrap">${fmtRs(vals.mtd)}</td>
-      <td style="padding:1px 3px;text-align:center;border:1px solid #ccc;font-weight:600;color:#000;font-size:7px;white-space:nowrap">${fmtRs(vals.mtdIdv)}</td>
-      <td style="padding:1px 3px;text-align:center;border:1px solid #ccc"><span style="color:#000;font-size:7px">${share}%</span></td>
+      <td style="padding:1px 2px;font-weight:600;color:#000;font-size:6px;text-align:center;border:1px solid #ccc;white-space:nowrap">${comp}</td>
+      <td style="padding:1px 2px;text-align:center;border:1px solid #ccc"><span style="background:#555;color:#fff;padding:0 3px;border-radius:3px;font-weight:700;font-size:7px">${fmt(vals.yesterday)}</span></td>
+      <td style="padding:1px 2px;text-align:center;border:1px solid #ccc;font-weight:600;color:#000;font-size:6px;white-space:nowrap">${fmtRs(vals.yesterdayPremium)}</td>
+      <td style="padding:1px 2px;text-align:center;border:1px solid #ccc"><span style="background:#166534;color:#fff;padding:0 3px;border-radius:3px;font-weight:700;font-size:7px">${fmt(vals.today)}</span></td>
+      <td style="padding:1px 2px;text-align:center;border:1px solid #ccc;font-weight:600;color:#000;font-size:6px;white-space:nowrap">${fmtRs(vals.todayPremium)}</td>
+      <td style="padding:1px 2px;text-align:center;border:1px solid #ccc;font-weight:600;color:#000;font-size:7px">${fmt(vals.mtdCount)}</td>
+      <td style="padding:1px 2px;text-align:center;border:1px solid #ccc;font-weight:600;color:#000;font-size:6px;white-space:nowrap">${fmtRs(vals.mtd)}</td>
+      <td style="padding:1px 2px;text-align:center;border:1px solid #ccc"><span style="color:#000;font-size:6px">${share}%</span></td>
     </tr>`;
   });
   const totalYesterday = sorted.reduce((s,[_,v]) => s + v.yesterday, 0);
   const totalYesterdayPrem = sorted.reduce((s,[_,v]) => s + v.yesterdayPremium, 0);
-  const totalYesterdayIdv = sorted.reduce((s,[_,v]) => s + v.yesterdayIdv, 0);
+  const totalToday = sorted.reduce((s,[_,v]) => s + v.today, 0);
+  const totalTodayPrem = sorted.reduce((s,[_,v]) => s + v.todayPremium, 0);
   const totalMtdCount = sorted.reduce((s,[_,v]) => s + v.mtdCount, 0);
   const totalMtd = sorted.reduce((s,[_,v]) => s + v.mtd, 0);
-  const totalMtdIdv = sorted.reduce((s,[_,v]) => s + v.mtdIdv, 0);
   h += `<tr class="daily-total" style="background:#555;font-weight:700;border-top:1px solid #ccc">
-    <td style="padding:1px 3px;color:#fff;font-size:7px;text-align:center;border:1px solid #ccc;background:#555">Total</td>
-    <td style="padding:1px 3px;text-align:center;border:1px solid #ccc;background:#555"><span style="background:#333;color:#fff;padding:1px 4px;border-radius:4px;font-size:8px">${fmt(totalYesterday)}</span></td>
-    <td style="padding:1px 3px;text-align:center;border:1px solid #ccc;font-size:7px;white-space:nowrap;font-weight:700;color:#fff;background:#555">${fmtRs(totalYesterdayPrem)}</td>
-    <td style="padding:1px 3px;text-align:center;border:1px solid #ccc;font-size:7px;white-space:nowrap;font-weight:700;color:#fff;background:#555">${fmtRs(totalYesterdayIdv)}</td>
-    <td style="padding:1px 3px;text-align:center;border:1px solid #ccc;font-size:8px;font-weight:700;color:#fff;background:#555">${fmt(totalMtdCount)}</td>
-    <td style="padding:1px 3px;text-align:center;border:1px solid #ccc;font-size:7px;white-space:nowrap;font-weight:700;color:#fff;background:#555">${fmtRs(totalMtd)}</td>
-    <td style="padding:1px 3px;text-align:center;border:1px solid #ccc;font-size:7px;white-space:nowrap;font-weight:700;color:#fff;background:#555">${fmtRs(totalMtdIdv)}</td>
-    <td style="padding:1px 3px;text-align:center;border:1px solid #ccc;font-size:7px;color:#fff;background:#555">100%</td>
+    <td style="padding:1px 2px;color:#fff;font-size:6px;text-align:center;border:1px solid #ccc;background:#555">Total</td>
+    <td style="padding:1px 2px;text-align:center;border:1px solid #ccc;background:#555"><span style="background:#333;color:#fff;padding:0 3px;border-radius:3px;font-size:7px">${fmt(totalYesterday)}</span></td>
+    <td style="padding:1px 2px;text-align:center;border:1px solid #ccc;font-size:6px;white-space:nowrap;font-weight:700;color:#fff;background:#555">${fmtRs(totalYesterdayPrem)}</td>
+    <td style="padding:1px 2px;text-align:center;border:1px solid #ccc;background:#555"><span style="background:#166534;color:#fff;padding:0 3px;border-radius:3px;font-size:7px">${fmt(totalToday)}</span></td>
+    <td style="padding:1px 2px;text-align:center;border:1px solid #ccc;font-size:6px;white-space:nowrap;font-weight:700;color:#fff;background:#555">${fmtRs(totalTodayPrem)}</td>
+    <td style="padding:1px 2px;text-align:center;border:1px solid #ccc;font-size:7px;font-weight:700;color:#fff;background:#555">${fmt(totalMtdCount)}</td>
+    <td style="padding:1px 2px;text-align:center;border:1px solid #ccc;font-size:6px;white-space:nowrap;font-weight:700;color:#fff;background:#555">${fmtRs(totalMtd)}</td>
+    <td style="padding:1px 2px;text-align:center;border:1px solid #ccc;font-size:6px;color:#fff;background:#555">100%</td>
   </tr>`;
   h += '</tbody></table></div></div>';
   return h;
@@ -1210,9 +1269,7 @@ function showVinTrack() {
   const ly = new Date().getFullYear() - 1;
   const cy = ly + 1;
   const data = allData || [];
-  function getYear(s) { if(!s)return NaN; const m=s.match(/(\d{4})/); return m?parseInt(m[1]):NaN; }
-  function getMonth(s) { if(!s)return NaN; if(/^\d{4}-\d{2}/.test(s))return parseInt(s.substring(5,7)); const p=s.split('/'); if(p.length>=2)return parseInt(p[0]); return NaN; }
-
+  
   // Build LY VINs per month and CY VINs/policytype per month
   const lyMonthVins = {}, cyMonthVins = {}, cyPolicytype = {};
   data.forEach(r => {
@@ -1513,7 +1570,7 @@ function loadExportData() {
         '<td style="font-size:9px;color:'+ptColor+';font-weight:600">'+r.policytype+'</td>' +
         '<td style="font-size:9px">'+(r.insurancecompany||'')+'</td>' +
         '<td style="font-size:9px">'+(r.customer_name||'')+'</td>' +
-        '<td style="font-size:9px;text-align:right">'+(r.grosspremium?Number(r.grosspremium).toLocaleString('en-IN'):'')+'</td>' +
+        '<td style="font-size:9px;text-align:right">'+(r.netodpremiuma?Number(r.netodpremiuma).toLocaleString('en-IN'):'')+'</td>' +
       '</tr>';
     });
   });
@@ -1539,6 +1596,144 @@ function downloadExportCSV() {
   URL.revokeObjectURL(a.href);
 }
 
+function downloadCategoryExcel() {
+  const data = allDataRaw || allData || [];
+  if (!data.length) { showToast('No data to export', 'warning'); return; }
+
+  const selMonth = parseInt(document.getElementById('excelMonth').value);
+  const fromVal = document.getElementById('fromDate').value;
+  const toVal = document.getElementById('toDate').value;
+  if (!fromVal || !toVal) { showToast('Select date range first', 'warning'); return; }
+
+  const fromDate = new Date(fromVal + 'T00:00:00');
+  const toDate = new Date(toVal + 'T23:59:59');
+  const cy = toDate.getFullYear();
+  const ly = cy - 1;
+  const minMonth = fromDate.getMonth() + 1;
+  const maxMonth = toDate.getMonth() + 1;
+
+  function Y(s) { if(!s)return NaN; const m=s.match(/(\d{4})/); return m?parseInt(m[1]):NaN; }
+  function M(s) { if(!s)return NaN; if(/^\d{4}-\d{2}/.test(s))return parseInt(s.substring(5,7)); const p=s.split('/'); if(p.length>=2)return parseInt(p[0]); return NaN; }
+
+  // Same forward-month logic as render()
+  const cm = new Date().getMonth() + 1;
+  let adjMax = maxMonth;
+  if (adjMax === cm || adjMax === cm - 1) adjMax = Math.min(adjMax + 1, 12);
+
+  const lyToDate = new Date(ly, adjMax - 1, toDate.getDate());
+  const lyToStr = lyToDate.toISOString().split('T')[0];
+  const lyFromStr = ly + fromVal.substring(4);
+  function inLyRange(r) { return r.create_date && r.create_date >= lyFromStr && r.create_date <= lyToStr; }
+
+  // ── Build VIN sets identical to render() ──
+  const cyVm = {};
+  data.forEach(r => { if(!r.vinno||!r.create_date)return; const yr=Y(r.create_date),mo=M(r.create_date); if(yr!==cy||mo<minMonth||mo>adjMax)return; const ym=cy+'-'+String(mo).padStart(2,'0'); if(!cyVm[ym])cyVm[ym]=new Set(); cyVm[ym].add(r.vinno); });
+  const lyVm = {};
+  data.forEach(r => { if(!r.vinno||!r.create_date||!inLyRange(r))return; const yr=Y(r.create_date),mo=M(r.create_date); const ym=ly+'-'+String(mo).padStart(2,'0'); if(!lyVm[ym])lyVm[ym]=new Set(); lyVm[ym].add(r.vinno); });
+  const allLyVins = new Set();
+  data.forEach(r => { if(!r.vinno||!r.create_date||!inLyRange(r))return; allLyVins.add(r.vinno); });
+  const lyPrevVm = {};
+  data.forEach(r => { if(!r.vinno||!r.create_date)return; const yr=Y(r.create_date),mo=M(r.create_date); if(yr!==ly-1)return; const ym=(ly-1)+'-'+String(mo).padStart(2,'0'); if(!lyPrevVm[ym])lyPrevVm[ym]=new Set(); lyPrevVm[ym].add(r.vinno); });
+  const cyNewVm = {};
+  data.forEach(r => { if(!r.vinno||!r.create_date||r.policytype!=='New')return; const yr=Y(r.create_date),mo=M(r.create_date); if(yr!==cy||mo<minMonth||mo>adjMax)return; const ym=cy+'-'+String(mo).padStart(2,'0'); if(!cyNewVm[ym])cyNewVm[ym]=new Set(); cyNewVm[ym].add(r.vinno); });
+  const lyNewVm = {};
+  data.forEach(r => { if(!r.vinno||!r.create_date||r.policytype!=='New'||!inLyRange(r))return; const yr=Y(r.create_date),mo=M(r.create_date); const ym=ly+'-'+String(mo).padStart(2,'0'); if(!lyNewVm[ym])lyNewVm[ym]=new Set(); lyNewVm[ym].add(r.vinno); });
+  const allLyNewVins = new Set();
+  Object.values(lyNewVm).forEach(s => s.forEach(v => allLyNewVins.add(v)));
+  const vinExpiryMonth = {};
+  data.forEach(r => { if(!r.vinno||r.policytype!=='New'||!inLyRange(r))return; const mo=M(r.create_date); vinExpiryMonth[r.vinno]=M(r.policy_expiry_date)||M(r.policy_effective_date)||mo; });
+  const cyRenewalVins = new Set();
+  data.forEach(r => { if(!r.vinno||r.policytype!=='Renewal'||r.cancelled==='Yes')return; if(Y(r.create_date)===cy)cyRenewalVins.add(r.vinno); });
+  const cyRenewalByExpiry = {};
+  allLyNewVins.forEach(v => { const em=vinExpiryMonth[v]; if(!em||!cyRenewalVins.has(v))return; const ym=cy+'-'+String(em).padStart(2,'0'); if(!cyRenewalByExpiry[ym])cyRenewalByExpiry[ym]=new Set(); cyRenewalByExpiry[ym].add(v); });
+  const lyRenewalVm = {};
+  data.forEach(r => { if(!r.vinno||!r.create_date||r.policytype!=='Renewal'||!inLyRange(r))return; const yr=Y(r.create_date),mo=M(r.create_date); const ym=ly+'-'+String(mo).padStart(2,'0'); if(!lyRenewalVm[ym])lyRenewalVm[ym]=new Set(); lyRenewalVm[ym].add(r.vinno); });
+  const cyRenewalVm = {};
+  data.forEach(r => { if(!r.vinno||!r.create_date||r.policytype!=='Renewal')return; const yr=Y(r.create_date),mo=M(r.create_date); if(yr!==cy||mo<minMonth||mo>adjMax)return; const ym=cy+'-'+String(mo).padStart(2,'0'); if(!cyRenewalVm[ym])cyRenewalVm[ym]=new Set(); cyRenewalVm[ym].add(r.vinno); });
+  const allCyVins = new Set();
+  Object.values(cyVm).forEach(s => s.forEach(v => allCyVins.add(v)));
+
+  // ── Categorize per month (identical to render() monthly loop) ──
+  const catVins = { lyNew:new Map(), lyRenewal:new Map(), lyRollover:new Map(), cyNew:new Map(), cyRenewal:new Map(), cyRollover:new Map(), rolloverRenew:new Map(), notVisited:new Map() };
+  for (let m = 1; m <= 12; m++) {
+    if (selMonth !== 0 && m !== selMonth) continue;
+    const ms = String(m).padStart(2,'0');
+    const cyYm = cy + '-' + ms;
+    const cyVins = new Set([...(cyVm[cyYm]||[]), ...(cyRenewalByExpiry[cyYm]||[])]);
+    const lyVins = lyVm[ly+'-'+ms] || new Set();
+    const cyNew = cyNewVm[cyYm] || new Set();
+    const cyRenewal = new Set(), cyRollover = new Set(), cyLyRollback = new Set();
+    cyVins.forEach(v => { if(allLyNewVins.has(v)&&(cyRenewalByExpiry[cyYm]?.has(v))) cyRenewal.add(v); else if((lyRenewalVm[ly+'-'+ms]?.has(v))&&(cyRenewalVm[cyYm]?.has(v))) cyLyRollback.add(v); else if(!cyNew.has(v)) cyRollover.add(v); });
+    cyLyRollback.forEach(v => cyRollover.delete(v));
+    const notVisitedVins = new Set();
+    lyVins.forEach(v => { if(!allCyVins.has(v)) notVisitedVins.add(v); });
+    const lyNew = lyNewVm[ly+'-'+ms] || new Set();
+    const lyRenewal = new Set(), lyRollover = new Set();
+    const lyPrev = lyPrevVm[(ly-1)+'-'+ms] || new Set();
+    lyVins.forEach(v => { if(lyPrev.has(v)) lyRenewal.add(v); else if(!lyNew.has(v)) lyRollover.add(v); });
+    const cyRolloverRenew = new Set();
+    lyRollover.forEach(v => { if(cyVins.has(v)) cyRolloverRenew.add(v); });
+    catVins.lyNew.set(m, lyNew); catVins.lyRenewal.set(m, lyRenewal); catVins.lyRollover.set(m, lyRollover);
+    catVins.cyNew.set(m, cyNew); catVins.cyRenewal.set(m, cyRenewal); catVins.cyRollover.set(m, cyRollover);
+    catVins.rolloverRenew.set(m, cyRolloverRenew); catVins.notVisited.set(m, notVisitedVins);
+  }
+
+  function rowsFor(cat) {
+    const allVins = new Set();
+    catVins[cat].forEach(vins => vins.forEach(v => allVins.add(v)));
+    if (!allVins.size) return [];
+    if (cat==='lyNew'||cat==='lyRenewal'||cat==='lyRollover'||cat==='notVisited') return data.filter(r => Y(r.create_date)===ly && allVins.has(r.vinno));
+    if (cat==='cyNew'||cat==='cyRenewal'||cat==='cyRollover') return data.filter(r => Y(r.create_date)===cy && allVins.has(r.vinno));
+    if (cat==='rolloverRenew') return data.filter(r => allVins.has(r.vinno));
+    return [];
+  }
+
+  const catDefs = [
+    { key:'lyNew', label:'LY New' }, { key:'lyRenewal', label:'LY Renewal' }, { key:'lyRollover', label:'LY Rollover' },
+    { key:'cyNew', label:'CY New' }, { key:'cyRenewal', label:'CY Renewal' }, { key:'cyRollover', label:'CY Rollover' },
+    { key:'rolloverRenew', label:'Rollover→Renew' }, { key:'notVisited', label:'Not Visited' }
+  ];
+
+  const cols = ['#','VIN','Policy No','Customer Name','Insurance Company','Model','Net OD Premium','Policy Type','Created Date','Expiry Date','Effective Date','MFG Year','Variant','Fuel Type'];
+  const colMap = ['','vinno','policyno','customer_name','insurancecompany','model','netodpremiuma','policytype','create_date','policy_expiry_date','policy_effective_date','mfg_year','variant','fueltype'];
+
+  const wb = XLSX.utils.book_new();
+  catDefs.forEach(cfg => {
+    const rows = rowsFor(cfg.key);
+    if (!rows.length) return;
+    const seen = new Set(), unique = [];
+    rows.forEach(r => { const k=r.vinno+'|'+r.create_date; if(seen.has(k))return; seen.add(k); unique.push(r); });
+    const aoa = [cols];
+    unique.forEach((r,i) => aoa.push(colMap.map((f,j) => { if(j===0)return i+1; let v=r[f]; if(f==='netodpremiuma'&&v)v=Number(v); return v===undefined||v===null?'':v; })));
+    const totalRow = colMap.map((f,j) => { if(j===0)return 'TOTAL'; if(f==='netodpremiuma'){const s=unique.reduce((a,r)=>a+Number(r[f]||0),0);return s;} return j===1?unique.length:''; });
+    aoa.push(totalRow);
+    const ws = XLSX.utils.aoa_to_sheet(aoa);
+    ws['!cols'] = [6,18,16,22,18,14,14,12,14,14,14,10,14,10].map(w => ({wch:w}));
+    XLSX.utils.book_append_sheet(wb, ws, cfg.label);
+  });
+
+  // Cancelled sheet (all months)
+  const cancelledRows = data.filter(r => r.cancelled === 'Yes');
+  if (cancelledRows.length) {
+    const aoa = [cols];
+    cancelledRows.forEach((r,i) => aoa.push(colMap.map((f,j) => { if(j===0)return i+1; let v=r[f]; if(f==='netodpremiuma'&&v)v=Number(v); return v===undefined||v===null?'':v; })));
+    const ws = XLSX.utils.aoa_to_sheet(aoa);
+    ws['!cols'] = [6,18,16,22,18,14,14,12,14,14,14,10,14,10].map(w => ({wch:w}));
+    XLSX.utils.book_append_sheet(wb, ws, 'Cancelled');
+  }
+
+  if (!wb.SheetNames.length) { showToast('No data to export', 'warning'); return; }
+
+  const wbout = XLSX.write(wb, { bookType:'xlsx', type:'array' });
+  const blob = new Blob([wbout], { type:'application/octet-stream' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'kia_performance_categories.xlsx';
+  a.click();
+  URL.revokeObjectURL(a.href);
+  showToast('Excel downloaded: ' + wb.SheetNames.length + ' sheets', 'success');
+}
+
 function showFetchModal() {
   document.getElementById('fetchModal').classList.add('open');
   // Set default dates
@@ -1550,6 +1745,17 @@ function showFetchModal() {
 function closeFetchModal() {
   document.getElementById('fetchModal').classList.remove('open');
 }
+
+function showFetchOverlay(msg, detail) {
+  document.getElementById('fetchOverlay').classList.add('open');
+  document.getElementById('fetchOverlayMsg').textContent = msg || 'Fetching data...';
+  document.getElementById('fetchOverlayDetail').textContent = detail || 'Please wait';
+}
+
+function hideFetchOverlay() {
+  document.getElementById('fetchOverlay').classList.remove('open');
+}
+
 function toggleFetchMode() {
   var mode = document.querySelector('input[name="fetchMode"]:checked').value;
   document.getElementById('customDateFields').style.display = mode === 'custom' ? 'block' : 'none';
@@ -1579,8 +1785,10 @@ function startFetch() {
   var btn = document.getElementById('fetchStartBtn');
   if (btn.classList.contains('loading')) return;
   btn.classList.add('loading');
-  btn.textContent = '\u21BB Fetching...';
+  btn.innerHTML = '<span class="spin-sm"></span> Fetching...';
   closeFetchModal();
+
+  showFetchOverlay('Connecting to KIA portal...', 'Logging in');
 
   var body = { token: localStorage.getItem('authToken'), mode: mode };
   if (mode === 'custom') {
@@ -1598,6 +1806,7 @@ function startFetch() {
       return r.json();
     })
     .then(function(j) {
+      hideFetchOverlay();
       if (j.success) {
         var msg = j.message || 'Fetched ' + (j.totalRows || 0) + ' records';
         btn.classList.remove('loading');
@@ -1623,6 +1832,7 @@ function startFetch() {
       }
     })
     .catch(function(e) { 
+      hideFetchOverlay();
       showToast('Error: ' + (e.message || 'try later'), 'error');
       btn.classList.remove('loading');
       btn.textContent = 'Fetch Now';

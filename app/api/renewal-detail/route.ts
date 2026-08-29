@@ -30,7 +30,7 @@ export async function GET(req: Request) {
         vinMap[vin] = {
           customer: r.customer_name || '',
           model: r.model || '',
-          lastPremium: Number(r.grosspremium) || 0,
+          lastPremium: Number(r.netodpremiuma) || 0,
           lastDate: d,
           status: r.is_new === 'Yes' ? 'New' : 'Active',
         }

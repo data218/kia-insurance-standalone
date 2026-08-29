@@ -30,6 +30,7 @@ function injectNav(content: string): string {
     { path: '/dashboard', label: 'Data Analysis', dataPage: 'dashboard' },
     { path: '/performance', label: 'Performance Table', dataPage: 'performance' },
     { path: '/call-center', label: 'Call Center', dataPage: 'call-center' },
+    { path: '/leads', label: 'Leads', dataPage: 'leads' },
   ]
   let navHtml = '<div id="insNav" style="' + navStyle + '">'
   for (const link of pageLinks) {

@@ -24,6 +24,7 @@ export function validateToken(token: string): { valid: boolean; user?: { usernam
 
   try {
     const expectedSig = crypto.createHmac('sha256', TOKEN_HMAC_SECRET).update(parts[0]).digest('base64url').substring(0, 16)
+    if (parts[1].length !== expectedSig.length) return { valid: false }
     if (!crypto.timingSafeEqual(Buffer.from(parts[1]), Buffer.from(expectedSig))) {
       return { valid: false }
     }

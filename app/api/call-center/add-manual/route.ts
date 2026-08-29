@@ -21,13 +21,13 @@ export async function POST(req: Request) {
     }
 
     const {
-      policyno, vinno, customer_name, model, insurancecompany,
-      grosspremium, totalidv, policy_expiry_date, policy_effective_date,
-      mobile_no, state, create_date, source_agent, follow_up_date
+      policyno, vinno, reg_no, customer_name, model, insurancecompany,
+      policy_expiry_date, mobile_no, source_agent, follow_up_date,
+      lead_source, remarks
     } = body
 
-    if (!policyno || !customer_name) {
-      return NextResponse.json({ error: 'Policy number and customer name are required' }, { status: 400 })
+    if (!customer_name) {
+      return NextResponse.json({ error: 'Customer name is required' }, { status: 400 })
     }
 
     const today = new Date().toISOString().slice(0, 10)
@@ -36,38 +36,30 @@ export async function POST(req: Request) {
     const payload: Record<string, any> = {
       policyno: policyno || '',
       vinno: vinno || '',
+      reg_no: reg_no || '',
       customer_name: customer_name || '',
       model: model || '',
       insurancecompany: insurancecompany || '',
-      grosspremium: grosspremium ? Number(grosspremium) : 0,
-      totalidv: totalidv ? Number(totalidv) : null,
       policy_expiry_date: policy_expiry_date || '',
-      policy_effective_date: policy_effective_date || '',
-      state: state || '',
-      location: '',
-      dealer: '',
-      create_date: create_date || today,
-      cancelled: null,
-      is_new: null,
-      policytype: null,
-      mfg_year: null,
-      paymentmode: null,
-      netodpremiuma: null,
+      mobile_no: mobile_no || '',
+      remarks: remarks || '',
       source: 'manual',
-      uploaded_at: new Date().toISOString(),
+      lead_source: lead_source || null,
+      source_agent: source_agent || '',
+      follow_up_date: follow_up_date || null,
     }
 
     const { data, error } = await supabase
-      .from('kia_insurance')
+      .from('kia_insurance_form_data')
       .insert(payload)
       .select()
       .single()
 
     if (error) {
-      if (error.message?.includes('source') || error.code === '42703') {
+      if (error.message?.includes('relation') || error.code === '42P01') {
         return NextResponse.json({
-          error: 'source column missing. Run this SQL first:',
-          sql: "ALTER TABLE kia_insurance ADD COLUMN IF NOT EXISTS source TEXT DEFAULT 'kia_safety';",
+          error: 'kia_insurance_form_data table does not exist.',
+          sql: 'CREATE TABLE IF NOT EXISTS kia_insurance_form_data (id BIGSERIAL PRIMARY KEY, policyno TEXT DEFAULT \'\', vinno TEXT DEFAULT \'\', reg_no TEXT DEFAULT \'\', customer_name TEXT DEFAULT \'\', model TEXT DEFAULT \'\', insurancecompany TEXT DEFAULT \'\', policy_expiry_date TEXT DEFAULT \'\', mobile_no TEXT DEFAULT \'\', remarks TEXT DEFAULT \'\', source TEXT DEFAULT \'manual\', lead_source TEXT DEFAULT NULL, source_agent TEXT DEFAULT \'\', follow_up_date DATE DEFAULT NULL, created_at TIMESTAMPTZ DEFAULT NOW());',
         }, { status: 400 })
       }
       throw error
@@ -78,7 +70,6 @@ export async function POST(req: Request) {
         await supabase.from('call_logs').insert({
           policyno, vinno: vinno || '', customer_name: customer_name || '',
           model: model || '', insurancecompany: insurancecompany || '',
-          grosspremium: grosspremium ? Number(grosspremium) : null,
           policy_expiry_date: policy_expiry_date || '',
           call_outcome: 'Follow-up', follow_up_date,
           agent_name: source_agent || '', mobile_no: mobile_no || '',

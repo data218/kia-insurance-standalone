@@ -386,7 +386,7 @@ function getData() {
   if(curCompany!=='all') d = d.filter(r=>r.insurancecompany===curCompany);
   if(curView==='new') d = d.filter(r=>r.policytype==='New');
   else if(curView==='renewal') d = d.filter(r=>r.policytype==='Renewal');
-  else if(curView==='high') d = d.filter(r=>(Number(r.grosspremium)||0)>=50000);
+  else if(curView==='high') d = d.filter(r=>(Number(r.netodpremiuma)||0)>=50000);
   return d;
 }
 
@@ -398,7 +398,7 @@ function render() {
   let chartHtml='', tableHtml='';
 
   // KPI
-  const tp = d.reduce((s,r)=>s+(Number(r.grosspremium)||0),0);
+  const tp = d.reduce((s,r)=>s+(Number(r.netodpremiuma)||0),0);
   const tidv = d.reduce((s,r)=>s+(Number(r.totalidv)||0),0);
   const nc = d.filter(r=>r.policytype==='New').length;
   const rc = d.filter(r=>r.policytype==='Renewal').length;
@@ -408,7 +408,7 @@ function render() {
   const kpis = `
     <div class="kpi-row">
       <div class="kpi"><div class="k-label">Policies</div><div class="k-value">${fmt(d.length)}</div><div class="k-sub">${nc} New · ${rc} Renewal</div></div>
-      <div class="kpi b-blue"><div class="k-label">Gross Premium</div><div class="k-value">₹${(tp/100000).toFixed(1)}L</div><div class="k-sub">Avg ₹${fmt(Math.round(tp/(d.length||1)))}</div></div>
+      <div class="kpi b-blue"><div class="k-label">Net OD Premium</div><div class="k-value">₹${(tp/100000).toFixed(1)}L</div><div class="k-sub">Avg ₹${fmt(Math.round(tp/(d.length||1)))}</div></div>
       <div class="kpi b-green"><div class="k-label">Unique VINs</div><div class="k-value">${fmt(new Set(d.map(r=>r.vinno).filter(Boolean)).size)}</div><div class="k-sub">${mo} models</div></div>
       <div class="kpi b-red"><div class="k-label">Total IDV</div><div class="k-value">₹${(tidv/10000000).toFixed(1)}Cr</div><div class="k-sub">${co} insurers</div></div>
     </div>`;
@@ -460,7 +460,7 @@ function drawChart(d) {
 }
 
 function drawTrend(d) {
-  const m = {}; d.forEach(r=>{const k=r.create_date?.substring(0,7); if(!k)return; if(!m[k])m[k]={p:0,pr:0}; m[k].p++; m[k].pr+=Number(r.grosspremium)||0;});
+  const m = {}; d.forEach(r=>{const k=r.create_date?.substring(0,7); if(!k)return; if(!m[k])m[k]={p:0,pr:0}; m[k].p++; m[k].pr+=Number(r.netodpremiuma)||0;});
   const labels=Object.keys(m).sort(), policies=labels.map(k=>m[k].p), premiums=labels.map(k=>Math.round(m[k].pr/1000));
   const ctx=document.getElementById('mainChart').getContext('2d');
   charts.main=new Chart(ctx,{type:'bar',data:{labels,datasets:[
@@ -533,7 +533,7 @@ function drawComparison(d) {
     const [y,mth] = ym.split('-'); const mo = parseInt(mth);
     if(!m[mo]) m[mo] = {};
     if(!m[mo][y]) m[mo][y] = {p:0,pr:0};
-    m[mo][y].p++; m[mo][y].pr += Number(r.grosspremium)||0;
+    m[mo][y].p++; m[mo][y].pr += Number(r.netodpremiuma)||0;
   });
   const labels = Object.keys(m).sort((a,b)=>a-b).map(mo=>{const d=new Date(2024,mo-1); return d.toLocaleString('en',{month:'short'});});
   const y1p = [], y1pr = [], y2p = [], y2pr = [];
@@ -559,7 +559,7 @@ function drawMonthCompare(d) {
   const m2 = document.getElementById('monthTo').value;
   const d1 = d.filter(r=>r.create_date?.startsWith(m1));
   const d2 = d.filter(r=>r.create_date?.startsWith(m2));
-  const calc = (arr)=>[arr.length, Math.round((arr.reduce((s,r)=>s+(Number(r.grosspremium)||0),0))/1000), Math.round((arr.reduce((s,r)=>s+(Number(r.grosspremium)||0),0))/(arr.length||1)), new Set(arr.map(r=>r.vinno).filter(Boolean)).size];
+  const calc = (arr)=>[arr.length, Math.round((arr.reduce((s,r)=>s+(Number(r.netodpremiuma)||0),0))/1000), Math.round((arr.reduce((s,r)=>s+(Number(r.netodpremiuma)||0),0))/(arr.length||1)), new Set(arr.map(r=>r.vinno).filter(Boolean)).size];
   const v1=calc(d1), v2=calc(d2);
   const m1Label = new Date(m1+'-01').toLocaleString('en',{month:'short',year:'numeric'});
   const m2Label = new Date(m2+'-01').toLocaleString('en',{month:'short',year:'numeric'});
@@ -594,12 +594,12 @@ function drawDealer(d) {
 }
 function drawPremiumDist(d) {
   const buckets={'₹0 – ₹10K':0,'₹10K – ₹25K':0,'₹25K – ₹50K':0,'₹50K – ₹1L':0,'₹1L+':0};
-  d.forEach(r=>{const p=Number(r.grosspremium)||0; if(p<10000)buckets['₹0 – ₹10K']++; else if(p<25000)buckets['₹10K – ₹25K']++; else if(p<50000)buckets['₹25K – ₹50K']++; else if(p<100000)buckets['₹50K – ₹1L']++; else buckets['₹1L+']++;});
+  d.forEach(r=>{const p=Number(r.netodpremiuma)||0; if(p<10000)buckets['₹0 – ₹10K']++; else if(p<25000)buckets['₹10K – ₹25K']++; else if(p<50000)buckets['₹25K – ₹50K']++; else if(p<100000)buckets['₹50K – ₹1L']++; else buckets['₹1L+']++;});
   const ctx=document.getElementById('mainChart').getContext('2d');
   charts.main=new Chart(ctx,{type:'bar',data:{labels:Object.keys(buckets),datasets:[{label:'Policies',data:Object.values(buckets),backgroundColor:['#22c55e','#3b82f6','#f59e0b','#f97316','#ef4444'],borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#6b7280',font:{size:10}},grid:{color:'rgba(0,0,0,.06)'}},y:{beginAtZero:true,ticks:{color:'#6b7280',font:{size:10}},grid:{color:'rgba(0,0,0,.06)'}}}}});
 }
 function drawGrowth(d) {
-  const m={}; d.forEach(r=>{const k=r.create_date?.substring(0,7); if(!k)return; if(!m[k])m[k]={p:0,pr:0}; m[k].p++; m[k].pr+=Number(r.grosspremium)||0;});
+  const m={}; d.forEach(r=>{const k=r.create_date?.substring(0,7); if(!k)return; if(!m[k])m[k]={p:0,pr:0}; m[k].p++; m[k].pr+=Number(r.netodpremiuma)||0;});
   const labels=Object.keys(m).sort();
   if(labels.length<2) return;
   const pCounts=[], prAmounts=[], pGrowth=[], prGrowth=[];
@@ -629,7 +629,7 @@ function drawGrowth(d) {
 function chartDataRows(d) {
   const rows = [];
   if (curChart === 'trend') {
-    const m = {}; d.forEach(r=>{const k=r.create_date?.substring(0,7); if(!k)return; if(!m[k])m[k]={p:0,pr:0}; m[k].p++; m[k].pr+=Number(r.grosspremium)||0;});
+    const m = {}; d.forEach(r=>{const k=r.create_date?.substring(0,7); if(!k)return; if(!m[k])m[k]={p:0,pr:0}; m[k].p++; m[k].pr+=Number(r.netodpremiuma)||0;});
     Object.keys(m).sort().forEach(k=>rows.push(['Month: '+k, 'Policies: '+m[k].p+', Premium: ₹'+(m[k].pr/1000).toFixed(0)+'K', '', 'count & sum by YYYY-MM']));
   } else if (curChart === 'model') {
     const m = {}; d.forEach(r=>{const k=r.model; if(k)m[k]=(m[k]||0)+1;});
@@ -666,10 +666,10 @@ function chartDataRows(d) {
     Object.entries(m).sort((a,b)=>b[1]-a[1]).slice(0,15).forEach(([k,v])=>rows.push(['Dealer: '+(k.length>25?k.substring(0,22)+'...':k), fmt(v)+' policies', '', 'count by dealer']));
   } else if (curChart === 'premium-dist') {
     const b={'₹0 – ₹10K':0,'₹10K – ₹25K':0,'₹25K – ₹50K':0,'₹50K – ₹1L':0,'₹1L+':0};
-    d.forEach(r=>{const p=Number(r.grosspremium)||0; if(p<10000)b['₹0 – ₹10K']++; else if(p<25000)b['₹10K – ₹25K']++; else if(p<50000)b['₹25K – ₹50K']++; else if(p<100000)b['₹50K – ₹1L']++; else b['₹1L+']++;});
-    Object.entries(b).forEach(([k,v])=>rows.push(['Bucket: '+k, fmt(v)+' policies, '+Math.round(v/d.length*100)+'%', '', 'grosspremium range distribution']));
+    d.forEach(r=>{const p=Number(r.netodpremiuma)||0; if(p<10000)b['₹0 – ₹10K']++; else if(p<25000)b['₹10K – ₹25K']++; else if(p<50000)b['₹25K – ₹50K']++; else if(p<100000)b['₹50K – ₹1L']++; else b['₹1L+']++;});
+    Object.entries(b).forEach(([k,v])=>rows.push(['Bucket: '+k, fmt(v)+' policies, '+Math.round(v/d.length*100)+'%', '', 'netodpremiuma range distribution']));
   } else if (curChart === 'growth') {
-    const m = {}; d.forEach(r=>{const k=r.create_date?.substring(0,7); if(!k)return; if(!m[k])m[k]={p:0,pr:0}; m[k].p++; m[k].pr+=Number(r.grosspremium)||0;});
+    const m = {}; d.forEach(r=>{const k=r.create_date?.substring(0,7); if(!k)return; if(!m[k])m[k]={p:0,pr:0}; m[k].p++; m[k].pr+=Number(r.netodpremiuma)||0;});
     const labels=Object.keys(m).sort();
     rows.push(['Base: '+labels[0], fmt(m[labels[0]].p)+' policies, ₹'+(m[labels[0]].pr/1000).toFixed(0)+'K premium', 'Base month (bar set to 5% for visibility)', 'first month, no prior comparison']);
     for(let i=1;i<labels.length;i++) {
@@ -683,7 +683,7 @@ function chartDataRows(d) {
 }
 
 function drawCalculations(d) {
-  const tp = d.reduce((s,r)=>s+(Number(r.grosspremium)||0),0);
+  const tp = d.reduce((s,r)=>s+(Number(r.netodpremiuma)||0),0);
   const tidv = d.reduce((s,r)=>s+(Number(r.totalidv)||0),0);
   const nc = d.filter(r=>r.policytype==='New').length;
   const rc = d.filter(r=>r.policytype==='Renewal').length;
@@ -694,8 +694,8 @@ function drawCalculations(d) {
     ['KPI: Policies', 'count of all rows after filters', fmt(d.length), '-'],
     ['KPI: New Policies', 'count where policytype === "New"', fmt(nc), '-'],
     ['KPI: Renewal Policies', 'count where policytype === "Renewal"', fmt(rc), '-'],
-    ['KPI: Gross Premium', 'sum of grosspremium for filtered rows', '₹'+(tp/100000).toFixed(1)+'L', '₹'+(tp/100000).toFixed(1)+'L / ₹'+(tp/10000000).toFixed(1)+'Cr'],
-    ['KPI: Avg Premium', 'gross premium / policy count', '₹'+fmt(Math.round(tp/(d.length||1))), '-'],
+    ['KPI: Net OD Premium', 'sum of netodpremiuma for filtered rows', '₹'+(tp/100000).toFixed(1)+'L', '₹'+(tp/100000).toFixed(1)+'L / ₹'+(tp/10000000).toFixed(1)+'Cr'],
+    ['KPI: Avg Premium', 'netodpremiuma / policy count', '₹'+fmt(Math.round(tp/(d.length||1))), '-'],
     ['KPI: Unique VINs', 'count of distinct vinno values', fmt(uv), '-'],
     ['KPI: Total IDV', 'sum of totalidv for filtered rows', '₹'+(tidv/10000000).toFixed(1)+'Cr', '-'],
   ];
@@ -705,26 +705,27 @@ function drawCalculations(d) {
     ['Filter: Company', 'insurancecompany === selected company', curCompany==='all' ? 'All' : curCompany, 'getData() → r.insurancecompany===curCompany'],
     ['Filter: View (New)', 'policytype === "New"', curView==='new' ? 'Active' : '-', 'getData() → r.policytype==="New"'],
     ['Filter: View (Renewal)', 'policytype === "Renewal"', curView==='renewal' ? 'Active' : '-', 'getData() → r.policytype==="Renewal"'],
-    ['Filter: View (High)', 'grosspremium >= ₹50,000', curView==='high' ? 'Active' : '-', 'getData() → grosspremium>=50000'],
+    ['Filter: View (High)', 'netodpremiuma >= ₹50,000', curView==='high' ? 'Active' : '-', 'getData() → netodpremiuma>=50000'],
   ];
   const perfRows = [
     ['── PERFORMANCE DASHBOARD LOGIC ──', '', '', ''],
     ['New (LY)', 'VINs with policytype="New" in the LY month', 'per render()', 'lyNewVm[ly + "-" + ms] || new Set()'],
     ['New (CY)', 'VINs with policytype="New" in the CY month', 'per render()', 'cyNewVm[cyYm] || new Set()'],
     ['Renewal (LY)', 'VINs present in BOTH the LY month and the same LY-1 month (VIN overlap)', 'per render()', 'lyVins.has(v) && lyPrevVins.has(v)'],
-    ['Renewal (CY)', 'VIN with policytype="Renewal" in CY that had policytype="New" in LY months M, M-1, or M-2', 'per render()', 'lyWindow.has(v) && cyRenewalVm[cyYm]?.has(v)'],
+    ['Renewal (CY)', 'VIN had policytype="New" in ANY LY month within selected range AND has policytype="Renewal" in CY. Counted in CY month matching policy_expiry_date from LY New record. LY and CY always compare same months.', 'per render()', 'allLyNewVins.has(v) && cyRenewalByExpiry[cyYm]?.has(v)'],
     ['Rollover (LY)', 'LY VINs with policytype="Renewal" NOT in LY-1 same month (= previously-renewed policies)', 'per render()', '!lyPrevVins.has(v) && !lyNew.has(v)'],
     ['Rollover (CY)', 'Remaining CY VINs with policytype="Renewal" after removing CY Renewal and LY Rollover returnees', 'per render()', 'Total CY Renewal-type − CY Renewal − LY Rollover in CY'],
     ['Rollover→Renew', 'LY Rollover VINs that came to CY in the same month', 'per render()', 'lyRollover.has(v) && cyVins.has(v)'],
-    ['Not Visited', 'LY VINs that do NOT appear in any CY month within the selected range', 'per render()', '[...allLyVins].filter(v => !allCyVins.has(v))'],
-    ['LY #', 'Count of unique VINs in Previous Year (LY = CY − 1) for the given month', 'per render()', 'lyVins.size'],
+    ['Overall', 'LY = New + Renewal + Rollover (all LY VINs). CY = New + Renewal + Rollover + Rollover→Renew (all CY VINs)', 'per render()', 'LY: lyNew+lyRenewal+lyRollover, CY: cyNew+cyRenewal+cyRollover+cyRolloverRenew'],
+    ['Not Visited', 'LY VINs within same date range that do NOT appear in any CY month (same months compared)', 'per render()', '[...allLyVins].filter(v => !allCyVins.has(v))'],
+    ['LY #', 'Count of unique VINs in Previous Year for the same months as CY (not full year)', 'per render()', 'lyVins.size'],
     ['CY #', 'Count of unique VINs in Current Year for the given month', 'per render()', 'cyVins.size'],
-    ['Growth', '((CY − LY) / LY) × 100. For Renewal, base is LY New (not LY Renewal)', 'per render()', '((a - b) / b * 100)'],
+    ['Achieved %', '(CY / LY) × 100. Green ≥100%, Red <100%', 'per render()', '(a / b * 100)'],
     ['Unique VINs (Annual)', 'Each VIN counted only once per year regardless of months', 'per render()', 'new Set(allRows.map(r=>r.vinno)).size'],
     ['Sum of Months vs Unique', 'Monthly columns count per-month. Total row = unique across all months', 'per render()', 'monthly: per-month count, total: unique set size'],
     ['Duplicate Policy Check', 'Same policy number appearing more than once in the same year', 'per render()', 'group by policyno + year, filter groups with count > 1'],
-    ['Gross Premium (₹L)', 'Sum of grosspremium for all rows, divided by 100,000', '₹'+(tp/100000).toFixed(1)+'L', 'sum / 100000'],
-    ['Avg Premium', 'Gross premium / policy count', '₹'+fmt(Math.round(tp/(d.length||1))), 'grosspremium / policy count'],
+    ['Net OD Premium (₹L)', 'Sum of netodpremiuma for all rows, divided by 100,000', '₹'+(tp/100000).toFixed(1)+'L', 'sum / 100000'],
+    ['Avg Premium', 'Net OD premium / policy count', '₹'+fmt(Math.round(tp/(d.length||1))), 'netodpremiuma / policy count'],
     ['Premium Share %', 'Each company/type premium as percentage of total', 'per render()', '(company premium / total premium) × 100'],
     ['Cancelled / Dead', 'Policies where cancelled=Yes; excluded from ALL dashboard calculations', 'Excluded', 'allData.filter(r => r.cancelled !== "Yes")'],
     ['Daily Performance: MTD Total (₹)', 'Sum of netodpremiuma for the current month', 'per buildDailyTable()', 'sum of netodpremiuma where create_date starts with curYear-curMonth'],
@@ -747,6 +748,10 @@ function drawCalculations(d) {
     ['Follow-up Panel', 'All policies with Follow-up status or a future follow_up_date', 'fuPanelBtn shows count', 'allDue.filter(x => cs==="follow-up" || x.follow_up_date)'],
     ['Call Log Save', 'Stores outcome, remarks, agent name, follow-up date, mobile', 'POST /api/call-center/log', 'payload: { policyno, call_outcome, remarks, follow_up_date, agent_name, mobile_no }'],
     ['Customer History', 'Complete call history for a policy, fetched from call_logs', 'GET /api/call-center/logs', 'history array includes date, outcome, agent, remarks, follow-up'],
+    ['Manual Entry Sources', 'Walk-in, Call, Reference, Online, Showroom Visit, Telecall, Workshop Visit, Interakt, Other', 'POST /api/call-center/add-manual', 'lead_source field saved with new record'],
+    ['Agent Performance Summary', 'Per-agent stats from call_logs: total calls, connected, follow-up, NR, NI, pending, wrong, connect rate, avg/day', 'call-center.html renderPerformance()', 'group by agent_name, count by call_outcome'],
+    ['Agent Connect Rate', 'Connected calls ÷ Total calls × 100 per agent', 'performance summary table', '(connected / total) × 100'],
+    ['Not Connected Calls', 'Individual call_log records with Connected=No, filterable by customer name, collapsible via toggle', 'call-center.html Not Connected section', 'allDue.filter(x => cs !== "connected")'],
   ];
   const chartRows = chartDataRows(d);
   const hasChartData = chartRows.length > 0;
@@ -778,8 +783,8 @@ function getTableData(d) {
     else if(curView==='high') v=v.filter(r=>r.lastPremium>=50000);
     return v.slice(0,15).map(r=>`<tr><td style="font-family:monospace;font-size:10px">${r.vin}</td><td>${r.customer}</td><td>${r.model}</td><td><span class="badge ${r.status==='Active'?'green':r.status==='New'?'blue':'red'}">${r.status}</span></td><td>₹${fmt(r.lastPremium)}</td><td>${r.lastDate}</td></tr>`);
   }
-  const sorted=[...d].sort((a,b)=>(Number(b.grosspremium)||0)-(Number(a.grosspremium)||0));
-  return sorted.slice(0,15).map(r=>`<tr><td style="font-family:monospace;font-size:10px">${r.policyno||'-'}</td><td>${r.customer_name||'-'}</td><td>${r.model||'-'}</td><td>${(r.insurancecompany||'-').substring(0,22)}</td><td><strong>₹${fmt(Number(r.grosspremium)||0)}</strong></td><td>${r.create_date||'-'}</td></tr>`);
+  const sorted=[...d].sort((a,b)=>(Number(b.netodpremiuma)||0)-(Number(a.netodpremiuma)||0));
+  return sorted.slice(0,15).map(r=>`<tr><td style="font-family:monospace;font-size:10px">${r.policyno||'-'}</td><td>${r.customer_name||'-'}</td><td>${r.model||'-'}</td><td>${(r.insurancecompany||'-').substring(0,22)}</td><td><strong>₹${fmt(Number(r.netodpremiuma)||0)}</strong></td><td>${r.create_date||'-'}</td></tr>`);
 }
 
 function toggleToolbar() {

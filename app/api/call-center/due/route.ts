@@ -16,6 +16,20 @@ function parsePortalDate(val: string): string {
   return ''
 }
 
+const DONE_OUTCOMES = new Set([
+  'Not Interested', 'Policy Done', 'Done', 'Renewed', 'Completed', 'Renewed Outside',
+])
+
+const DONE_REMARK_RE = /renewed|renewal\s+(done|completed)|already\s+(taken|renewed|insured|done)|policy\s+(is\s+)?(done|completed|renewed)|insurance\s+(done|completed)|(done|completed|taken)\s+from|took\s+(the\s+)?policy/i
+
+function isPolicyDone(log: any): boolean {
+  if (!log) return false
+  const outcome = (log.call_outcome || '').trim()
+  if (DONE_OUTCOMES.has(outcome)) return true
+  if (outcome === 'Follow-up') return false
+  return DONE_REMARK_RE.test(log.remarks || '')
+}
+
 function authenticate(req: Request): boolean {
   if (checkCookie(req).valid) return true
   const url = new URL(req.url)
@@ -90,6 +104,7 @@ export async function GET(req: Request) {
       if (!r) continue
       const pno = r.policyno || ''
       const lastLog = logMap[pno]
+      if (isPolicyDone(lastLog)) continue
       const history = (logsByPolicy[pno] || []).map((l: any) => ({
         outcome: l.call_outcome, date: l.call_date,
         agent: l.agent_name, remarks: l.remarks, follow_up: l.follow_up_date,
@@ -99,7 +114,7 @@ export async function GET(req: Request) {
         customer_name: r.customer_name || '-',
         model: r.model || '-',
         insurancecompany: r.insurancecompany || '-',
-        grosspremium: Number(r.grosspremium) || 0,
+        netodpremiuma: Number(r.netodpremiuma) || 0,
         policy_expiry_date: parsePortalDate(r.policy_expiry_date),
         policy_effective_date: r.policy_effective_date || '',
         state: r.state || '', location: r.location || '', dealer: r.dealer || '',

@@ -21,6 +21,10 @@ export async function POST(req: Request) {
       yesterday.setDate(yesterday.getDate() - 1)
       fromDate = new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate())
       toDate = new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate())
+    } else if (mode === 'today') {
+      const today = new Date()
+      fromDate = new Date(today.getFullYear(), today.getMonth(), today.getDate())
+      toDate = new Date(today.getFullYear(), today.getMonth(), today.getDate())
     } else if (mode === 'custom' && from && to) {
       fromDate = new Date(from)
       toDate = new Date(to)
@@ -31,21 +35,32 @@ export async function POST(req: Request) {
         return NextResponse.json({ success: false, error: 'From date must be before To date' }, { status: 400 })
       }
     } else {
-      const now = new Date()
-      fromDate = new Date(now.getFullYear(), now.getMonth(), 1)
-      toDate = now
+      return NextResponse.json({ success: false, error: 'Invalid mode. Use: d1, today, or custom' }, { status: 400 })
     }
 
-    const { fetchKiaData } = await import('@/lib/kia-insurance/scraper')
+    const { fetchKiaData, SCRAPER_VERSION } = await import('@/lib/kia-insurance/scraper')
     const fetchResult = await fetchKiaData(fromDate, toDate)
+
+    let msg = ''
+    if (fetchResult.success) {
+      if (fetchResult.alreadyExisted && fetchResult.alreadyExisted > 0) {
+        msg = `${fetchResult.alreadyExisted} records already in database. Inserted ${fetchResult.inserted} new, updated ${fetchResult.updated} existing with latest data`
+      } else {
+        msg = `Fetched ${fetchResult.total} records, inserted ${fetchResult.inserted} new`
+      }
+      if (fetchResult.failedMonths?.length) {
+        msg += `. Failed months: ${fetchResult.failedMonths.join(', ')}`
+      }
+    }
 
     return NextResponse.json({
       success: fetchResult.success,
-      message: fetchResult.success
-        ? `Fetched ${fetchResult.total} records (${fetchResult.inserted} saved, ${fetchResult.duplicates} duplicates)`
-        : fetchResult.error,
+      version: SCRAPER_VERSION || 'unknown',
+      message: msg || fetchResult.error,
       insertedRowCount: fetchResult.inserted,
+      updatedRowCount: fetchResult.updated,
       duplicateRowCount: fetchResult.duplicates,
+      alreadyExisted: fetchResult.alreadyExisted,
       totalRows: fetchResult.total,
       failedMonths: fetchResult.failedMonths,
       error: fetchResult.error,
@@ -55,8 +70,13 @@ export async function POST(req: Request) {
   }
 }
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
+    const url = new URL(req.url)
+    const token = url.searchParams.get('token')
+    if (!token || !validateToken(token).valid) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
     const supabase = getSupabaseAdmin()
     const { data: latestRow } = await supabase
       .from('kia_insurance')

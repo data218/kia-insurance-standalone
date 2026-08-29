@@ -24,7 +24,10 @@
   --radius: 10px;
 }
 * { margin:0; padding:0; box-sizing:border-box; }
-body { font-family: 'Inter','Segoe UI',system-ui,sans-serif; background:var(--bg); color:var(--text); height:100vh; display:flex; flex-direction:column; overflow:hidden; }
+body { font-family: 'Inter','Segoe UI',system-ui,sans-serif; background:var(--bg); color:var(--text); height:100vh; display:flex; flex-direction:column; overflow:hidden; font-weight:500; }
+body td, body th, body span, body div, body label, body p, body option { font-weight:inherit; }
+body td { font-weight:600 !important; }
+body th { font-weight:700 !important; }
 
 /* TOP BAR */
 .topbar { background:linear-gradient(135deg,#2d2d2d,#4a4a4a); border-bottom:1px solid rgba(0,0,0,.15); padding:0 14px; height:34px; display:flex; align-items:center; justify-content:space-between; flex-shrink:0; position:sticky; top:0; z-index:100; }
@@ -67,6 +70,9 @@ body { font-family: 'Inter','Segoe UI',system-ui,sans-serif; background:var(--bg
 .stat-box:hover { box-shadow:0 2px 8px rgba(0,0,0,.06); }
 .stat-box .num { font-size:14px; font-weight:700; line-height:1.2; }
 .stat-box .lbl { font-size:8px; color:var(--muted); text-transform:uppercase; letter-spacing:0.3px; font-weight:600; margin-top:1px; }
+.chip-row { display:flex; gap:6px; flex-wrap:wrap; padding:6px 14px 0; flex-shrink:0; max-height:56px; overflow-y:auto; }
+.chip { padding:3px 11px; border-radius:14px; background:var(--panel); border:1px solid var(--border); font-size:10px; font-weight:700; color:var(--text); }
+.chip b { color:var(--accent); font-weight:800; }
 
 /* TABLE */
 .table-wrap { flex:1; padding:4px 14px 0; overflow:auto; min-height:0; }
@@ -245,7 +251,7 @@ tr:last-child td { border-bottom:none; }
 .ap-filters .ap-sep { width:1px; height:20px; background:#d1d5db; flex-shrink:0; }
 
 /* OVERVIEW CARDS */
-.ap-overview { display:grid; grid-template-columns:repeat(8,1fr); gap:8px; margin-bottom:16px; }
+.ap-overview { display:grid; grid-template-columns:repeat(7,1fr); gap:8px; margin-bottom:16px; }
 .ap-ov-card { background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:10px 8px; text-align:center; position:relative; overflow:hidden; }
 .ap-ov-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; }
 .ap-ov-card.ov-total::before { background:linear-gradient(90deg,#6366f1,#818cf8); }
@@ -256,6 +262,7 @@ tr:last-child td { border-bottom:none; }
 .ap-ov-card.ov-pending::before { background:linear-gradient(90deg,#6b7280,#9ca3af); }
 .ap-ov-card.ov-policies::before { background:linear-gradient(90deg,#0ea5e9,#38bdf8); }
 .ap-ov-card.ov-premium::before { background:linear-gradient(90deg,#8b5cf6,#a78bfa); }
+.ap-ov-card.ov-idv::before { background:linear-gradient(90deg,#06b6d4,#22d3ee); }
 .ap-ov-card .ov-num { font-size:20px; font-weight:800; line-height:1.1; }
 .ap-ov-card .ov-lbl { font-size:8px; color:#64748b; text-transform:uppercase; letter-spacing:.4px; font-weight:600; margin-top:2px; }
 .ap-ov-card.ov-total .ov-num { color:#6366f1; }
@@ -266,6 +273,7 @@ tr:last-child td { border-bottom:none; }
 .ap-ov-card.ov-pending .ov-num { color:#6b7280; }
 .ap-ov-card.ov-policies .ov-num { color:#0ea5e9; }
 .ap-ov-card.ov-premium .ov-num { color:#8b5cf6; }
+.ap-ov-card.ov-idv .ov-num { color:#06b6d4; }
 
 /* TOP AGENT */
 .ap-top { background:linear-gradient(135deg,#f0fdf4,#ecfdf5); border:1px solid #bbf7d0; border-radius:10px; padding:14px 18px; margin-bottom:16px; display:flex; align-items:center; gap:14px; }
@@ -333,12 +341,22 @@ tr:last-child td { border-bottom:none; }
 /* FILTER AGENT SELECT */
 .ap-filters select#apAgentFilter { min-width:120px; }
 
-/* CATEGORY TABS */
-.ap-cats { display:flex; gap:4px; flex-wrap:wrap; margin-bottom:14px; padding:8px 12px; background:#f1f5f9; border-radius:8px; border:1px solid #e2e8f0; }
-.ap-cat-btn { padding:5px 12px; font-size:10px; font-weight:600; border:1px solid #d1d5db; border-radius:6px; background:#fff; color:#475569; cursor:pointer; transition:all .15s; white-space:nowrap; }
-.ap-cat-btn:hover { background:#e2e8f0; }
-.ap-cat-btn.active { background:linear-gradient(135deg,#6366f1,#818cf8); color:#fff; border-color:#6366f1; }
-.ap-cat-btn .cat-count { font-size:9px; opacity:.7; margin-left:3px; }
+/* HAMBURGER TOGGLE */
+.hamburger-toggle { display:inline-flex; align-items:center; gap:4px; cursor:pointer; user-select:none; padding:3px 8px; border-radius:6px; background:#f1f5f9; border:1px solid #e2e8f0; transition:all .15s; }
+.hamburger-toggle:hover { background:#e2e8f0; }
+.hamburger-toggle .hamburger-icon { font-size:11px; color:#475569; transition:transform .2s; }
+.hamburger-toggle.collapsed .hamburger-icon { transform:rotate(-90deg); }
+.agent-hamburger { display:inline-flex; align-items:center; cursor:pointer; user-select:none; padding:2px 6px; border-radius:4px; background:transparent; border:none; transition:all .15s; margin-left:6px; }
+.agent-hamburger:hover { background:#e2e8f0; }
+.agent-hamburger .hamburger-icon { font-size:10px; color:#64748b; transition:transform .2s; }
+.agent-hamburger.collapsed .hamburger-icon { transform:rotate(-90deg); }
+
+/* PERIOD FILTER BUTTONS */
+.ap-period-btns { display:flex; gap:4px; flex-wrap:wrap; margin-bottom:14px; padding:8px 12px; background:#f1f5f9; border-radius:8px; border:1px solid #e2e8f0; align-items:center; }
+.ap-period-btns .ap-period-label { font-size:10px; font-weight:700; color:#475569; margin-right:4px; }
+.ap-period-btn { padding:5px 12px; font-size:10px; font-weight:600; border:1px solid #d1d5db; border-radius:6px; background:#fff; color:#475569; cursor:pointer; transition:all .15s; white-space:nowrap; }
+.ap-period-btn:hover { background:#e2e8f0; }
+.ap-period-btn.active { background:linear-gradient(135deg,#6366f1,#818cf8); color:#fff; border-color:#6366f1; }
 
 /* CATEGORY STATS ROW */
 .ap-cat-stats { display:grid; grid-template-columns:repeat(6,1fr); gap:6px; margin-bottom:14px; }
@@ -368,6 +386,7 @@ tr:last-child td { border-bottom:none; }
   <div style="display:flex;align-items:center;gap:0;flex-shrink:0">
     <span id="welcomeUser" style="font-size:10px;color:rgba(255,255,255,.85);font-weight:500;margin-right:8px"></span>
     <button onclick="openAgentModal()" title="Manage Agents" style="background:none;border:none;padding:0 6px;cursor:pointer;line-height:1"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></button>
+    <button onclick="openSourceModal()" title="Manage Lead Sources" style="background:none;border:none;padding:0 6px;cursor:pointer;line-height:1;font-size:14px">&#128203;</button>
     <button onclick="openSettings()" title="KIA Credentials" style="background:none;border:none;color:rgba(255,255,255,.85);font-size:14px;cursor:pointer;padding:0 6px;line-height:1">&#x2699;</button>
     <button class="btn-icon" id="viewToggle" onclick="toggleToolbar()" title="Toggle Toolbar" style="font-size:14px;font-weight:700;background:none;border:none;color:rgba(255,255,255,.85);cursor:pointer;width:24px;height:24px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">&#x2630;</button>
     <span id="liveClock" style="font-size:11px;color:#fff;font-family:'Courier New',monospace;background:rgba(255,255,255,.15);padding:3px 10px;border-radius:5px;letter-spacing:1px;border:1px solid rgba(255,255,255,.2);white-space:nowrap;font-weight:700;box-shadow:0 1px 4px rgba(0,0,0,0.1);flex-shrink:0"></span>
@@ -402,6 +421,7 @@ tr:last-child td { border-bottom:none; }
 </div>
 
 <div class="stats-row" id="statsRow"></div>
+<div class="chip-row" id="chipRow"></div>
 
 <div class="table-wrap">
   <div id="tableContainer"><div class="loader"><div class="spin"></div>Loading...</div></div>
@@ -453,6 +473,7 @@ tr:last-child td { border-bottom:none; }
           <option value="Not Reachable">Not Reachable</option>
           <option value="Follow-up">Follow-up</option>
           <option value="Not Interested">Not Interested</option>
+          <option value="Policy Done">Policy Done</option>
           <option value="Wrong Number">Wrong Number</option>
         </select>
       </div>
@@ -557,34 +578,24 @@ tr:last-child td { border-bottom:none; }
           <input type="text" id="meVinNo" placeholder="Vehicle Identification Number">
         </div>
         <div class="form-group">
-          <label>Model</label>
-          <div class="ac-wrap"><input type="text" id="meModel" placeholder="Type or select model" autocomplete="off"><div class="ac-list" id="meModelAC"></div></div>
+          <label>Reg. No.</label>
+          <input type="text" id="meRegNo" placeholder="Registration number">
         </div>
       </div>
       <div class="form-row">
+        <div class="form-group">
+          <label>Model</label>
+          <div class="ac-wrap"><input type="text" id="meModel" placeholder="Type or select model" autocomplete="off"><div class="ac-list" id="meModelAC"></div></div>
+        </div>
         <div class="form-group">
           <label>Insurance Company</label>
           <div class="ac-wrap"><input type="text" id="meInsurer" placeholder="Type or select insurer" autocomplete="off"><div class="ac-list" id="meInsurerAC"></div></div>
         </div>
-        <div class="form-group">
-          <label>Gross Premium (₹)</label>
-          <input type="number" id="mePremium" placeholder="0" min="0">
-        </div>
       </div>
       <div class="form-row">
-        <div class="form-group">
-          <label>IDV (₹)</label>
-          <input type="number" id="meIdv" placeholder="0" min="0">
-        </div>
         <div class="form-group">
           <label>Policy Expiry Date</label>
           <input type="date" id="meExpiryDate">
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Policy Effective Date</label>
-          <input type="date" id="meEffectiveDate">
         </div>
         <div class="form-group">
           <label>Mobile Number</label>
@@ -593,23 +604,21 @@ tr:last-child td { border-bottom:none; }
       </div>
       <div class="form-row">
         <div class="form-group">
-          <label>State</label>
-          <input type="text" id="meState" placeholder="State">
+          <label>Source</label>
+          <select id="meSource">
+          </select>
         </div>
-        <div class="form-group">
-          <label>Policy Date (Created)</label>
-          <input type="date" id="meCreateDate">
-        </div>
-      </div>
-      <div class="form-row">
         <div class="form-group">
           <label>Agent Name</label>
           <select id="meAgentName"><option value="">Select agent...</option></select>
         </div>
+      </div>
+      <div class="form-row">
         <div class="form-group">
           <label>Next Follow-up Date</label>
           <input type="date" id="meFollowUpDate">
         </div>
+        <div class="form-group"></div>
       </div>
       <div id="meErrorMsg" style="font-size:11px;color:#dc2626;margin-bottom:8px;display:none"></div>
       <div id="meSuccessMsg" style="font-size:11px;color:#16a34a;margin-bottom:8px;display:none"></div>
@@ -641,8 +650,14 @@ tr:last-child td { border-bottom:none; }
         <button class="ap-apply-btn" onclick="renderAgentPerf()">&#10003; Apply</button>
         <button class="ap-reset-btn" onclick="resetApFilters()">Reset</button>
       </div>
-      <div class="ap-cats" id="apCats"></div>
-      <div class="ap-cat-stats" id="apCatStats"></div>
+      <div class="ap-period-btns" id="apPeriodBtns">
+        <span class="ap-period-label">Quick Filter:</span>
+        <button class="ap-period-btn" onclick="setApPeriod('today')">Today</button>
+        <button class="ap-period-btn" onclick="setApPeriod('week')">This Week</button>
+        <button class="ap-period-btn" onclick="setApPeriod('month')">This Month</button>
+        <button class="ap-period-btn" onclick="setApPeriod('year')">This Year</button>
+        <button class="ap-period-btn active" onclick="setApPeriod('all')">All Time</button>
+      </div>
       <div id="apContent">
         <div style="text-align:center;padding:40px;color:#64748b"><div class="spin" style="border-color:#e2e8f0;border-top-color:#6366f1"></div><br>Loading...</div>
       </div>
@@ -669,6 +684,25 @@ tr:last-child td { border-bottom:none; }
   </div>
 </div>
 
+<!-- MANAGE LEAD SOURCES MODAL -->
+<div class="modal-overlay" id="sourceModal">
+  <div class="modal" style="max-width:400px;">
+    <div class="modal-head">
+      <h2>&#128203; Manage Lead Sources</h2>
+      <button class="close" onclick="closeSourceModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div style="font-size:10px;color:#64748b;margin-bottom:10px">Add or remove lead sources. Sources appear in dropdowns across the app.</div>
+      <div style="display:flex;gap:4px;margin-bottom:10px">
+        <input type="text" id="newSourceInput" placeholder="Lead source name..." style="flex:1;padding:5px 8px;border:1px solid var(--border);border-radius:5px;font-size:11px;outline:none">
+        <button class="btn-save" onclick="addSource()" style="padding:5px 14px;font-size:11px">+ Add</button>
+      </div>
+      <div id="sourceList" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+      <div id="sourceMsg" style="font-size:11px;margin-top:8px;display:none"></div>
+    </div>
+  </div>
+</div>
+
 <script>
 let allDue = [];
 let statusFilter = 'all';
@@ -679,8 +713,91 @@ let filterInsurer = 'all';
 let filterFollowupDates = [];
 let dropdownOptions = { models: [], insurers: [] };
 
-function getAgents() { try { return JSON.parse(localStorage.getItem('cc_agents') || '[]'); } catch(e) { return []; } }
-function saveAgents(a) { localStorage.setItem('cc_agents', JSON.stringify(a)); }
+var storedAgents = [];
+function getAgents() { return storedAgents; }
+async function fetchAgents() {
+  try {
+    var d = await cachedFetch('/api/agents', 60000);
+    storedAgents = d.agents || [];
+  } catch(e) { storedAgents = []; }
+}
+var storedSources = [];
+function getSources() { return storedSources; }
+async function fetchSources() {
+  try {
+    var d = await cachedFetch('/api/lead-sources', 60000);
+    storedSources = d.sources || [];
+  } catch(e) { storedSources = []; }
+}
+function openSourceModal() {
+  document.getElementById('newSourceInput').value = '';
+  document.getElementById('sourceMsg').style.display = 'none';
+  renderSourceList();
+  document.getElementById('sourceModal').classList.add('show');
+}
+function closeSourceModal() {
+  document.getElementById('sourceModal').classList.remove('show');
+  populateSourceDropdowns();
+}
+document.getElementById('sourceModal').addEventListener('click', function(e) {
+  if (e.target === e.currentTarget) closeSourceModal();
+});
+function renderSourceList() {
+  var sources = getSources();
+  var el = document.getElementById('sourceList');
+  if (!sources.length) { el.innerHTML = '<div style="font-size:10px;color:var(--muted)">No sources added yet</div>'; return; }
+  el.innerHTML = sources.map(function(s) {
+    return '<span class="agent-tag">' + s + ' <span class="rm" onclick="removeSource(\'' + s.replace(/'/g,"\\'") + '\')">&times;</span></span>';
+  }).join('');
+}
+async function addSource() {
+  var input = document.getElementById('newSourceInput');
+  var name = input.value.trim().toUpperCase();
+  var msg = document.getElementById('sourceMsg');
+  if (!name) { msg.textContent = 'Enter a source name'; msg.style.color = '#dc2626'; msg.style.display = 'block'; return; }
+  if (getSources().indexOf(name) !== -1) { msg.textContent = 'Source already exists'; msg.style.color = '#dc2626'; msg.style.display = 'block'; return; }
+  try {
+    var token = localStorage.getItem('authToken');
+    var url = '/api/lead-sources' + (token ? '?token=' + encodeURIComponent(token) : '');
+    var res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: name })
+    });
+    var data = await res.json();
+    if (data.error) { msg.textContent = data.error; msg.style.color = '#dc2626'; msg.style.display = 'block'; return; }
+    storedSources = data.sources || storedSources;
+  } catch(e) { msg.textContent = 'Failed to add source'; msg.style.color = '#dc2626'; msg.style.display = 'block'; return; }
+  input.value = '';
+  msg.textContent = name + ' added!';
+  msg.style.color = '#16a34a';
+  msg.style.display = 'block';
+  renderSourceList();
+}
+async function removeSource(name) {
+  if (!confirm('Remove source "' + name + '"?')) return;
+  try {
+    var token = localStorage.getItem('authToken');
+    var url = '/api/lead-sources?name=' + encodeURIComponent(name) + (token ? '&token=' + encodeURIComponent(token) : '');
+    var res = await fetch(url, { method: 'DELETE' });
+    var data = await res.json();
+    if (data.error) { alert(data.error); return; }
+    storedSources = data.sources || storedSources;
+  } catch(e) { alert('Failed to remove source'); return; }
+  renderSourceList();
+}
+function populateSourceDropdowns() {
+  var sources = getSources();
+  var opts = '<option value="">Select source...</option>';
+  sources.forEach(function(s) { opts += '<option value="' + s + '">' + s + '</option>'; });
+  opts += '<option value="__add__">+ Add New Source...</option>';
+  var sel = document.getElementById('meSource');
+  if (sel) {
+    var current = sel.value;
+    sel.innerHTML = opts;
+    if (current) sel.value = current;
+  }
+}
 function populateAgentDropdowns() {
   var agents = getAgents();
   var opts = '<option value="">Select agent...</option>';
@@ -770,12 +887,12 @@ function fmtDateShort(d) {
 }
 
 function statusClass(s) {
-  const map = { 'Pending':'s-pending','Connected':'s-connected','Not Reachable':'s-not-reachable',"Follow-up":'s-follow-up','Not Interested':'s-not-interested','Wrong Number':'s-wrong-number' };
+  const map = { 'Pending':'s-pending','Connected':'s-connected','Not Reachable':'s-not-reachable',"Follow-up":'s-follow-up','Not Interested':'s-not-interested','Policy Done':'s-connected','Wrong Number':'s-wrong-number' };
   return map[s]||'s-pending';
 }
 
 function statusIcon(s) {
-  const map = { 'Pending':'\u23F3','Connected':'\u2705','Not Reachable':'\uD83D\uDCF1',"Follow-up":'\uD83D\uDD04','Not Interested':'\u274C','Wrong Number':'\u2753' };
+  const map = { 'Pending':'\u23F3','Connected':'\u2705','Not Reachable':'\uD83D\uDCF1',"Follow-up":'\uD83D\uDD04','Not Interested':'\u274C','Policy Done':'\u2705','Wrong Number':'\u2753' };
   return map[s]||'';
 }
 
@@ -813,12 +930,12 @@ function cachedFetch(url, ttl, bypass) {
   if (!bypass) {
     try {
       var item = sessionStorage.getItem('cf_' + url);
-      if (item) { var p = JSON.parse(item); if (Date.now() - p.ts < ttl) return Promise.resolve(p.data); }
+      if (item) { var p = JSON.parse(item); if (Date.now() - p.ts < ttl && !p.data.error) return Promise.resolve(p.data); }
     } catch(e) {}
   }
   var token = localStorage.getItem('authToken');
   var authUrl = url + (url.includes('?') ? '&' : '?') + 'token=' + encodeURIComponent(token || '');
-  return fetch(authUrl).then(function(r){ return r.json().then(function(d){ if(!bypass) sessionStorage.setItem('cf_' + url, JSON.stringify({ts:Date.now(),data:d})); return d; }); });
+  return fetch(authUrl).then(function(r){ return r.json().then(function(d){ if(!bypass && !d.error) sessionStorage.setItem('cf_' + url, JSON.stringify({ts:Date.now(),data:d})); return d; }); });
 }
 
 async function loadDue(bypassCache) {
@@ -855,6 +972,11 @@ function renderStats() {
     '<div class="stat-box" style="border-left:3px solid var(--blue)"><div class="num">' + followup + '</div><div class="lbl">Follow-up</div></div>' +
     '<div class="stat-box" style="border-left:3px solid var(--orange)"><div class="num">' + nr + '</div><div class="lbl">Not Reachable</div></div>' +
     '<div class="stat-box" style="border-left:3px solid var(--red)"><div class="num">' + ni + '</div><div class="lbl">Not Interested</div></div>';
+  const byModel = {};
+  allDue.forEach(function(r){ var m = (r.model || '-').trim().toUpperCase(); byModel[m] = (byModel[m]||0) + 1; });
+  var chips = '';
+  Object.keys(byModel).sort().forEach(function(m){ chips += '<span class="chip">' + m + ' <b>' + byModel[m] + '</b></span>'; });
+  document.getElementById('chipRow').innerHTML = chips || '';
 }
 
 function renderTable() {
@@ -947,7 +1069,7 @@ function renderTable() {
       '<td style="font-size:9px">' + r.insurancecompany + '</td>' +
       '<td style="color:var(--muted);font-size:9px">' + (r.policy_effective_date ? fmtDate(r.policy_effective_date) : '-') + '</td>' +
       '<td style="color:var(--muted);font-size:9px">' + fmtDate(r.create_date) + '</td>' +
-      '<td style="text-align:right;font-weight:600;font-size:9px">\u20B9' + Number(r.grosspremium).toLocaleString('en-IN') + '</td>' +
+      '<td style="text-align:right;font-weight:600;font-size:9px">\u20B9' + Number(r.netodpremiuma).toLocaleString('en-IN') + '</td>' +
       '<td style="text-align:center"><span class="attempt-badge ' + attemptClass(r.attempt_count || 0) + '">' + (r.attempt_count || 0) + '</span></td>' +
       '<td><span class="status-badge ' + statusClass(sc) + '">' + statusIcon(sc) + ' ' + sc + '</span></td>' +
       '<td style="color:var(--muted);font-size:9px">' + callDate + '</td>' +
@@ -1000,7 +1122,7 @@ function openCallModal(idx) {
       '<div class="ci"><div class="lbl">Insurance</div><div class="val">' + item.insurancecompany + '</div></div>' +
       '<div class="ci"><div class="lbl">Policy No</div><div class="val mono" style="font-size:11px">' + item.policyno + '</div></div>' +
       '<div class="ci"><div class="lbl">VIN No</div><div class="val mono" style="font-size:11px">' + item.vinno + '</div></div>' +
-      '<div class="ci"><div class="lbl">Last Gross Premium</div><div class="val" style="color:var(--green)">\u20B9' + Number(item.grosspremium).toLocaleString('en-IN') + '</div></div>' +
+      '<div class="ci"><div class="lbl">Last Net OD Premium</div><div class="val" style="color:var(--green)">\u20B9' + Number(item.netodpremiuma).toLocaleString('en-IN') + '</div></div>' +
       '<div class="ci"><div class="lbl">Policy Date</div><div class="val" style="color:' + (isExpired(item.policy_expiry_date) ? 'var(--red)' : 'var(--text)') + '">' + fmtDate(item.policy_expiry_date) + '</div></div>' +
       '<div class="ci"><div class="lbl">State</div><div class="val">' + (item.state||'-') + '</div></div>' +
       '<div class="ci"><div class="lbl">Status</div><div class="val"><span class="status-badge ' + statusClass(sc) + '">' + statusIcon(sc) + ' ' + sc + '</span></div></div>' +
@@ -1130,7 +1252,7 @@ async function saveCallLog() {
     customer_name: item.customer_name,
     model: item.model,
     insurancecompany: item.insurancecompany,
-    grosspremium: item.grosspremium,
+    netodpremiuma: item.netodpremiuma,
     policy_expiry_date: item.policy_expiry_date,
     call_outcome: outcome,
     remarks: document.getElementById('remarks').value,
@@ -1212,16 +1334,24 @@ function renderAgentList() {
   }).join('');
 }
 
-function addAgent() {
+async function addAgent() {
   var input = document.getElementById('newAgentInput');
-  var name = input.value.trim();
+  var name = input.value.trim().toUpperCase();
   var msg = document.getElementById('agentMsg');
   if (!name) { msg.textContent = 'Enter a name'; msg.style.color = '#dc2626'; msg.style.display = 'block'; return; }
-  var agents = getAgents();
-  if (agents.indexOf(name) !== -1) { msg.textContent = 'Agent already exists'; msg.style.color = '#dc2626'; msg.style.display = 'block'; return; }
-  agents.push(name);
-  agents.sort();
-  saveAgents(agents);
+  if (getAgents().indexOf(name) !== -1) { msg.textContent = 'Agent already exists'; msg.style.color = '#dc2626'; msg.style.display = 'block'; return; }
+  try {
+    var token = localStorage.getItem('authToken');
+    var url = '/api/agents' + (token ? '?token=' + encodeURIComponent(token) : '');
+    var res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: name })
+    });
+    var data = await res.json();
+    if (data.error) { msg.textContent = data.error; msg.style.color = '#dc2626'; msg.style.display = 'block'; return; }
+    storedAgents = data.agents || storedAgents;
+  } catch(e) { msg.textContent = 'Failed to add agent'; msg.style.color = '#dc2626'; msg.style.display = 'block'; return; }
   input.value = '';
   msg.textContent = name + ' added!';
   msg.style.color = '#16a34a';
@@ -1229,10 +1359,16 @@ function addAgent() {
   renderAgentList();
 }
 
-function removeAgent(name) {
+async function removeAgent(name) {
   if (!confirm('Remove agent "' + name + '"?')) return;
-  var agents = getAgents().filter(function(a) { return a !== name; });
-  saveAgents(agents);
+  try {
+    var token = localStorage.getItem('authToken');
+    var url = '/api/agents?name=' + encodeURIComponent(name) + (token ? '&token=' + encodeURIComponent(token) : '');
+    var res = await fetch(url, { method: 'DELETE' });
+    var data = await res.json();
+    if (data.error) { alert(data.error); return; }
+    storedAgents = data.agents || storedAgents;
+  } catch(e) { alert('Failed to remove agent'); return; }
   renderAgentList();
 }
 
@@ -1241,10 +1377,16 @@ document.getElementById('agentName').addEventListener('change', function() {
   if (this.value === '__add__') {
     var name = prompt('Enter new agent name:');
     if (name && name.trim()) {
-      var agents = getAgents();
-      if (agents.indexOf(name.trim()) === -1) { agents.push(name.trim()); agents.sort(); saveAgents(agents); }
-      populateAgentDropdowns();
-      document.getElementById('agentName').value = name.trim();
+      var agentName = name.trim().toUpperCase();
+      fetch('/api/agents' + (localStorage.getItem('authToken') ? '?token=' + encodeURIComponent(localStorage.getItem('authToken')) : ''), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: agentName })
+      }).then(function(r){ return r.json(); }).then(function(data) {
+        if (data.agents) storedAgents = data.agents;
+        populateAgentDropdowns();
+        document.getElementById('agentName').value = agentName;
+      }).catch(function(){});
     } else { this.value = ''; }
   }
 });
@@ -1252,10 +1394,16 @@ document.getElementById('meAgentName').addEventListener('change', function() {
   if (this.value === '__add__') {
     var name = prompt('Enter new agent name:');
     if (name && name.trim()) {
-      var agents = getAgents();
-      if (agents.indexOf(name.trim()) === -1) { agents.push(name.trim()); agents.sort(); saveAgents(agents); }
-      populateAgentDropdowns();
-      document.getElementById('meAgentName').value = name.trim();
+      var agentName = name.trim().toUpperCase();
+      fetch('/api/agents' + (localStorage.getItem('authToken') ? '?token=' + encodeURIComponent(localStorage.getItem('authToken')) : ''), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: agentName })
+      }).then(function(r){ return r.json(); }).then(function(data) {
+        if (data.agents) storedAgents = data.agents;
+        populateAgentDropdowns();
+        document.getElementById('meAgentName').value = agentName;
+      }).catch(function(){});
     } else { this.value = ''; }
   }
 });
@@ -1263,13 +1411,10 @@ document.getElementById('meAgentName').addEventListener('change', function() {
 // AGENT PERFORMANCE DASHBOARD
 var apAllLogs = [];
 var apAllInsurance = [];
-var apCategory = 'overall';
-var apCatData = {};
 var apCanonicalMap = {};
 
 function openAgentPerf() {
   document.getElementById('agentPerfOverlay').classList.add('show');
-  apCategory = 'overall';
   loadApData();
 }
 function closeAgentPerf() {
@@ -1311,81 +1456,43 @@ function matchAgent(rawName) {
   return n;
 }
 
+function setApPeriod(period) {
+  var now = new Date();
+  var today = now.toISOString().slice(0,10);
+  var from = '', to = today;
+  if (period === 'today') { from = today; }
+  else if (period === 'week') {
+    var d = new Date(now); d.setDate(d.getDate() - d.getDay());
+    from = d.toISOString().slice(0,10);
+  }
+  else if (period === 'month') { from = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-01'; }
+  else if (period === 'year') { from = now.getFullYear() + '-01-01'; }
+  else { from = ''; to = ''; }
+  document.getElementById('apDateFrom').value = from;
+  document.getElementById('apDateTo').value = to;
+  document.querySelectorAll('.ap-period-btn').forEach(function(b) { b.classList.remove('active'); });
+  event.target.classList.add('active');
+  renderAgentPerf();
+}
+
 function resetApFilters() {
   document.getElementById('apDateFrom').value = '';
   document.getElementById('apDateTo').value = '';
   document.getElementById('apAgentFilter').value = 'all';
-  apCategory = 'overall';
+  document.querySelectorAll('.ap-period-btn').forEach(function(b) { b.classList.remove('active'); });
+  document.querySelector('.ap-period-btn:last-child').classList.add('active');
   renderAgentPerf();
-}
-
-function setApCategory(cat) {
-  apCategory = cat;
-  renderAgentPerf();
-}
-
-function categorizeInsurance(rows) {
-  var now = new Date();
-  var cyYm = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
-  var ly = now.getFullYear() - 1;
-  var lyFull = ly + '-' + String(now.getMonth()+1).padStart(2,'0');
-
-  var vinFirstSeen = {};
-  var vinNewType = {};
-  rows.forEach(function(r) {
-    if (!r.vinno || !r.create_date) return;
-    if (!vinFirstSeen[r.vinno] || r.create_date < vinFirstSeen[r.vinno]) {
-      vinFirstSeen[r.vinno] = r.create_date;
-      vinNewType[r.vinno] = r.policytype;
-    }
-  });
-
-  var vinInLyFull = new Set();
-  var vinInCy = new Set();
-  var lyRenewalVins = new Set();
-  var cyRenewalVins = new Set();
-  var cyNewVins = new Set();
-  var lyNewVins = new Set();
-
-  rows.forEach(function(r) {
-    if (!r.vinno || !r.create_date) return;
-    var ym = r.create_date.slice(0, 7);
-    if (ym === lyFull && r.policytype !== 'New') lyRenewalVins.add(r.vinno);
-    if (ym === lyFull && r.policytype === 'New') lyNewVins.add(r.vinno);
-    if (ym.startsWith(ly + '-')) vinInLyFull.add(r.vinno);
-    if (ym === cyYm) { vinInCy.add(r.vinno); if (r.policytype === 'Renewal') cyRenewalVins.add(r.vinno); if (r.policytype === 'New') cyNewVins.add(r.vinno); }
-  });
-
-  var rolloverVins = new Set();
-  var renewalVins = new Set();
-  cyRenewalVins.forEach(function(v) {
-    if (lyNewVins.has(v)) renewalVins.add(v);
-    else rolloverVins.add(v);
-  });
-
-  var catMap = {};
-  rows.forEach(function(r) {
-    var pno = r.policyno || '';
-    var pt = (r.policytype || '').trim();
-    var isNew = (r.is_new || '').trim() === 'Yes' || pt === 'New';
-    var isRenewal = pt === 'Renewal';
-    var isRollover = isRenewal && rolloverVins.has(r.vinno);
-    var isCyRenewal = isRenewal && renewalVins.has(r.vinno);
-    var cat = 'overall';
-    if (isNew) cat = 'new';
-    else if (isRollover) cat = 'rollover';
-    else if (isCyRenewal) cat = 'renewal';
-    else if (isRenewal) cat = 'renewal';
-    if (pno) catMap[pno] = cat;
-  });
-
-  return catMap;
 }
 
 async function loadApData() {
   var content = document.getElementById('apContent');
   try {
+    sessionStorage.removeItem('cf_/api/call-center/performance-data');
     var data = await cachedFetch('/api/call-center/performance-data', 60000, true);
+    if (data.error) {
+      content.innerHTML = '<div style="text-align:center;padding:40px;color:#ef4444">&#10060; ' + data.error + '</div>';
+      return;
+    }
     apAllInsurance = data.insurance || [];
     apAllLogs = (data.logs || []).map(function(l) {
       l._agent = matchAgent(l.agent_name);
@@ -1404,46 +1511,14 @@ async function loadApData() {
     }).join('');
     sel.value = cur || 'all';
 
-    var catMap = categorizeInsurance(apAllInsurance);
-    apAllLogs.forEach(function(l) { l._cat = catMap[l.policyno] || 'overall'; });
-
-    var visitedPolicies = new Set();
-    apAllLogs.forEach(function(l) { if (l.policyno) visitedPolicies.add(l.policyno); });
-    var notVisited = apAllInsurance.filter(function(r) { return r.policyno && !visitedPolicies.has(r.policyno); });
-
-    var catCounts = { overall: apAllLogs.length, new: 0, renewal: 0, rollover: 0, 'rollover-to-renew': 0, 'not-visited': notVisited.length };
-    apAllLogs.forEach(function(l) {
-      if (l._cat === 'new') catCounts.new++;
-      else if (l._cat === 'renewal') catCounts.renewal++;
-      else if (l._cat === 'rollover') catCounts.rollover++;
-    });
-
-    apCatData = { catCounts: catCounts, notVisited: notVisited };
-
-    renderCategoryTabs();
     renderAgentPerf();
   } catch(e) {
     content.innerHTML = '<div style="text-align:center;padding:40px;color:#ef4444">&#10060; Error loading: ' + e.message + '</div>';
   }
 }
 
-function renderCategoryTabs() {
-  var cc = apCatData.catCounts || {};
-  var cats = [
-    { id: 'overall', label: '&#128203; Overall', count: cc.overall || 0 },
-    { id: 'new', label: '&#10024; New', count: cc['new'] || 0 },
-    { id: 'renewal', label: '&#128260; Renewal', count: cc.renewal || 0 },
-    { id: 'rollover', label: '&#128256; Rollover', count: cc.rollover || 0 },
-    { id: 'rollover-to-renew', label: '&#9889; Rollover to Renew', count: cc['rollover-to-renew'] || 0 },
-    { id: 'not-visited', label: '&#128683; Not Visited', count: cc['not-visited'] || 0 },
-  ];
-  document.getElementById('apCats').innerHTML = cats.map(function(c) {
-    return '<button class="ap-cat-btn' + (apCategory === c.id ? ' active' : '') + '" onclick="setApCategory(\'' + c.id + '\')">' + c.label + ' <span class="cat-count">(' + c.count + ')</span></button>';
-  }).join('');
-}
-
 function buildStats(logs) {
-  var stats = { total:0, connected:0, followup:0, nr:0, ni:0, pending:0, policies:new Set(), premium:0, days:new Set() };
+  var stats = { total:0, connected:0, followup:0, nr:0, ni:0, pending:0, wrong:0, days:new Set() };
   logs.forEach(function(l) {
     stats.total++;
     var o = (l.call_outcome || '').toLowerCase();
@@ -1451,9 +1526,8 @@ function buildStats(logs) {
     else if (o === 'follow-up') stats.followup++;
     else if (o === 'not reachable') stats.nr++;
     else if (o === 'not interested') stats.ni++;
+    else if (o === 'wrong number') stats.wrong++;
     else stats.pending++;
-    if (l.policyno) stats.policies.add(l.policyno);
-    stats.premium += Number(l.grosspremium) || 0;
     var cd = (l.call_date || '').slice(0,10);
     if (cd) stats.days.add(cd);
   });
@@ -1464,7 +1538,7 @@ function buildAgentStats(logs) {
   var map = {};
   logs.forEach(function(l) {
     var name = l._agent || 'Unassigned';
-    if (!map[name]) map[name] = { name:name, total:0, connected:0, followup:0, nr:0, ni:0, pending:0, policies:new Set(), premium:0, days:new Set() };
+    if (!map[name]) map[name] = { name:name, total:0, connected:0, followup:0, nr:0, ni:0, pending:0, wrong:0, days:new Set() };
     var a = map[name];
     a.total++;
     var o = (l.call_outcome || '').toLowerCase();
@@ -1472,9 +1546,8 @@ function buildAgentStats(logs) {
     else if (o === 'follow-up') a.followup++;
     else if (o === 'not reachable') a.nr++;
     else if (o === 'not interested') a.ni++;
+    else if (o === 'wrong number') a.wrong++;
     else a.pending++;
-    if (l.policyno) a.policies.add(l.policyno);
-    a.premium += Number(l.grosspremium) || 0;
     var cd = (l.call_date || '').slice(0,10);
     if (cd) a.days.add(cd);
   });
@@ -1482,13 +1555,8 @@ function buildAgentStats(logs) {
     var a = map[n];
     var rate = a.total > 0 ? Math.round((a.connected / a.total) * 100) : 0;
     var avgCalls = a.days.size > 0 ? (a.total / a.days.size).toFixed(1) : '0';
-    return { name:a.name, total:a.total, connected:a.connected, nr:a.nr, ni:a.ni, followup:a.followup, pending:a.pending, policies:a.policies.size, premium:a.premium, rate:rate, days:a.days.size, avgCalls:avgCalls };
+    return { name:a.name, total:a.total, connected:a.connected, nr:a.nr, ni:a.ni, followup:a.followup, pending:a.pending, wrong:a.wrong, rate:rate, days:a.days.size, avgCalls:avgCalls };
   }).sort(function(x,y) { return y.rate - x.rate || y.total - x.total; });
-}
-
-function fmtPremium(p) {
-  if (p >= 100000) return '\u20B9' + (p/100000).toFixed(1) + 'L';
-  return '\u20B9' + p.toLocaleString('en-IN');
 }
 
 function renderOverview(stats) {
@@ -1499,8 +1567,7 @@ function renderOverview(stats) {
     '<div class="ap-ov-card ov-nr"><div class="ov-num">' + stats.nr + '</div><div class="ov-lbl">Not Reachable</div></div>' +
     '<div class="ap-ov-card ov-ni"><div class="ov-num">' + stats.ni + '</div><div class="ov-lbl">Not Interested</div></div>' +
     '<div class="ap-ov-card ov-pending"><div class="ov-num">' + stats.pending + '</div><div class="ov-lbl">Pending</div></div>' +
-    '<div class="ap-ov-card ov-policies"><div class="ov-num">' + stats.policies.size + '</div><div class="ov-lbl">Policies</div></div>' +
-    '<div class="ap-ov-card ov-premium"><div class="ov-num">' + fmtPremium(stats.premium) + '</div><div class="ov-lbl">Premium</div></div>' +
+    '<div class="ap-ov-card" style="border-top:3px solid #6b7280"><div class="ov-num" style="color:#6b7280">' + (stats.wrong || 0) + '</div><div class="ov-lbl">Wrong Number</div></div>' +
     '</div>';
   return h;
 }
@@ -1515,17 +1582,17 @@ function renderTopAgent(agents) {
     '<div class="top-stats">' +
       '<div class="top-stat"><div class="ts-num" style="color:' + bc + '">' + t.rate + '%</div><div class="ts-lbl">Connect Rate</div></div>' +
       '<div class="top-stat"><div class="ts-num">' + t.connected + '</div><div class="ts-lbl">Connected</div></div>' +
-      '<div class="top-stat"><div class="ts-num">' + t.policies + '</div><div class="ts-lbl">Policies</div></div>' +
-      '<div class="top-stat"><div class="ts-num">' + fmtPremium(t.premium) + '</div><div class="ts-lbl">Premium</div></div>' +
+      '<div class="top-stat"><div class="ts-num">' + t.total + '</div><div class="ts-lbl">Total Calls</div></div>' +
       '<div class="top-stat"><div class="ts-num">' + t.avgCalls + '</div><div class="ts-lbl">Avg/Day</div></div>' +
     '</div></div>';
 }
 
-function renderLeaderboard(agents) {
+function renderAgentSummaryTable(agents) {
   if (!agents.length) return '';
-  var h = '<div class="ap-section-title">&#128101; Agent Leaderboard</div>';
+  var h = '<div class="ap-section-title" style="display:flex;align-items:center;gap:6px">&#128101; Agent Performance Summary <span class="hamburger-toggle" onclick="toggleSection(\'agentSumBody\',this)" title="Collapse/Expand"><span class="hamburger-icon">&#9660;</span></span></div>';
+  h += '<div id="agentSumBody">';
   h += '<div class="ap-table-wrap"><table class="ap-table"><thead><tr>' +
-    '<th>#</th><th>Agent</th><th>Total</th><th>Connected</th><th>Follow-up</th><th>Not Reachable</th><th>Not Interested</th><th>Pending</th><th>Policies</th><th>Premium</th><th>Days</th><th>Avg/Day</th><th>Rate</th>' +
+    '<th>#</th><th>Agent</th><th>Calls</th><th>Connected</th><th>Follow-up</th><th>Not Reachable</th><th>Not Interested</th><th>Pending</th><th>Wrong No.</th><th>Days</th><th>Avg/Day</th><th>Connect Rate</th>' +
     '</tr></thead><tbody>';
   agents.forEach(function(a, i) {
     var rank = i + 1;
@@ -1539,118 +1606,157 @@ function renderLeaderboard(agents) {
       '<td style="color:#f59e0b;font-weight:600">' + a.followup + '</td>' +
       '<td style="color:#f97316">' + a.nr + '</td>' +
       '<td style="color:#ef4444">' + a.ni + '</td>' +
-      '<td style="color:#6b7280">' + a.pending + '</td>' +
-      '<td style="font-weight:700;color:#0ea5e9">' + a.policies + '</td>' +
-      '<td style="font-weight:600">' + fmtPremium(a.premium) + '</td>' +
+      '<td>' + a.pending + '</td>' +
+      '<td style="color:#6b7280">' + (a.wrong || 0) + '</td>' +
       '<td>' + a.days + '</td>' +
       '<td>' + a.avgCalls + '</td>' +
       '<td><div class="ap-bar-wrap"><div class="ap-bar"><div class="ap-bar-fill" style="width:' + a.rate + '%;background:' + bc + '"></div></div><div class="ap-bar-pct" style="color:' + bc + '">' + a.rate + '%</div></div></td>' +
       '</tr>';
   });
-  h += '</tbody></table></div>';
-  return h;
-}
-
-function renderMonthly(logs) {
-  var mm = {};
-  logs.forEach(function(l) {
-    var cd = (l.call_date || '').slice(0,7);
-    if (!cd) return;
-    if (!mm[cd]) mm[cd] = { total:0, connected:0, followup:0, nr:0, ni:0, pending:0, premium:0, policies:new Set() };
-    var m = mm[cd];
-    m.total++;
-    var o = (l.call_outcome || '').toLowerCase();
-    if (o === 'connected') m.connected++;
-    else if (o === 'follow-up') m.followup++;
-    else if (o === 'not reachable') m.nr++;
-    else if (o === 'not interested') m.ni++;
-    else m.pending++;
-    m.premium += Number(l.grosspremium) || 0;
-    if (l.policyno) m.policies.add(l.policyno);
-  });
-  var months = Object.keys(mm).sort().reverse();
-  if (!months.length) return '';
-  var h = '<div class="ap-section-title">&#128197; Monthly Breakdown</div><div class="ap-month-grid">';
-  months.forEach(function(mk) {
-    var m = mm[mk];
-    var d = new Date(mk + '-15');
-    var mn = d.toLocaleDateString('en-US', { month:'short', year:'numeric' });
-    var segs = [['#22c55e',m.connected],['#f59e0b',m.followup],['#f97316',m.nr],['#ef4444',m.ni],['#6b7280',m.pending]];
-    var tot = segs.reduce(function(s,c){return s+c[1];},0)||1;
-    var bar = segs.map(function(c){var w=Math.round(c[1]/tot*100);return w>0?'<div style="width:'+w+'%;background:'+c[0]+'"></div>':'';}).join('');
-    h += '<div class="ap-month-card"><div class="mc-month">' + mn + '</div><div class="mc-total">' + m.total + '</div>' +
-      '<div class="mc-sub">' + m.connected + ' connected &middot; ' + m.policies.size + ' policies &middot; ' + fmtPremium(m.premium) + '</div>' +
-      '<div class="mc-bar">' + bar + '</div></div>';
-  });
-  return h + '</div>';
-}
-
-function renderPolicyBreakdown(logs) {
-  var im = {}, md = {};
-  logs.forEach(function(l) {
-    var ins = l.insurancecompany || 'Unknown';
-    var mo = l.model || 'Unknown';
-    if (!im[ins]) im[ins] = {t:0,c:0,p:0};
-    im[ins].t++; if ((l.call_outcome||'').toLowerCase()==='connected') im[ins].c++; im[ins].p += Number(l.grosspremium)||0;
-    if (!md[mo]) md[mo] = {t:0,c:0,p:0};
-    md[mo].t++; if ((l.call_outcome||'').toLowerCase()==='connected') md[mo].c++; md[mo].p += Number(l.grosspremium)||0;
-  });
-  var ik = Object.keys(im).sort(function(a,b){return im[b].t-im[a].t;});
-  var mk = Object.keys(md).sort(function(a,b){return md[b].t-md[a].t;});
-  if (!ik.length && !mk.length) return '';
-  var h = '<div class="ap-section-title">&#128203; Policy Breakdown</div><div class="ap-grid-2col">';
-  h += '<div><div style="font-size:10px;font-weight:700;color:#475569;margin-bottom:6px">By Insurance Company</div><div class="ap-table-wrap"><table class="ap-mini-table"><thead><tr><th>Company</th><th>Calls</th><th>Connected</th><th>Rate</th><th>Premium</th></tr></thead><tbody>';
-  ik.slice(0,10).forEach(function(k){var v=im[k];var r=v.t>0?Math.round(v.c/v.t*100):0;h+='<tr><td style="font-weight:600">'+k+'</td><td>'+v.t+'</td><td style="color:#22c55e">'+v.c+'</td><td>'+r+'%</td><td>'+fmtPremium(v.p)+'</td></tr>';});
   h += '</tbody></table></div></div>';
-  h += '<div><div style="font-size:10px;font-weight:700;color:#475569;margin-bottom:6px">By Vehicle Model</div><div class="ap-table-wrap"><table class="ap-mini-table"><thead><tr><th>Model</th><th>Calls</th><th>Connected</th><th>Rate</th><th>Premium</th></tr></thead><tbody>';
-  mk.slice(0,10).forEach(function(k){var v=md[k];var r=v.t>0?Math.round(v.c/v.t*100):0;h+='<tr><td style="font-weight:600">'+k+'</td><td>'+v.t+'</td><td style="color:#22c55e">'+v.c+'</td><td>'+r+'%</td><td>'+fmtPremium(v.p)+'</td></tr>';});
-  h += '</tbody></table></div></div></div>';
   return h;
 }
 
-function renderAgentCards(agents) {
+function renderAgentAvgPerDay(agents) {
   if (!agents.length) return '';
-  var h = '<div class="ap-section-title">&#128100; Agent Details</div><div class="ap-agent-cards">';
+  var h = '<div class="ap-section-title" style="display:flex;align-items:center;gap:6px">&#128200; Agent Call Avg Per Day <span class="hamburger-toggle" onclick="toggleSection(\'agentAvgBody\',this)" title="Collapse/Expand"><span class="hamburger-icon">&#9660;</span></span></div>';
+  h += '<div id="agentAvgBody">';
+  h += '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">';
   agents.forEach(function(a, i) {
-    var rank = i+1;
-    var rc = rank<=3?'rank-'+rank:'rank-other';
-    var bc = a.rate>=60?'#22c55e':a.rate>=30?'#f59e0b':'#ef4444';
-    h += '<div class="ap-agent-card"><div class="ac-head"><div class="ac-rank '+rc+'">'+rank+'</div><div class="ac-name">'+a.name+'</div><div class="ac-rate" style="color:'+bc+'">'+a.rate+'%</div></div>'+
-      '<div class="ac-stats"><div class="ac-stat"><div class="num" style="color:#6366f1">'+a.total+'</div><div class="lbl">Total</div></div>'+
-      '<div class="ac-stat"><div class="num" style="color:#22c55e">'+a.connected+'</div><div class="lbl">Connected</div></div>'+
-      '<div class="ac-stat"><div class="num" style="color:#0ea5e9">'+a.policies+'</div><div class="lbl">Policies</div></div>'+
-      '<div class="ac-stat"><div class="num" style="color:#f59e0b">'+a.followup+'</div><div class="lbl">Follow-up</div></div>'+
-      '<div class="ac-stat"><div class="num" style="color:#f97316">'+a.nr+'</div><div class="lbl">Not Reach.</div></div>'+
-      '<div class="ac-stat"><div class="num" style="color:#ef4444">'+a.ni+'</div><div class="lbl">Not Int.</div></div></div>'+
-      '<div class="ac-extra"><span>&#128197; '+a.days+' days</span><span>&#128200; '+a.avgCalls+' avg/day</span><span>'+fmtPremium(a.premium)+'</span></div>'+
-      '<div class="ac-bar"><div class="ap-bar"><div class="ap-bar-fill" style="width:'+a.rate+'%;background:'+bc+'"></div></div></div></div>';
+    var bc = a.avgCalls >= 20 ? '#22c55e' : a.avgCalls >= 10 ? '#f59e0b' : '#ef4444';
+    h += '<div style="flex:1;min-width:120px;background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:10px;text-align:center;border-top:3px solid ' + bc + '">' +
+      '<div style="font-size:9px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.3px">' + a.name + '</div>' +
+      '<div style="font-size:22px;font-weight:800;color:' + bc + ';margin:4px 0">' + a.avgCalls + '</div>' +
+      '<div style="font-size:8px;color:#64748b">calls/day</div>' +
+      '<div style="margin-top:4px;font-size:8px;color:#475569">' + a.days + ' active days</div>' +
+    '</div>';
   });
-  return h + '</div>';
+  h += '</div></div>';
+  return h;
 }
 
-function renderNotVisited() {
-  var nv = apCatData.notVisited || [];
-  if (!nv.length) return '';
-  var byAgent = {};
-  nv.forEach(function(r) {
-    var a = r._assignedAgent || 'Unassigned';
-    if (!byAgent[a]) byAgent[a] = [];
-    byAgent[a].push(r);
+function renderAgentDetailCards(agents) {
+  if (agents.length <= 1) return '';
+  var h = '<div class="ap-section-title" style="display:flex;align-items:center;gap:6px">&#128101; Agent Detail Overview <span class="hamburger-toggle" onclick="toggleSection(\'agentDetailBody\',this)" title="Collapse/Expand"><span class="hamburger-icon">&#9660;</span></span></div>';
+  h += '<div id="agentDetailBody">';
+  h += '<div class="ap-agent-cards">';
+  agents.forEach(function(a, i) {
+    var rc = i < 3 ? 'rank-' + (i+1) : 'rank-other';
+    var bc = a.rate >= 60 ? '#22c55e' : a.rate >= 30 ? '#f59e0b' : '#ef4444';
+    var connPct = a.total > 0 ? Math.round(a.connected / a.total * 100) : 0;
+    var niPct = a.total > 0 ? Math.round(a.ni / a.total * 100) : 0;
+    var nrPct = a.total > 0 ? Math.round(a.nr / a.total * 100) : 0;
+    var fuPct = a.total > 0 ? Math.round(a.followup / a.total * 100) : 0;
+    h += '<div class="ap-agent-card">' +
+      '<div class="ac-head">' +
+        '<span class="ac-rank ' + rc + '">' + (i + 1) + '</span>' +
+        '<span class="ac-name">' + a.name + '</span>' +
+        '<span class="ac-rate" style="color:' + bc + '">' + a.rate + '%</span>' +
+      '</div>' +
+      '<div class="ac-stats">' +
+        '<div class="ac-stat"><div class="num" style="color:#6366f1">' + a.total + '</div><div class="lbl">Total Calls</div></div>' +
+        '<div class="ac-stat"><div class="num" style="color:#22c55e">' + a.connected + '</div><div class="lbl">Connected</div></div>' +
+        '<div class="ac-stat"><div class="num" style="color:#f59e0b">' + a.followup + '</div><div class="lbl">Follow-up</div></div>' +
+      '</div>' +
+      '<div class="ac-extra">' +
+        '<span style="color:#f97316">&#128222; Not Reachable: ' + a.nr + '</span>' +
+        '<span style="color:#ef4444">&#10060; Not Interested: ' + a.ni + '</span>' +
+        '<span style="color:#6b7280">Pending: ' + a.pending + '</span>' +
+      '</div>' +
+      '<div class="ac-bar" style="margin-top:8px">' +
+        '<div style="display:flex;height:6px;border-radius:3px;overflow:hidden;background:#f1f5f9">' +
+          '<div style="width:' + connPct + '%;background:#22c55e" title="Connected ' + connPct + '%"></div>' +
+          '<div style="width:' + fuPct + '%;background:#f59e0b" title="Follow-up ' + fuPct + '%"></div>' +
+          '<div style="width:' + nrPct + '%;background:#f97316" title="Not Reachable ' + nrPct + '%"></div>' +
+          '<div style="width:' + niPct + '%;background:#ef4444" title="Not Interested ' + niPct + '%"></div>' +
+        '</div>' +
+        '<div style="display:flex;justify-content:space-between;margin-top:3px;font-size:7px;color:#64748b">' +
+          '<span style="color:#22c55e">Connected</span>' +
+          '<span style="color:#f59e0b">Follow-up</span>' +
+          '<span style="color:#f97316">N/R</span>' +
+          '<span style="color:#ef4444">N/I</span>' +
+        '</div>' +
+      '</div>' +
+      '<div style="margin-top:8px;display:flex;justify-content:space-between;font-size:9px;color:#475569">' +
+        '<span>&#128197; ' + a.days + ' active days</span>' +
+        '<span>&#9889; ' + a.avgCalls + '/day</span>' +
+      '</div>' +
+    '</div>';
   });
-  var h = '<div class="ap-section-title">&#128683; Not Visited Customers (' + nv.length + ')</div>';
-  h += '<div class="ap-table-wrap"><table class="ap-table"><thead><tr><th>#</th><th>Customer</th><th>Policy</th><th>Model</th><th>Insurer</th><th>Premium</th><th>Expiry</th><th>Source</th></tr></thead><tbody>';
-  nv.slice(0, 50).forEach(function(r, i) {
-    h += '<tr><td>' + (i+1) + '</td><td style="font-weight:600">' + (r.customer_name || '-') + '</td><td>' + (r.policyno || '-') + '</td><td>' + (r.model || '-') + '</td><td>' + (r.insurancecompany || '-') + '</td><td style="font-weight:600">' + fmtPremium(Number(r.grosspremium)||0) + '</td><td>' + (r.policy_expiry_date || '-') + '</td><td><span style="background:' + (r.source === 'manual' ? '#f59e0b' : '#6366f1') + ';color:#fff;padding:1px 6px;border-radius:4px;font-size:8px;font-weight:600">' + (r.source || 'kia_safety') + '</span></td></tr>';
-  });
-  if (nv.length > 50) h += '<tr><td colspan="8" style="text-align:center;color:#64748b;font-size:10px">...and ' + (nv.length - 50) + ' more</td></tr>';
-  h += '</tbody></table></div>';
+  h += '</div></div>';
   return h;
+}
+
+function renderNotConnectedTable(filteredLogs) {
+  var ncLogs = filteredLogs.filter(function(l) {
+    var o = (l.call_outcome || '').toLowerCase();
+    return o !== 'connected';
+  });
+  if (!ncLogs.length) return '';
+  ncLogs.sort(function(a, b) { return (b.call_date || '').localeCompare(a.call_date || ''); });
+  var h = '<div class="ap-section-title" style="cursor:pointer;user-select:none" onclick="var el=document.getElementById(\'ncBody\');el.style.display=el.style.display===\'none\'?\'\':\'none\';var icon=document.getElementById(\'ncToggle\');icon.textContent=el.style.display===\'none\'?\'\u25B6\':\'\u25BC\'">&#128222; Not Connected Calls — <span id="ncCount">' + ncLogs.length + '</span> records <span id="ncToggle" style="margin-left:6px;font-size:10px;color:#64748b">&#125BC;</span></div>';
+  h += '<div id="ncBody">';
+  h += '<div style="margin-bottom:8px;display:flex;gap:8px;align-items:center">';
+  h += '<input type="text" id="ncSearchInput" placeholder="Search by customer name..." oninput="filterNotConnected()" style="padding:6px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:11px;width:220px;outline:none">';
+  h += '<button onclick="document.getElementById(\'ncSearchInput\').value=\'\';filterNotConnected()" style="padding:6px 12px;border:1px solid #e2e8f0;border-radius:6px;font-size:11px;background:#f8fafc;cursor:pointer;color:#475569;font-weight:600">Clear</button>';
+  h += '</div>';
+  h += '<div class="ap-table-wrap"><table class="ap-table" id="ncTable"><thead><tr>' +
+    '<th>Date</th><th>Agent</th><th>Customer Name</th><th>Contact</th><th>Model</th><th>Insurer</th><th>Status</th><th>Remarks</th>' +
+    '</tr></thead><tbody>';
+  ncLogs.forEach(function(l) {
+    var o = (l.call_outcome || 'Pending');
+    var sc = 's-pending';
+    if (o === 'Not Reachable') sc = 's-not-reachable';
+    else if (o === 'Not Interested') sc = 's-not-interested';
+    else if (o === 'Follow-up') sc = 's-follow-up';
+    else if (o === 'Wrong Number') sc = 's-wrong-number';
+    h += '<tr data-name="' + (l.customer_name || '').toLowerCase() + '">' +
+      '<td style="font-size:9px;white-space:nowrap">' + (l.call_date || '-') + '</td>' +
+      '<td style="font-weight:600">' + (l.agent_name || '-') + '</td>' +
+      '<td style="font-weight:600">' + (l.customer_name || '-') + '</td>' +
+      '<td style="font-weight:600;white-space:nowrap">' + (l.mobile_no || '-') + '</td>' +
+      '<td>' + (l.model || '-') + '</td>' +
+      '<td>' + (l.insurancecompany || '-') + '</td>' +
+      '<td><span class="status-badge ' + sc + '">' + o + '</span></td>' +
+      '<td style="font-size:9px;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + (l.remarks || '-') + '</td>' +
+      '</tr>';
+  });
+  h += '</tbody></table></div>';
+  h += '</div>';
+  return h;
+}
+
+function toggleSection(bodyId, toggleEl) {
+  var body = document.getElementById(bodyId);
+  if (!body) return;
+  var hidden = body.style.display === 'none';
+  body.style.display = hidden ? '' : 'none';
+  if (toggleEl) {
+    if (hidden) toggleEl.classList.remove('collapsed');
+    else toggleEl.classList.add('collapsed');
+  }
+}
+
+function filterNotConnected() {
+  var q = (document.getElementById('ncSearchInput').value || '').toLowerCase().trim();
+  var rows = document.querySelectorAll('#ncTable tbody tr');
+  var shown = 0;
+  rows.forEach(function(row) {
+    var name = row.getAttribute('data-name') || '';
+    if (!q || name.indexOf(q) !== -1) {
+      row.style.display = '';
+      shown++;
+    } else {
+      row.style.display = 'none';
+    }
+  });
+  var cnt = document.getElementById('ncCount');
+  if (cnt) cnt.textContent = shown;
 }
 
 function renderAgentPerf() {
   var content = document.getElementById('apContent');
-  if (!apAllLogs.length && !apAllInsurance.length) {
-    document.getElementById('apCats').innerHTML = '';
+  if (!apAllLogs.length) {
     content.innerHTML = '<div style="text-align:center;padding:40px;color:#64748b;font-size:13px">&#128203; No data found. Start logging calls to see agent performance.</div>';
     return;
   }
@@ -1664,35 +1770,112 @@ function renderAgentPerf() {
     if (dateFrom && d < dateFrom) return false;
     if (dateTo && d > dateTo) return false;
     if (agentFilter !== 'all' && l._agent !== agentFilter) return false;
-    if (apCategory !== 'overall' && apCategory !== 'not-visited' && l._cat !== apCategory) return false;
     return true;
   });
-
-  renderCategoryTabs();
-
-  if (apCategory === 'not-visited') {
-    var nv = (apCatData.notVisited || []).filter(function(r) {
-      if (agentFilter !== 'all') return false;
-      return true;
-    });
-    var stats = { total:0, connected:0, followup:0, nr:0, ni:0, pending:nv.length, policies:new Set(), premium:0, days:new Set() };
-    nv.forEach(function(r) { if (r.policyno) stats.policies.add(r.policyno); stats.premium += Number(r.grosspremium)||0; });
-    var h = renderOverview(stats);
-    h += '<div style="text-align:center;padding:12px;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;margin-bottom:14px;font-size:12px;color:#991b1b;font-weight:600">&#128683; ' + nv.length + ' customers have not been contacted yet</div>';
-    h += renderNotVisited();
-    content.innerHTML = h;
-    return;
-  }
 
   var stats = buildStats(filteredLogs);
   var agents = buildAgentStats(filteredLogs);
   var h = renderOverview(stats);
   h += renderTopAgent(agents);
-  h += renderLeaderboard(agents);
-  h += renderMonthly(filteredLogs);
-  h += renderPolicyBreakdown(filteredLogs);
-  h += renderAgentCards(agents);
+  h += renderAgentSummaryTable(agents);
+  h += renderNotConnectedTable(filteredLogs);
+  h += renderAgentAvgPerDay(agents);
+  h += renderAgentDetailCards(agents);
+  h += renderDayDetailTable(agents, filteredLogs);
   content.innerHTML = h;
+}
+
+function renderDayDetailTable(agents, filteredLogs) {
+  if (!agents.length) return '';
+  var h = '<div class="ap-section-title" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span>&#128197; Daily Performance Detail</span>' +
+    '<span class="hamburger-toggle" id="ddToggle" onclick="toggleSection(\'ddBody\',this)" title="Collapse/Expand"><span class="hamburger-icon">&#9660;</span></span>' +
+    '<div style="display:flex;align-items:center;gap:6px;margin-left:auto;font-size:10px">' +
+    '<label style="color:#475569;font-weight:600">From:</label>' +
+    '<input type="date" id="apDayFrom" style="font-size:10px;padding:3px 6px;border:1px solid #cbd5e1;border-radius:4px" onchange="renderDayDetailFilter()">' +
+    '<label style="color:#475569;font-weight:600">To:</label>' +
+    '<input type="date" id="apDayTo" style="font-size:10px;padding:3px 6px;border:1px solid #cbd5e1;border-radius:4px" onchange="renderDayDetailFilter()">' +
+    '<button onclick="apDayDetailReset()" style="font-size:9px;padding:3px 8px;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;cursor:pointer;color:#475569;font-weight:600">Reset</button>' +
+    '</div></div>';
+  h += '<div id="ddBody">';
+  h += buildDayDetailBody(agents, filteredLogs);
+  h += '</div>';
+  return h;
+}
+
+function buildDayDetailBody(agents, filteredLogs) {
+  var dayFrom = document.getElementById('apDayFrom') ? document.getElementById('apDayFrom').value : '';
+  var dayTo = document.getElementById('apDayTo') ? document.getElementById('apDayTo').value : '';
+  var dayMap = {};
+  filteredLogs.forEach(function(l) {
+    var cd = (l.call_date || '').slice(0,10);
+    if (!cd) return;
+    if (dayFrom && cd < dayFrom) return;
+    if (dayTo && cd > dayTo) return;
+    var name = l._agent || 'Unassigned';
+    if (!dayMap[name]) dayMap[name] = {};
+    if (!dayMap[name][cd]) dayMap[name][cd] = { total:0, connected:0, followup:0, nr:0, ni:0, pending:0 };
+    var d = dayMap[name][cd];
+    d.total++;
+    var o = (l.call_outcome || '').toLowerCase();
+    if (o === 'connected') d.connected++;
+    else if (o === 'follow-up') d.followup++;
+    else if (o === 'not reachable') d.nr++;
+    else if (o === 'not interested') d.ni++;
+    else d.pending++;
+  });
+  var h = '';
+  var hasData = false;
+  agents.forEach(function(a, idx) {
+    var days = dayMap[a.name];
+    if (!days) return;
+    hasData = true;
+    var sortedDays = Object.keys(days).sort().reverse();
+    var agentId = 'agentDD_' + idx;
+    h += '<div style="margin-bottom:10px"><div style="font-size:10px;font-weight:700;color:#1e293b;margin-bottom:3px;padding-left:2px;display:flex;align-items:center">' + a.name +
+      '<span class="agent-hamburger" onclick="toggleSection(\'' + agentId + '\',this)" title="Collapse/Expand"><span class="hamburger-icon">&#9660;</span></span></div>';
+    h += '<div id="' + agentId + '">';
+    h += '<div class="ap-table-wrap"><table class="ap-table"><thead><tr><th>Date</th><th>Calls</th><th>Connected</th><th>Follow-up</th><th>Not Reachable</th><th>Not Interested</th><th>Pending</th><th>Rate</th></tr></thead><tbody>';
+    sortedDays.forEach(function(dt) {
+      var d = days[dt];
+      var rate = d.total > 0 ? Math.round(d.connected / d.total * 100) : 0;
+      var bc = rate >= 60 ? '#22c55e' : rate >= 30 ? '#f59e0b' : '#ef4444';
+      h += '<tr><td style="font-weight:600">' + dt + '</td>' +
+        '<td style="font-weight:700">' + d.total + '</td>' +
+        '<td style="color:#22c55e;font-weight:600">' + d.connected + '</td>' +
+        '<td style="color:#f59e0b">' + d.followup + '</td>' +
+        '<td style="color:#f97316">' + d.nr + '</td>' +
+        '<td style="color:#ef4444">' + d.ni + '</td>' +
+        '<td style="color:#6b7280">' + d.pending + '</td>' +
+        '<td style="font-weight:600;color:' + bc + '">' + rate + '%</td></tr>';
+    });
+    h += '</tbody></table></div></div></div>';
+  });
+  if (!hasData) h += '<div style="text-align:center;padding:14px;color:#64748b;font-size:11px">No data for selected date range</div>';
+  return h;
+}
+
+function renderDayDetailFilter() {
+  var body = document.getElementById('ddBody');
+  if (!body) return;
+  var agentFilter = document.getElementById('apAgentFilter').value || 'all';
+  var dateFrom = document.getElementById('apDateFrom').value || '';
+  var dateTo = document.getElementById('apDateTo').value || '';
+  var filteredLogs = apAllLogs.filter(function(l) {
+    var d = (l.call_date || '').slice(0,10);
+    if (dateFrom && d < dateFrom) return false;
+    if (dateTo && d > dateTo) return false;
+    if (agentFilter !== 'all' && l._agent !== agentFilter) return false;
+    return true;
+  });
+  var agents = buildAgentStats(filteredLogs);
+  body.innerHTML = buildDayDetailBody(agents, filteredLogs);
+}
+
+function apDayDetailReset() {
+  var el;
+  el = document.getElementById('apDayFrom'); if (el) el.value = '';
+  el = document.getElementById('apDayTo'); if (el) el.value = '';
+  renderDayDetailFilter();
 }
 
 // Settings modal - KIA credentials
@@ -1713,16 +1896,14 @@ function openManualEntryModal() {
   document.getElementById('mePolicyNo').value = '';
   document.getElementById('meCustomerName').value = '';
   document.getElementById('meVinNo').value = '';
+  document.getElementById('meRegNo').value = '';
   document.getElementById('meModel').value = '';
   document.getElementById('meInsurer').value = '';
-  document.getElementById('mePremium').value = '';
-  document.getElementById('meIdv').value = '';
   document.getElementById('meExpiryDate').value = '';
-  document.getElementById('meEffectiveDate').value = '';
   document.getElementById('meMobile').value = '';
-  document.getElementById('meState').value = '';
-  document.getElementById('meCreateDate').value = new Date().toISOString().slice(0,10);
   document.getElementById('meFollowUpDate').value = '';
+  document.getElementById('meSource').value = 'WALK-IN';
+  populateSourceDropdowns();
   populateAgentDropdowns();
   document.getElementById('meAgentName').value = '';
   document.getElementById('meErrorMsg').style.display = 'none';
@@ -1759,18 +1940,15 @@ async function saveManualEntry() {
       token: localStorage.getItem('authToken'),
       policyno: policyno,
       vinno: document.getElementById('meVinNo').value.trim(),
+      reg_no: document.getElementById('meRegNo').value.trim(),
       customer_name: customer_name,
       model: document.getElementById('meModel').value.trim(),
       insurancecompany: document.getElementById('meInsurer').value.trim(),
-      grosspremium: document.getElementById('mePremium').value || 0,
-      totalidv: document.getElementById('meIdv').value || 0,
       policy_expiry_date: document.getElementById('meExpiryDate').value || '',
-      policy_effective_date: document.getElementById('meEffectiveDate').value || '',
       mobile_no: document.getElementById('meMobile').value.trim(),
-      state: document.getElementById('meState').value.trim(),
-      create_date: document.getElementById('meCreateDate').value || '',
       source_agent: document.getElementById('meAgentName').value === '__add__' ? '' : document.getElementById('meAgentName').value,
-      follow_up_date: document.getElementById('meFollowUpDate').value || null
+      follow_up_date: document.getElementById('meFollowUpDate').value || null,
+      lead_source: document.getElementById('meSource').value || '',
     };
     var res = await fetch('/api/call-center/add-manual', {
       method: 'POST',
@@ -1830,10 +2008,35 @@ async function saveSettings() {
 
 (function(){ var t=new URLSearchParams(window.location.search).get('token'); if(t) localStorage.setItem('authToken',t); t=localStorage.getItem('authToken'); if(!t) { location.href='/login'; return; } document.querySelectorAll('a[href^="/"]').forEach(function(a){ if(a.href.includes('token=')) return; a.href+=((a.href.includes('?')?'&':'?')+'token='+encodeURIComponent(t)); }); var el=document.getElementById('welcomeUser');if(el){var ll=localStorage.getItem('lastLogin');if(ll){var d=new Date(ll);el.textContent='Admin | Last: '+d.toLocaleDateString('en-GB')+' '+d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}else{el.textContent='Admin'}}fetch('/api/auth/log-activity',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:t,action:'view',page:'call-center'}),keepalive:true}).catch(function(){}) })();
 populateMonths();
-populateAgentDropdowns();
-loadDropdownOptions();
-loadDue();
+fetchAgents().then(function() { return fetchSources(); }).then(function() {
+  populateAgentDropdowns();
+  populateSourceDropdowns();
+  loadDropdownOptions();
+  loadDue();
+});
 startClock();
+
+document.getElementById('meSource').addEventListener('change', function() {
+  if (this.value === '__add__') {
+    var name = prompt('Enter new lead source:');
+    if (name && name.trim()) {
+      var srcName = name.trim().toUpperCase();
+      fetch('/api/lead-sources' + (localStorage.getItem('authToken') ? '?token=' + encodeURIComponent(localStorage.getItem('authToken')) : ''), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: srcName })
+      }).then(function(r){ return r.json(); }).then(function(data) {
+        if (data.sources) storedSources = data.sources;
+        populateSourceDropdowns();
+        document.getElementById('meSource').value = srcName;
+      }).catch(function(){});
+    } else { this.value = ''; }
+  }
+});
+var sourceInput = document.getElementById('newSourceInput');
+if (sourceInput) {
+  sourceInput.addEventListener('keydown', function(e) { if (e.key === 'Enter') { e.preventDefault(); addSource(); } });
+}
 </script>
 </body>
 </html>

@@ -77,7 +77,10 @@ body th { font-weight:700 !important; }
 .table-wrap::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px; }
 .table-scroll { min-width:fit-content; }
 table { width:100%; border-collapse:separate; border-spacing:0; background:var(--panel); border-radius:var(--radius); border:1px solid var(--border); font-size:10px; min-width:1150px; box-shadow:0 1px 3px rgba(15,23,42,.04); }
-thead th { padding:7px 8px; text-align:left; font-weight:800; font-size:8px; color:#fff; text-transform:uppercase; letter-spacing:.6px; border-bottom:1px solid rgba(255,255,255,.15); white-space:nowrap; position:sticky; top:0; z-index:5; background:linear-gradient(135deg,#17182b,#2b2d4d); }
+thead th { padding:7px 8px; text-align:left; font-weight:800; font-size:8px; color:#fff; text-transform:uppercase; letter-spacing:.6px; border-bottom:1px solid rgba(255,255,255,.15); white-space:nowrap; position:sticky; top:0; z-index:5; background:linear-gradient(135deg,#17182b,#2b2d4d); height:24px; }
+thead tr.cfrow th { position:sticky; top:24px; z-index:6; background:linear-gradient(135deg,#2b2d4d,#3b3f66); padding:5px 6px; height:auto; }
+thead .col-filter { width:100%; min-width:62px; padding:3px 6px; border:1px solid rgba(255,255,255,.35); border-radius:5px; background:#fff; color:#0f172a; font-size:9px; font-weight:600; font-family:inherit; outline:none; }
+thead .col-filter:focus { border-color:#a78bfa; box-shadow:0 0 0 2px rgba(167,139,250,.25); }
 tbody td { padding:6px 8px; border-bottom:1px solid #edf2f7; vertical-align:middle; }
 tbody tr:hover td { background:var(--card-hover); }
 tbody tr:last-child td { border-bottom:none; }
@@ -207,6 +210,7 @@ tbody tr:last-child td { border-bottom:none; }
     <button class="tool-btn" onclick="exportCsv()" title="Download filtered data as CSV">&#128196; CSV</button>
     <button class="tool-btn" onclick="openUploadModal()" title="Upload multiple leads from a CSV file">&#128228; Bulk Upload</button>
     <button class="tool-btn" onclick="openAgentModal()" title="Manage agents">&#128101; Agents</button>
+    <button class="tool-btn" onclick="openSourceModal()" title="Manage lead sources">&#128203; Sources</button>
     <button class="tool-btn gradient" onclick="openAddLead()">&#10133; Add Lead</button>
   </div>
 </div>
@@ -354,15 +358,6 @@ tbody tr:last-child td { border-bottom:none; }
         <div class="form-group">
           <label>Lead Source</label>
           <select id="alLeadSource">
-            <option value="workshop">Workshop</option>
-            <option value="walk-in">Walk-in</option>
-            <option value="call">Call</option>
-            <option value="reference">Reference</option>
-            <option value="online">Online</option>
-            <option value="showroom visit">Showroom Visit</option>
-            <option value="telecall">Telecall</option>
-            <option value="interakt">Interakt</option>
-            <option value="other">Other</option>
           </select>
         </div>
         <div class="form-group">
@@ -431,15 +426,6 @@ tbody tr:last-child td { border-bottom:none; }
         <div class="form-group">
           <label>Lead Source</label>
           <select id="elLeadSource">
-            <option value="workshop">Workshop</option>
-            <option value="walk-in">Walk-in</option>
-            <option value="call">Call</option>
-            <option value="reference">Reference</option>
-            <option value="online">Online</option>
-            <option value="showroom visit">Showroom Visit</option>
-            <option value="telecall">Telecall</option>
-            <option value="interakt">Interakt</option>
-            <option value="other">Other</option>
           </select>
         </div>
         <div class="form-group">
@@ -514,6 +500,26 @@ tbody tr:last-child td { border-bottom:none; }
   </div>
 </div>
 
+<!-- MANAGE LEAD SOURCES MODAL -->
+<div class="modal-overlay" id="sourceModal">
+  <div class="modal small">
+    <div class="modal-head">
+      <h2>&#128203; Manage Lead Sources</h2>
+      <button class="close" onclick="closeModal('sourceModal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group" style="margin-bottom:12px">
+        <label>Add New Source</label>
+        <div style="display:flex;gap:6px">
+          <input type="text" id="newSourceInput" placeholder="Enter lead source" style="flex:1">
+          <button class="btn-save" onclick="addSource()" style="white-space:nowrap">&#10133; Add</button>
+        </div>
+      </div>
+      <div id="sourceList"></div>
+    </div>
+  </div>
+</div>
+
 <script>
 let allLeads = [];
 let currentPage = 0;
@@ -525,12 +531,28 @@ let filterSource = 'all';
 let filterExpiry = 'all';
 let filterStatus = 'all';
 let filterFollowup = 'all';
+let tFilterCustomer = '';
+let tFilterVin = '';
+let tFilterReg = '';
+let tFilterModel = 'all';
+let tFilterInsurer = 'all';
+let tFilterFollowup = 'all';
 let dropdownOptions = { models: [], insurers: [] };
 
-function getAgents() { try { return JSON.parse(localStorage.getItem('cc_agents') || '[]'); } catch(e) { return []; } }
-function saveAgents(list) { localStorage.setItem('cc_agents', JSON.stringify(list)); }
+var storedAgents = [];
+function getAgents() { return storedAgents; }
+async function fetchAgents() {
+  try {
+    var res = await fetch(authUrl('/api/agents'), { cache: 'no-store' });
+    var data = await res.json();
+    storedAgents = data.agents || [];
+  } catch(e) { storedAgents = []; }
+}
+async function saveAgents(list) {
+  storedAgents = list;
+}
 function getAllAgentsList() {
-  var agents = getAgents();
+  var agents = getAgents().slice();
   var fromLeads = allLeads.map(function(l){ return l.source_agent||''; }).filter(Boolean);
   fromLeads.forEach(function(a){ if (agents.indexOf(a) === -1) agents.push(a); });
   return agents.sort();
@@ -558,23 +580,34 @@ function renderAgentList() {
   });
   document.getElementById('agentList').innerHTML = h;
 }
-function addAgent() {
-  var name = document.getElementById('newAgentInput').value.trim();
+async function addAgent() {
+  var name = document.getElementById('newAgentInput').value.trim().toUpperCase();
   if (!name) { alert('Please enter an agent name'); return; }
-  var agents = getAgents();
   var all = getAllAgentsList();
   if (all.indexOf(name) !== -1) { alert('Agent "' + name + '" already exists'); return; }
-  agents.push(name);
-  saveAgents(agents);
+  try {
+    var res = await fetch(authUrl('/api/agents'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: name })
+    });
+    var data = await res.json();
+    if (data.error) { alert(data.error); return; }
+    storedAgents = data.agents || storedAgents;
+  } catch(e) { alert('Failed to add agent'); return; }
   document.getElementById('newAgentInput').value = '';
   renderAgentList();
   populateAgentDropdowns();
   renderFilters();
 }
-function removeAgent(name) {
+async function removeAgent(name) {
   if (!confirm('Remove agent "' + name + '"?')) return;
-  var agents = getAgents().filter(function(a){ return a !== name; });
-  saveAgents(agents);
+  try {
+    var res = await fetch(authUrl('/api/agents?name=' + encodeURIComponent(name)), { method: 'DELETE' });
+    var data = await res.json();
+    if (data.error) { alert(data.error); return; }
+    storedAgents = data.agents || storedAgents;
+  } catch(e) { alert('Failed to remove agent'); return; }
   renderAgentList();
   populateAgentDropdowns();
   renderFilters();
@@ -587,6 +620,89 @@ function populateAgentDropdowns() {
   var current = sel.value;
   sel.innerHTML = opts;
   if (current) sel.value = current;
+}
+
+var storedSources = [];
+function getSources() { return storedSources; }
+async function fetchSources() {
+  try {
+    var res = await fetch(authUrl('/api/lead-sources'), { cache: 'no-store' });
+    var data = await res.json();
+    storedSources = data.sources || [];
+  } catch(e) { storedSources = []; }
+}
+function getAllSourcesList() {
+  var sources = getSources().slice();
+  var fromLeads = allLeads.map(function(l){ return l.lead_source||''; }).filter(Boolean);
+  fromLeads.forEach(function(s){ if (sources.indexOf(s.toUpperCase()) === -1) sources.push(s.toUpperCase()); });
+  return sources.sort();
+}
+function openSourceModal() {
+  document.getElementById('newSourceInput').value = '';
+  renderSourceList();
+  document.getElementById('sourceModal').classList.add('show');
+  setTimeout(function(){ document.getElementById('newSourceInput').focus(); }, 100);
+}
+function renderSourceList() {
+  var sources = getAllSourcesList();
+  var stored = getSources();
+  if (!sources.length) {
+    document.getElementById('sourceList').innerHTML = '<div class="agent-empty">No sources yet. Add one above.</div>';
+    return;
+  }
+  var h = '';
+  sources.forEach(function(s) {
+    var isCustom = stored.indexOf(s) !== -1;
+    h += '<div class="agent-item">' +
+      '<span class="agent-name">' + s + (isCustom ? '' : ' <span style="font-size:8px;color:var(--muted)">(from leads)</span>') + '</span>' +
+      (isCustom ? '<button class="agent-remove" onclick="removeSource(\'' + s.replace(/'/g,"\\'") + '\')">Remove</button>' : '') +
+      '</div>';
+  });
+  document.getElementById('sourceList').innerHTML = h;
+}
+async function addSource() {
+  var name = document.getElementById('newSourceInput').value.trim().toUpperCase();
+  if (!name) { alert('Please enter a lead source'); return; }
+  var all = getAllSourcesList();
+  if (all.indexOf(name) !== -1) { alert('Source "' + name + '" already exists'); return; }
+  try {
+    var res = await fetch(authUrl('/api/lead-sources'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: name })
+    });
+    var data = await res.json();
+    if (data.error) { alert(data.error); return; }
+    storedSources = data.sources || storedSources;
+  } catch(e) { alert('Failed to add source'); return; }
+  document.getElementById('newSourceInput').value = '';
+  renderSourceList();
+  populateSourceDropdowns();
+  renderFilters();
+}
+async function removeSource(name) {
+  if (!confirm('Remove source "' + name + '"?')) return;
+  try {
+    var res = await fetch(authUrl('/api/lead-sources?name=' + encodeURIComponent(name)), { method: 'DELETE' });
+    var data = await res.json();
+    if (data.error) { alert(data.error); return; }
+    storedSources = data.sources || storedSources;
+  } catch(e) { alert('Failed to remove source'); return; }
+  renderSourceList();
+  populateSourceDropdowns();
+  renderFilters();
+}
+function populateSourceDropdowns() {
+  var sources = getAllSourcesList();
+  var opts = '<option value="">Select source...</option>';
+  sources.forEach(function(s) { opts += '<option value="' + s + '">' + s + '</option>'; });
+  ['alLeadSource', 'elLeadSource'].forEach(function(id) {
+    var sel = document.getElementById(id);
+    if (!sel) return;
+    var current = sel.value;
+    sel.innerHTML = opts;
+    if (current) sel.value = current;
+  });
 }
 
 function setupAutocomplete(inputId, listId, options) {
@@ -731,7 +847,7 @@ function renderFilters() {
   document.getElementById('filterAgent').innerHTML = agOpts;
 
   var srcOpts = '<option value="all">All Sources</option>';
-  [...new Set(allLeads.map(function(l){return l.lead_source||'';}).filter(Boolean))].sort().forEach(function(s){ srcOpts += '<option value="' + s.replace(/"/g,'&quot;') + '"' + (filterSource===s?' selected':'') + '>' + s + '</option>'; });
+  getAllSourcesList().forEach(function(s){ srcOpts += '<option value="' + s.replace(/"/g,'&quot;') + '"' + (filterSource===s?' selected':'') + '>' + s + '</option>'; });
   document.getElementById('filterSource').innerHTML = srcOpts;
 
   var stOpts = '<option value="all">All Statuses</option>';
@@ -754,6 +870,54 @@ function renderFilters() {
   document.getElementById('filterFollowup').innerHTML = fuOpts;
 }
 
+function matchesFollowup(l, f) {
+  if (!f || f === 'all') return true;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(f)) {
+    return !!(l.follow_up_date && l.follow_up_date.slice(0,10) === f);
+  }
+  var fd = daysUntil(l.follow_up_date);
+  if (f === 'overdue') return fd !== null && fd < 0;
+  if (f === 'today') return fd === 0;
+  if (f === 'upcoming') return fd !== null && fd > 0;
+  if (f === 'scheduled') return fd !== null;
+  if (f === 'none') return fd === null;
+  return true;
+}
+
+function escAttr(v) {
+  return String(v == null ? '' : v).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function colFilterRow() {
+  var modelOpts = '<option value="all">All</option>';
+  [...new Set(allLeads.map(function(l){ return (l.model||'-').trim().toUpperCase(); }))].sort().forEach(function(m){
+    modelOpts += '<option value="' + escAttr(m) + '"' + (tFilterModel===m?' selected':'') + '>' + escAttr(m) + '</option>';
+  });
+  var insOpts = '<option value="all">All</option>';
+  [...new Set(allLeads.map(function(l){ return l.insurancecompany||'-'; }))].sort().forEach(function(i){
+    insOpts += '<option value="' + escAttr(i) + '"' + (tFilterInsurer===i?' selected':'') + '>' + escAttr(i) + '</option>';
+  });
+  var fuOpts = '<option value="all">All</option>' +
+    '<option value="overdue"' + (tFilterFollowup==='overdue'?' selected':'') + '>Overdue</option>' +
+    '<option value="today"' + (tFilterFollowup==='today'?' selected':'') + '>Today</option>' +
+    '<option value="upcoming"' + (tFilterFollowup==='upcoming'?' selected':'') + '>Upcoming</option>' +
+    '<option value="scheduled"' + (tFilterFollowup==='scheduled'?' selected':'') + '>Scheduled</option>' +
+    '<option value="none"' + (tFilterFollowup==='none'?' selected':'') + '>No Follow-up</option>';
+  return '<tr class="cfrow">' +
+    '<th></th>' +
+    '<th><input id="cfCustomer" class="col-filter" type="text" placeholder="Customer..." value="' + escAttr(tFilterCustomer) + '" data-cf="1" oninput="tFilterCustomer=this.value;currentPage=0;renderTable(true)"></th>' +
+    '<th></th>' +
+    '<th><input id="cfVin" class="col-filter" type="text" placeholder="VIN..." value="' + escAttr(tFilterVin) + '" data-cf="1" oninput="tFilterVin=this.value;currentPage=0;renderTable(true)"></th>' +
+    '<th><input id="cfReg" class="col-filter" type="text" placeholder="Reg..." value="' + escAttr(tFilterReg) + '" data-cf="1" oninput="tFilterReg=this.value;currentPage=0;renderTable(true)"></th>' +
+    '<th><select id="cfModel" class="col-filter" onchange="tFilterModel=this.value;currentPage=0;renderTable()">' + modelOpts + '</select></th>' +
+    '<th></th><th></th>' +
+    '<th><select id="cfInsurer" class="col-filter" onchange="tFilterInsurer=this.value;currentPage=0;renderTable()">' + insOpts + '</select></th>' +
+    '<th></th><th></th>' +
+    '<th><select id="cfFollowup" class="col-filter" onchange="tFilterFollowup=this.value;currentPage=0;renderTable()">' + fuOpts + '</select></th>' +
+    '<th></th><th></th><th></th><th></th><th></th>' +
+    '</tr>';
+}
+
 function filteredLeads() {
   var q = document.getElementById('searchInput').value.toLowerCase().trim();
   var list = allLeads.filter(function(l) {
@@ -766,18 +930,13 @@ function filteredLeads() {
     if (filterExpiry === 'soon') { var dd2 = daysUntil(l.policy_expiry_date); if (dd2 === null || dd2 < 0 || dd2 > 30) return false; }
     if (filterExpiry === 'later') { var dd3 = daysUntil(l.policy_expiry_date); if (dd3 === null || dd3 <= 30) return false; }
     if (filterExpiry === 'none') { if (daysUntil(l.policy_expiry_date) !== null) return false; }
-    if (filterFollowup !== 'all') {
-      if (/^\d{4}-\d{2}-\d{2}$/.test(filterFollowup)) {
-        if (!l.follow_up_date || l.follow_up_date.slice(0,10) !== filterFollowup) return false;
-      } else {
-        var fd = daysUntil(l.follow_up_date);
-        if (filterFollowup === 'overdue') { if (fd === null || fd >= 0) return false; }
-        if (filterFollowup === 'today') { if (fd !== 0) return false; }
-        if (filterFollowup === 'upcoming') { if (fd === null || fd <= 0) return false; }
-        if (filterFollowup === 'scheduled') { if (fd === null) return false; }
-        if (filterFollowup === 'none') { if (fd !== null) return false; }
-      }
-    }
+    if (!matchesFollowup(l, filterFollowup)) return false;
+    if (tFilterCustomer && !(l.customer_name||'').toLowerCase().includes(tFilterCustomer.toLowerCase())) return false;
+    if (tFilterVin && !(l.vinno||'').toLowerCase().includes(tFilterVin.toLowerCase())) return false;
+    if (tFilterReg && !(l.reg_no||'').toLowerCase().includes(tFilterReg.toLowerCase())) return false;
+    if (tFilterModel !== 'all' && (l.model||'-').trim().toUpperCase() !== tFilterModel) return false;
+    if (tFilterInsurer !== 'all' && (l.insurancecompany||'-') !== tFilterInsurer) return false;
+    if (!matchesFollowup(l, tFilterFollowup)) return false;
     if (q) {
       return (l.customer_name||'').toLowerCase().includes(q) ||
              (l.vinno||'').toLowerCase().includes(q) ||
@@ -799,7 +958,14 @@ function fuTag(l) {
   return '<span class="fu-tag ' + cls + '">&#128197; ' + fmtDateShort(l.follow_up_date) + ' (' + txt + ')</span>';
 }
 
-function renderTable() {
+function renderTable(preserveFocus) {
+  var focusInfo = null;
+  if (preserveFocus) {
+    var ae = document.activeElement;
+    if (ae && ae.id && ae.dataset && ae.dataset.cf === '1') {
+      focusInfo = { id: ae.id, start: ae.selectionStart || 0, end: ae.selectionEnd || 0 };
+    }
+  }
   var list = filteredLeads();
   var size = pageSize === 'all' ? list.length : pageSize;
   if (size <= 0) size = list.length || 1;
@@ -814,9 +980,12 @@ function renderTable() {
     return;
   }
 
-  var h = '<div class="table-scroll"><table><thead><tr>' +
+  var h = '<div class="table-scroll"><table><thead>' +
+    '<tr>' +
     '<th>#</th><th>Customer</th><th>Contact</th><th>VIN</th><th>Reg</th><th>Model</th><th>Policy No</th><th>Expiry</th><th>Insurer</th><th>Source</th><th>Agent</th><th>Follow-up</th><th>Created</th><th>Status</th><th>Last Call</th><th>Remarks</th><th>Action</th>' +
-    '</tr></thead><tbody>';
+    '</tr>' +
+    colFilterRow() +
+    '</thead><tbody>';
 
   pageData.forEach(function(l, i) {
     var absIdx = allLeads.indexOf(l);
@@ -872,6 +1041,10 @@ function renderTable() {
   }
   pg += '<span class="pg-info">' + list.length + ' of ' + allLeads.length + ' leads</span>';
   document.getElementById('paginationContainer').innerHTML = pg;
+  if (focusInfo) {
+    var el = document.getElementById(focusInfo.id);
+    if (el) { el.focus(); try { el.setSelectionRange(focusInfo.start, focusInfo.end); } catch(_) {} }
+  }
 }
 
 function openCallModal(idx) {
@@ -1362,10 +1535,12 @@ function setupUpload() {
   input.addEventListener('change', function() { if (input.files.length) handleCsvFile(input.files[0]); });
 }
 
-function init() {
+async function init() {
   setupAutocomplete('alModel', 'alModelAC', []);
   setupAutocomplete('alInsurer', 'alInsurerAC', []);
   setupUpload();
+  await fetchAgents();
+  await fetchSources();
   loadLeads(true);
   fetch(authUrl('/api/call-center/options'), { cache: 'no-store' }).then(function(r){ return r.json(); }).then(function(d) {
     if (d.models) { dropdownOptions.models = d.models; setupAutocomplete('alModel', 'alModelAC', d.models); }
@@ -1374,6 +1549,10 @@ function init() {
   var agentInput = document.getElementById('newAgentInput');
   if (agentInput) {
     agentInput.addEventListener('keydown', function(e) { if (e.key === 'Enter') { e.preventDefault(); addAgent(); } });
+  }
+  var sourceInput = document.getElementById('newSourceInput');
+  if (sourceInput) {
+    sourceInput.addEventListener('keydown', function(e) { if (e.key === 'Enter') { e.preventDefault(); addSource(); } });
   }
   if (typeof window.addEventListener === 'function') {
     window.addEventListener('keydown', function(e) { if (e.key === 'Escape') { document.querySelectorAll('.modal-overlay').forEach(function(m){ m.classList.remove('show'); }); } });

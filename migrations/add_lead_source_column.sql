@@ -1,0 +1,1 @@
+ALTER TABLE kia_insurance ADD COLUMN IF NOT EXISTS lead_source TEXT DEFAULT NULL;
