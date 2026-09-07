@@ -81,6 +81,25 @@ thead th { padding:7px 8px; text-align:left; font-weight:800; font-size:8px; col
 thead tr.cfrow th { position:sticky; top:24px; z-index:6; background:linear-gradient(135deg,#2b2d4d,#3b3f66); padding:5px 6px; height:auto; }
 thead .col-filter { width:100%; min-width:62px; padding:3px 6px; border:1px solid rgba(255,255,255,.35); border-radius:5px; background:#fff; color:#0f172a; font-size:9px; font-weight:600; font-family:inherit; outline:none; }
 thead .col-filter:focus { border-color:#a78bfa; box-shadow:0 0 0 2px rgba(167,139,250,.25); }
+.ms-wrap { position:relative; }
+.ms-btn { width:100%; min-width:62px; padding:3px 6px; border:1px solid rgba(255,255,255,.35); border-radius:5px; background:#fff; color:#0f172a; font-size:9px; font-weight:600; font-family:inherit; cursor:pointer; text-align:left; display:flex; align-items:center; justify-content:space-between; gap:2px; outline:none; }
+.ms-btn:hover { border-color:#a78bfa; }
+.ms-panel { position:absolute; top:100%; left:0; min-width:200px; background:#1a1a1a; border:1px solid rgba(255,255,255,.2); border-radius:6px; z-index:60; display:none; box-shadow:0 6px 20px rgba(0,0,0,.4); margin-top:2px; }
+.ms-panel.show { display:block; }
+.ms-panel-head { padding:5px 8px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,.1); }
+.ms-panel-head span { font-size:8px; color:rgba(255,255,255,.7); font-weight:700; text-transform:uppercase; letter-spacing:.4px; }
+.ms-panel-head .ms-clear { font-size:8px; color:#ef4444; cursor:pointer; background:none; border:none; font-weight:700; padding:0; }
+.ms-panel-head .ms-clear:hover { color:#fca5a5; }
+.ms-items { max-height:180px; overflow-y:auto; padding:4px 0; }
+.ms-item { padding:3px 8px; font-size:9px; color:#fff; cursor:pointer; display:flex; align-items:center; gap:6px; }
+.ms-item:hover { background:rgba(255,255,255,.1); }
+.ms-item input[type="checkbox"] { width:11px; height:11px; accent-color:#8b5cf6; cursor:pointer; flex-shrink:0; }
+.ms-panel-foot { display:flex; justify-content:space-between; gap:6px; padding:6px 8px; border-top:1px solid rgba(255,255,255,.1); }
+.ms-panel-foot .ms-btn2 { flex:1; padding:4px 6px; border:none; border-radius:4px; font-size:9px; font-weight:700; cursor:pointer; }
+.ms-apply { background:#8b5cf6; color:#fff; }
+.ms-apply:hover { background:#a78bfa; }
+.ms-cancel { background:rgba(255,255,255,.15); color:#fff; }
+.ms-cancel:hover { background:rgba(255,255,255,.25); }
 tbody td { padding:6px 8px; border-bottom:1px solid #edf2f7; vertical-align:middle; }
 tbody tr:hover td { background:var(--card-hover); }
 tbody tr:last-child td { border-bottom:none; }
@@ -536,7 +555,8 @@ let tFilterVin = '';
 let tFilterReg = '';
 let tFilterModel = 'all';
 let tFilterInsurer = 'all';
-let tFilterFollowup = 'all';
+let tFilterFollowupDates = [];
+let tFuTemp = [];
 let dropdownOptions = { models: [], insurers: [] };
 
 var storedAgents = [];
@@ -888,6 +908,87 @@ function escAttr(v) {
   return String(v == null ? '' : v).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
+function fmtFuDate(d) {
+  if (!d) return '';
+  var p = String(d).slice(0,10).split('-');
+  if (p.length !== 3) return String(d);
+  var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var mo = parseInt(p[1], 10);
+  return parseInt(p[2], 10) + ' ' + (months[mo-1] || p[1]);
+}
+function fmtFuFull(d) {
+  if (!d) return '-';
+  var p = String(d).slice(0,10).split('-');
+  if (p.length !== 3) return String(d);
+  var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var mo = parseInt(p[1], 10);
+  return parseInt(p[2], 10) + ' ' + (months[mo-1] || p[1]) + ' ' + p[0];
+}
+function fuDatesList() {
+  var seen = {};
+  allLeads.forEach(function(l){
+    if (l.follow_up_date) seen[l.follow_up_date.slice(0,10)] = 1;
+  });
+  return Object.keys(seen).sort();
+}
+function fuItemsHtml(dates) {
+  var h = '';
+  dates.forEach(function(dt){
+    var checked = tFuTemp.indexOf(dt) !== -1 ? ' checked' : '';
+    h += '<label class="ms-item"><input type="checkbox" value="' + dt + '"' + checked + ' onchange="toggleFuTemp(this.value,this.checked)"> ' + fmtFuDate(dt) + '</label>';
+  });
+  return h || '<div style="padding:8px;font-size:9px;color:rgba(255,255,255,.5)">No follow-up dates</div>';
+}
+function updateFuLabel() {
+  var panel = document.getElementById('cfFollowupPanel');
+  var isOpen = panel && panel.classList.contains('show');
+  var n = isOpen ? tFuTemp.length : tFilterFollowupDates.length;
+  var btn = document.getElementById('cfFollowupBtn');
+  if (btn) btn.innerHTML = (n > 0 ? n + ' selected' : 'All') + ' &#9662;';
+  var cnt = document.getElementById('cfFollowupCount');
+  if (cnt) cnt.textContent = 'Follow-up Dates' + (n > 0 ? ' (' + n + ')' : '');
+}
+function toggleFuPanel(btn) {
+  var panel = btn.nextElementSibling;
+  var isOpen = panel.classList.contains('show');
+  document.querySelectorAll('.ms-panel').forEach(function(p){ p.classList.remove('show'); });
+  if (!isOpen) {
+    tFuTemp = tFilterFollowupDates.slice();
+    var items = document.getElementById('cfFuItems');
+    if (items) items.innerHTML = fuItemsHtml(fuDatesList());
+    updateFuLabel();
+    panel.classList.add('show');
+  }
+}
+function toggleFuTemp(val, checked) {
+  if (checked) { if (tFuTemp.indexOf(val) === -1) tFuTemp.push(val); }
+  else { tFuTemp = tFuTemp.filter(function(d){ return d !== val; }); }
+  updateFuLabel();
+}
+function clearFuTemp() {
+  tFuTemp = [];
+  var items = document.getElementById('cfFuItems');
+  if (items) items.innerHTML = fuItemsHtml(fuDatesList());
+  updateFuLabel();
+}
+function applyFuFilter() {
+  tFilterFollowupDates = tFuTemp.slice();
+  document.querySelectorAll('.ms-panel').forEach(function(p){ p.classList.remove('show'); });
+  currentPage = 0;
+  renderTable();
+}
+function cancelFuFilter() {
+  tFuTemp = tFilterFollowupDates.slice();
+  document.querySelectorAll('.ms-panel').forEach(function(p){ p.classList.remove('show'); });
+  updateFuLabel();
+}
+
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.ms-wrap')) {
+    document.querySelectorAll('.ms-panel').forEach(function(p){ p.classList.remove('show'); });
+  }
+});
+
 function colFilterRow() {
   var modelOpts = '<option value="all">All</option>';
   [...new Set(allLeads.map(function(l){ return (l.model||'-').trim().toUpperCase(); }))].sort().forEach(function(m){
@@ -897,12 +998,16 @@ function colFilterRow() {
   [...new Set(allLeads.map(function(l){ return l.insurancecompany||'-'; }))].sort().forEach(function(i){
     insOpts += '<option value="' + escAttr(i) + '"' + (tFilterInsurer===i?' selected':'') + '>' + escAttr(i) + '</option>';
   });
-  var fuOpts = '<option value="all">All</option>' +
-    '<option value="overdue"' + (tFilterFollowup==='overdue'?' selected':'') + '>Overdue</option>' +
-    '<option value="today"' + (tFilterFollowup==='today'?' selected':'') + '>Today</option>' +
-    '<option value="upcoming"' + (tFilterFollowup==='upcoming'?' selected':'') + '>Upcoming</option>' +
-    '<option value="scheduled"' + (tFilterFollowup==='scheduled'?' selected':'') + '>Scheduled</option>' +
-    '<option value="none"' + (tFilterFollowup==='none'?' selected':'') + '>No Follow-up</option>';
+  var fuCount = tFilterFollowupDates.length;
+  var fuLabel = fuCount > 0 ? fuCount + ' selected' : 'All';
+  var fuFilter = '<div class="ms-wrap"><button class="ms-btn" id="cfFollowupBtn" onclick="toggleFuPanel(this)">' + fuLabel + ' &#9662;</button>' +
+    '<div class="ms-panel" id="cfFollowupPanel">' +
+    '<div class="ms-panel-head"><span id="cfFollowupCount">Follow-up Dates' + (fuCount ? ' (' + fuCount + ')' : '') + '</span>' +
+    '<button type="button" class="ms-clear" onclick="clearFuTemp()">Clear</button></div>' +
+    '<div class="ms-items" id="cfFuItems">' + fuItemsHtml(fuDatesList()) + '</div>' +
+    '<div class="ms-panel-foot"><button type="button" class="ms-btn2 ms-cancel" onclick="cancelFuFilter()">Cancel</button>' +
+    '<button type="button" class="ms-btn2 ms-apply" onclick="applyFuFilter()">Apply</button></div>' +
+    '</div></div>';
   return '<tr class="cfrow">' +
     '<th></th>' +
     '<th><input id="cfCustomer" class="col-filter" type="text" placeholder="Customer..." value="' + escAttr(tFilterCustomer) + '" data-cf="1" oninput="tFilterCustomer=this.value;currentPage=0;renderTable(true)"></th>' +
@@ -913,7 +1018,7 @@ function colFilterRow() {
     '<th></th><th></th>' +
     '<th><select id="cfInsurer" class="col-filter" onchange="tFilterInsurer=this.value;currentPage=0;renderTable()">' + insOpts + '</select></th>' +
     '<th></th><th></th>' +
-    '<th><select id="cfFollowup" class="col-filter" onchange="tFilterFollowup=this.value;currentPage=0;renderTable()">' + fuOpts + '</select></th>' +
+    '<th>' + fuFilter + '</th>' +
     '<th></th><th></th><th></th><th></th><th></th>' +
     '</tr>';
 }
@@ -936,7 +1041,10 @@ function filteredLeads() {
     if (tFilterReg && !(l.reg_no||'').toLowerCase().includes(tFilterReg.toLowerCase())) return false;
     if (tFilterModel !== 'all' && (l.model||'-').trim().toUpperCase() !== tFilterModel) return false;
     if (tFilterInsurer !== 'all' && (l.insurancecompany||'-') !== tFilterInsurer) return false;
-    if (!matchesFollowup(l, tFilterFollowup)) return false;
+    if (tFilterFollowupDates.length > 0) {
+      if (!l.follow_up_date) return false;
+      if (tFilterFollowupDates.indexOf(l.follow_up_date.slice(0,10)) === -1) return false;
+    }
     if (q) {
       return (l.customer_name||'').toLowerCase().includes(q) ||
              (l.vinno||'').toLowerCase().includes(q) ||
@@ -955,7 +1063,7 @@ function fuTag(l) {
   var dd = daysUntil(l.follow_up_date);
   var cls = dd === 0 ? 'fu-today' : (dd < 0 ? 'fu-overdue' : 'fu-normal');
   var txt = dd === 0 ? 'Today' : (dd < 0 ? (-dd) + 'd overdue' : 'In ' + dd + 'd');
-  return '<span class="fu-tag ' + cls + '">&#128197; ' + fmtDateShort(l.follow_up_date) + ' (' + txt + ')</span>';
+  return '<span class="fu-tag ' + cls + '">&#128197; ' + fmtFuFull(l.follow_up_date) + ' (' + txt + ')</span>';
 }
 
 function renderTable(preserveFocus) {

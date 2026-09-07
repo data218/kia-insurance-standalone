@@ -48,7 +48,10 @@ export async function POST(req: Request) {
       }
       throw error
     }
-    if (remarks) {
+    const updateFields: Record<string, any> = {}
+    if (remarks) updateFields.remarks = remarks
+    if (follow_up_date) updateFields.follow_up_date = follow_up_date
+    if (Object.keys(updateFields).length > 0) {
       const q: [string, string][] = []
       if (policyno) q.push(['policyno', String(policyno).trim()])
       if (vinno) q.push(['vinno', String(vinno).trim().toUpperCase()])
@@ -56,7 +59,7 @@ export async function POST(req: Request) {
       for (const [col, val] of q) {
         const { error: updErr } = await getSupabaseAdmin()
           .from('kia_insurance_form_data')
-          .update({ remarks })
+          .update(updateFields)
           .match({ [col]: val })
         if (!updErr) break
       }
