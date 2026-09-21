@@ -19,6 +19,7 @@
   --button-bg:#333; --button-hover:#555; --button-fg:#fff; --button-border:rgba(255,255,255,.4);
   --scroll-thumb:#d0dce8; --scroll-track:transparent;
   --modal-bg:#fff;
+  --yday-bg:#555; --today-bg:#166534; --daily-head-bg:#333;
 }
 .theme-select { padding:1px 6px; margin-left:8px; border:1px solid var(--control-border); border-radius:3px; background:var(--control-bg); color:var(--control-fg); font-size:10px; font-weight:600; cursor:pointer; outline:none; max-width:170px; }
 .theme-select option { background:#1f2937; color:#fff; }
@@ -139,7 +140,8 @@ tr.total td { font-weight:800; background:var(--total-bg); border-top:3px solid 
     'total-bg':'#e8f0fe',
     'button-bg':'#333', 'button-hover':'#555', 'button-fg':'#fff', 'button-border':'rgba(255,255,255,.4)',
     'scroll-thumb':'#d0dce8', 'scroll-track':'transparent',
-    'modal-bg':'#fff'
+    'modal-bg':'#fff',
+    'yday-bg':'#555', 'today-bg':'#166534', 'daily-head-bg':'#333'
   };
   var THEMES = [
     { name:'Classic Blue', d:'Linear-default:', patch:{ } },
@@ -1165,30 +1167,30 @@ function buildDailyTable(data, filter, label, yesterday, yyy, yesterdayLabel) {
   const mtdSum = sorted.reduce((s,[_,v]) => s + v.mtd, 0);
   const labelColors = { all:'#333', New:'#333', Renewal:'#333' };
   const color = labelColors[filter] || '#333';
-  let h = `<div style="margin-top:${label==='All'?'0':'6px'};border:1px solid #ccc;overflow:hidden">
+  let h = `<div style="margin-top:${label==='All'?'0':'6px'};border:1px solid var(--border);overflow:hidden">
     <div style="display:flex;align-items:center;padding:2px 8px;background:${color};color:#fff;font-size:8px;font-weight:600">${label}</div>
-    <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:7px;border:1px solid #ccc">
+    <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:7px;border:1px solid var(--border)">
       <thead><tr style="background:${color}">
-        <th style="padding:1px 2px;text-align:center;font-size:6px;text-transform:uppercase;color:#fff;border:1px solid #ccc;white-space:nowrap">Company</th>
-        <th style="padding:1px 2px;text-align:center;font-size:6px;text-transform:uppercase;color:#fff;border:1px solid #ccc;white-space:nowrap">Y'day<div style="font-weight:400;font-size:5px;color:rgba(255,255,255,0.7);text-transform:none">${yesterdayLabel}</div></th>
-        <th style="padding:1px 2px;text-align:center;font-size:6px;text-transform:uppercase;color:#fff;border:1px solid #ccc;white-space:nowrap">Prem (&#8377;)<div style="font-weight:400;font-size:5px;color:rgba(255,255,255,0.7);text-transform:none">Y'day</div></th>
-        <th style="padding:1px 2px;text-align:center;font-size:6px;text-transform:uppercase;color:#fff;border:1px solid #ccc;white-space:nowrap">Today<div style="font-weight:400;font-size:5px;color:rgba(255,255,255,0.7);text-transform:none">${todayLabel}</div></th>
-        <th style="padding:1px 2px;text-align:center;font-size:6px;text-transform:uppercase;color:#fff;border:1px solid #ccc;white-space:nowrap">Today Prem (&#8377;)</th>
-        <th style="padding:1px 2px;text-align:center;font-size:6px;text-transform:uppercase;color:#fff;border:1px solid #ccc;white-space:nowrap">MTD<div style="font-weight:400;font-size:5px;color:rgba(255,255,255,0.7);text-transform:none">Count</div></th>
-        <th style="padding:1px 2px;text-align:center;font-size:6px;text-transform:uppercase;color:#fff;border:1px solid #ccc;white-space:nowrap">MTD Prem (&#8377;)</th>
-        <th style="padding:1px 2px;text-align:center;font-size:6px;text-transform:uppercase;color:#fff;border:1px solid #ccc">Share %</th>
+        <th style="padding:1px 2px;text-align:center;font-size:6px;text-transform:uppercase;color:#fff;border:1px solid var(--border);white-space:nowrap">Company</th>
+        <th style="padding:1px 2px;text-align:center;font-size:6px;text-transform:uppercase;color:#fff;border:1px solid var(--border);white-space:nowrap">Y'day<div style="font-weight:400;font-size:5px;color:rgba(255,255,255,0.7);text-transform:none">${yesterdayLabel}</div></th>
+        <th style="padding:1px 2px;text-align:center;font-size:6px;text-transform:uppercase;color:#fff;border:1px solid var(--border);white-space:nowrap">Prem (&#8377;)<div style="font-weight:400;font-size:5px;color:rgba(255,255,255,0.7);text-transform:none">Y'day</div></th>
+        <th style="padding:1px 2px;text-align:center;font-size:6px;text-transform:uppercase;color:#fff;border:1px solid var(--border);white-space:nowrap">Today<div style="font-weight:400;font-size:5px;color:rgba(255,255,255,0.7);text-transform:none">${todayLabel}</div></th>
+        <th style="padding:1px 2px;text-align:center;font-size:6px;text-transform:uppercase;color:#fff;border:1px solid var(--border);white-space:nowrap">Today Prem (&#8377;)</th>
+        <th style="padding:1px 2px;text-align:center;font-size:6px;text-transform:uppercase;color:#fff;border:1px solid var(--border);white-space:nowrap">MTD<div style="font-weight:400;font-size:5px;color:rgba(255,255,255,0.7);text-transform:none">Count</div></th>
+        <th style="padding:1px 2px;text-align:center;font-size:6px;text-transform:uppercase;color:#fff;border:1px solid var(--border);white-space:nowrap">MTD Prem (&#8377;)</th>
+        <th style="padding:1px 2px;text-align:center;font-size:6px;text-transform:uppercase;color:#fff;border:1px solid var(--border)">Share %</th>
       </tr></thead><tbody>`;
   sorted.forEach(([comp, vals], i) => {
     const share = mtdSum ? (vals.mtd / mtdSum * 100).toFixed(1) : 0;
-    h += `<tr style="border-bottom:1px solid #ccc">
-      <td style="padding:1px 2px;font-weight:600;color:#000;font-size:6px;text-align:center;border:1px solid #ccc;white-space:nowrap">${esc(comp)}</td>
-      <td style="padding:1px 2px;text-align:center;border:1px solid #ccc"><span style="background:#555;color:#fff;padding:0 3px;border-radius:3px;font-weight:700;font-size:7px">${fmt(vals.yesterday)}</span></td>
-      <td style="padding:1px 2px;text-align:center;border:1px solid #ccc;font-weight:600;color:#000;font-size:6px;white-space:nowrap">${fmtRs(vals.yesterdayPremium)}</td>
-      <td style="padding:1px 2px;text-align:center;border:1px solid #ccc"><span style="background:#166534;color:#fff;padding:0 3px;border-radius:3px;font-weight:700;font-size:7px">${fmt(vals.today)}</span></td>
-      <td style="padding:1px 2px;text-align:center;border:1px solid #ccc;font-weight:600;color:#000;font-size:6px;white-space:nowrap">${fmtRs(vals.todayPremium)}</td>
-      <td style="padding:1px 2px;text-align:center;border:1px solid #ccc;font-weight:600;color:#000;font-size:7px">${fmt(vals.mtdCount)}</td>
-      <td style="padding:1px 2px;text-align:center;border:1px solid #ccc;font-weight:600;color:#000;font-size:6px;white-space:nowrap">${fmtRs(vals.mtd)}</td>
-      <td style="padding:1px 2px;text-align:center;border:1px solid #ccc"><span style="color:#000;font-size:6px">${share}%</span></td>
+    h += `<tr style="border-bottom:1px solid var(--border)">
+      <td style="padding:1px 2px;font-weight:600;color:var(--fg);font-size:6px;text-align:center;border:1px solid var(--border);white-space:nowrap">${esc(comp)}</td>
+      <td style="padding:1px 2px;text-align:center;border:1px solid var(--border)"><span style="background:var(--yday-bg);color:#fff;padding:0 3px;border-radius:3px;font-weight:700;font-size:7px">${fmt(vals.yesterday)}</span></td>
+      <td style="padding:1px 2px;text-align:center;border:1px solid var(--border);font-weight:600;color:var(--fg);font-size:6px;white-space:nowrap">${fmtRs(vals.yesterdayPremium)}</td>
+      <td style="padding:1px 2px;text-align:center;border:1px solid var(--border)"><span style="background:var(--today-bg);color:#fff;padding:0 3px;border-radius:3px;font-weight:700;font-size:7px">${fmt(vals.today)}</span></td>
+      <td style="padding:1px 2px;text-align:center;border:1px solid var(--border);font-weight:600;color:var(--fg);font-size:6px;white-space:nowrap">${fmtRs(vals.todayPremium)}</td>
+      <td style="padding:1px 2px;text-align:center;border:1px solid var(--border);font-weight:600;color:var(--fg);font-size:7px">${fmt(vals.mtdCount)}</td>
+      <td style="padding:1px 2px;text-align:center;border:1px solid var(--border);font-weight:600;color:var(--fg);font-size:6px;white-space:nowrap">${fmtRs(vals.mtd)}</td>
+      <td style="padding:1px 2px;text-align:center;border:1px solid var(--border)"><span style="color:var(--fg);font-size:6px">${share}%</span></td>
     </tr>`;
   });
   const totalYesterday = sorted.reduce((s,[_,v]) => s + v.yesterday, 0);
@@ -1197,15 +1199,15 @@ function buildDailyTable(data, filter, label, yesterday, yyy, yesterdayLabel) {
   const totalTodayPrem = sorted.reduce((s,[_,v]) => s + v.todayPremium, 0);
   const totalMtdCount = sorted.reduce((s,[_,v]) => s + v.mtdCount, 0);
   const totalMtd = sorted.reduce((s,[_,v]) => s + v.mtd, 0);
-  h += `<tr class="daily-total" style="background:#555;font-weight:700;border-top:1px solid #ccc">
-    <td style="padding:1px 2px;color:#fff;font-size:6px;text-align:center;border:1px solid #ccc;background:#555">Total</td>
-    <td style="padding:1px 2px;text-align:center;border:1px solid #ccc;background:#555"><span style="background:#333;color:#fff;padding:0 3px;border-radius:3px;font-size:7px">${fmt(totalYesterday)}</span></td>
-    <td style="padding:1px 2px;text-align:center;border:1px solid #ccc;font-size:6px;white-space:nowrap;font-weight:700;color:#fff;background:#555">${fmtRs(totalYesterdayPrem)}</td>
-    <td style="padding:1px 2px;text-align:center;border:1px solid #ccc;background:#555"><span style="background:#166534;color:#fff;padding:0 3px;border-radius:3px;font-size:7px">${fmt(totalToday)}</span></td>
-    <td style="padding:1px 2px;text-align:center;border:1px solid #ccc;font-size:6px;white-space:nowrap;font-weight:700;color:#fff;background:#555">${fmtRs(totalTodayPrem)}</td>
-    <td style="padding:1px 2px;text-align:center;border:1px solid #ccc;font-size:7px;font-weight:700;color:#fff;background:#555">${fmt(totalMtdCount)}</td>
-    <td style="padding:1px 2px;text-align:center;border:1px solid #ccc;font-size:6px;white-space:nowrap;font-weight:700;color:#fff;background:#555">${fmtRs(totalMtd)}</td>
-    <td style="padding:1px 2px;text-align:center;border:1px solid #ccc;font-size:6px;color:#fff;background:#555">100%</td>
+  h += `<tr class="daily-total" style="background:var(--yday-bg);font-weight:700;border-top:1px solid var(--border)">
+    <td style="padding:1px 2px;color:#fff;font-size:6px;text-align:center;border:1px solid var(--border);background:var(--yday-bg)">Total</td>
+    <td style="padding:1px 2px;text-align:center;border:1px solid var(--border);background:var(--yday-bg)"><span style="background:var(--daily-head-bg);color:#fff;padding:0 3px;border-radius:3px;font-size:7px">${fmt(totalYesterday)}</span></td>
+    <td style="padding:1px 2px;text-align:center;border:1px solid var(--border);font-size:6px;white-space:nowrap;font-weight:700;color:#fff;background:var(--yday-bg)">${fmtRs(totalYesterdayPrem)}</td>
+    <td style="padding:1px 2px;text-align:center;border:1px solid var(--border);background:var(--yday-bg)"><span style="background:var(--today-bg);color:#fff;padding:0 3px;border-radius:3px;font-size:7px">${fmt(totalToday)}</span></td>
+    <td style="padding:1px 2px;text-align:center;border:1px solid var(--border);font-size:6px;white-space:nowrap;font-weight:700;color:#fff;background:var(--yday-bg)">${fmtRs(totalTodayPrem)}</td>
+    <td style="padding:1px 2px;text-align:center;border:1px solid var(--border);font-size:7px;font-weight:700;color:#fff;background:var(--yday-bg)">${fmt(totalMtdCount)}</td>
+    <td style="padding:1px 2px;text-align:center;border:1px solid var(--border);font-size:6px;white-space:nowrap;font-weight:700;color:#fff;background:var(--yday-bg)">${fmtRs(totalMtd)}</td>
+    <td style="padding:1px 2px;text-align:center;border:1px solid var(--border);font-size:6px;color:#fff;background:var(--yday-bg)">100%</td>
   </tr>`;
   h += '</tbody></table></div></div>';
   return h;
@@ -1232,20 +1234,20 @@ function renderDailyPerformance(sourceData) {
   const filterOpts = ['all','New','Renewal','screenshot'];
   const isScreen = dailyFilter === 'screenshot';
 
-  let html = `<div style="background:#fff;border:1px solid #ccc;overflow:hidden">
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 8px;border-bottom:1px solid #ccc;background:linear-gradient(135deg,#333,#777)">
+  let html = `<div style="background:var(--surface);border:1px solid var(--border);overflow:hidden">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 8px;border-bottom:1px solid var(--border);background:var(--header-gradient)">
       <div style="display:flex;align-items:center;gap:6px">
-        <h3 style="font-size:10px;font-weight:600;display:flex;align-items:center;gap:4px;color:#fff">&#128202; Daily Performance</h3>
-        <select id="dailyTypeFilter" onchange="renderDailyPerformance(allData)" style="padding:1px 3px;border:1px solid #ccc;border-radius:2px;background:#fff;color:#333;font-size:7px;font-weight:500;outline:none;cursor:pointer;max-height:16px">
-          ${filterOpts.map(o => `<option value="${o}"${dailyFilter===o?' selected':''} style="font-size:7px">${o==='all'?'All':o==='screenshot'?'&#x1F4F7; Screenshot':o}</option>`).join('')}
+        <h3 style="font-size:10px;font-weight:600;display:flex;align-items:center;gap:4px;color:var(--header-fg)">&#128202; Daily Performance</h3>
+        <select id="dailyTypeFilter" onchange="renderDailyPerformance(allData)" style="padding:1px 3px;border:1px solid var(--border);border-radius:2px;background:var(--surface);color:var(--fg-muted);font-size:7px;font-weight:500;outline:none;cursor:pointer;max-height:16px">
+          ${filterOpts.map(o => `<option value="${o}"${dailyFilter===o?' selected':''} style="font-size:7px;background:var(--menu-bg);color:var(--menu-fg)">${o==='all'?'All':o==='screenshot'?'&#x1F4F7; Screenshot':o}</option>`).join('')}
         </select>
-        ${isScreen?'<span onclick="document.getElementById(\'dailyTypeFilter\').value=\'all\';renderDailyPerformance(allData)" style="cursor:pointer;font-size:10px;color:#fff;opacity:.7;background:rgba(255,255,255,0.15);padding:0 6px;border-radius:3px" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.7">&#x2715; Close</span>':''}
-        <span onclick="downloadDailyPDF()" style="cursor:pointer;font-size:10px;color:#fff;background:rgba(255,255,255,0.2);padding:0 6px;border-radius:3px;border:1px solid rgba(255,255,255,0.3)" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.7" title="Download PDF">&#x2913; PDF</span>
+        ${isScreen?'<span onclick="document.getElementById(\'dailyTypeFilter\').value=\'all\';renderDailyPerformance(allData)" style="cursor:pointer;font-size:10px;color:var(--header-fg);opacity:.7;background:var(--control-bg);padding:0 6px;border-radius:3px" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.7">&#x2715; Close</span>':''}
+        <span onclick="downloadDailyPDF()" style="cursor:pointer;font-size:10px;color:var(--header-fg);background:var(--control-bg);padding:0 6px;border-radius:3px;border:1px solid var(--control-border)" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.7" title="Download PDF">&#x2913; PDF</span>
       </div>
       <div style="display:flex;align-items:center;gap:4px">
-        <span onclick="toggleDailyView()" style="cursor:pointer;font-size:13px;color:#fff;opacity:.7;transition:.15s;margin-right:2px" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.7" title="Toggle daily fullscreen">&#x2630;</span>
-        <span onclick="onDailyRefresh()" style="cursor:pointer;font-size:11px;color:#fff;opacity:.7;transition:.15s" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.7" title="Refresh daily data">&#x21BB;</span>
-        <span style="font-size:8px;color:#fff;background:rgba(255,255,255,0.15);padding:1px 6px;border-radius:8px;border:1px solid rgba(255,255,255,0.3)">${monthLabel}</span>
+        <span onclick="toggleDailyView()" style="cursor:pointer;font-size:13px;color:var(--header-fg);opacity:.7;transition:.15s;margin-right:2px" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.7" title="Toggle daily fullscreen">&#x2630;</span>
+        <span onclick="onDailyRefresh()" style="cursor:pointer;font-size:11px;color:var(--header-fg);opacity:.7;transition:.15s" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.7" title="Refresh daily data">&#x21BB;</span>
+        <span style="font-size:8px;color:var(--header-fg);background:var(--control-bg);padding:1px 6px;border-radius:8px;border:1px solid var(--control-border)">${monthLabel}</span>
       </div>
     </div>`;
 
