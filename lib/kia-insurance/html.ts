@@ -22,10 +22,12 @@ export function transformHtml(content: string): string {
 }
 
 function injectNav(content: string): string {
-  const navStyle = 'display:flex;align-items:center;gap:4px;padding:4px 12px;background:#f0f4ff;border-bottom:1px solid #d0dce8;flex-shrink:0;flex-wrap:wrap'
-  const tabStyle = 'padding:4px 12px;border:1px solid #d0dce8;border-radius:6px;font-size:11px;text-decoration:none;background:#fff;color:#333;transition:.1s'
-  const activeStyle = 'padding:4px 12px;border:1px solid #002db3;border-radius:6px;font-size:11px;text-decoration:none;background:#002db3;color:#fff;font-weight:600'
-  const adminBtnStyle = 'margin-left:auto;padding:3px 10px;border-radius:6px;font-size:10px;text-decoration:none;background:#1e40af;color:#fff;font-weight:600;border:none;cursor:pointer;transition:.1s'
+  const navStyle = 'display:flex;align-items:center;gap:4px;padding:4px 12px;background:var(--panel,#f0f4ff);border-bottom:1px solid var(--border,#d0dce8);flex-shrink:0;flex-wrap:wrap'
+  const tabStyle = 'padding:4px 12px;border:1px solid var(--border,#d0dce8);border-radius:6px;font-size:11px;text-decoration:none;background:var(--card,#fff);color:var(--muted,#333);transition:.1s'
+  const activeStyle = 'padding:4px 12px;border:1px solid var(--accent,#002db3);border-radius:6px;font-size:11px;text-decoration:none;background:var(--accent,#002db3);color:#fff;font-weight:600'
+  const adminBtnStyle = 'margin-left:8px;padding:3px 10px;border-radius:6px;font-size:10px;text-decoration:none;background:var(--accent,#1e40af);color:#fff;font-weight:600;border:none;cursor:pointer;transition:.1s'
+  const selectWrapStyle = 'margin-left:auto;display:flex;align-items:center;gap:6px'
+  const selectLabelStyle = 'font-size:10px;color:var(--muted,#333);font-weight:600'
   const pageLinks = [
     { path: '/dashboard', label: 'Data Analysis', dataPage: 'dashboard' },
     { path: '/performance', label: 'Performance Table', dataPage: 'performance' },
@@ -36,9 +38,11 @@ function injectNav(content: string): string {
   for (const link of pageLinks) {
     navHtml += '<a href="' + link.path + '" style="' + tabStyle + '" data-page="' + link.dataPage + '">' + link.label + '</a>'
   }
+  navHtml += '<div id="insThemeWrap" style="' + selectWrapStyle + '"><span style="' + selectLabelStyle + '">Theme</span><select id="themeSelect" class="theme-select" title="Theme"></select></div>'
   navHtml += '<a href="/login" style="' + adminBtnStyle + '">Admin Login</a>'
   navHtml += '</div>'
   navHtml += '<script>(function(){var p=window.location.pathname.replace(/\\/+$/,"");var links=document.getElementById("insNav").querySelectorAll("a");for(var i=0;i<links.length;i++){if(p.endsWith(links[i].getAttribute("data-page"))){links[i].style.cssText="' + activeStyle + '"}}})()<' + '/script>'
+  navHtml += '<script src="/theme.js"></script>'
   return content.replace('<body>', '<body>' + navHtml)
 }
 
