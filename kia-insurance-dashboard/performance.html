@@ -20,6 +20,7 @@
   --scroll-thumb:#d0dce8; --scroll-track:transparent;
   --modal-bg:#fff;
   --yday-bg:#555; --today-bg:#166534; --daily-head-bg:#333;
+  --pos-fg:#166534; --neg-fg:#dc2626; --nv-bg:#fee2e2; --nv-fg:#dc2626;
 }
 .theme-select { padding:1px 6px; margin-left:8px; border:1px solid var(--control-border); border-radius:3px; background:var(--control-bg); color:var(--control-fg); font-size:10px; font-weight:600; cursor:pointer; outline:none; max-width:170px; }
 .theme-select option { background:#1f2937; color:#fff; }
@@ -141,7 +142,8 @@ tr.total td { font-weight:800; background:var(--total-bg); border-top:3px solid 
     'button-bg':'#333', 'button-hover':'#555', 'button-fg':'#fff', 'button-border':'rgba(255,255,255,.4)',
     'scroll-thumb':'#d0dce8', 'scroll-track':'transparent',
     'modal-bg':'#fff',
-    'yday-bg':'#555', 'today-bg':'#166534', 'daily-head-bg':'#333'
+    'yday-bg':'#555', 'today-bg':'#166534', 'daily-head-bg':'#333',
+    'pos-fg':'#166534', 'neg-fg':'#dc2626', 'nv-bg':'#fee2e2', 'nv-fg':'#dc2626'
   };
   var THEMES = [
     { name:'Classic Blue', d:'Linear-default:', patch:{ } },
@@ -1005,15 +1007,15 @@ function renderInfo(stats, totals, ly, cy, allCyVins, allLyVins) {
   if (totalLy) {
     const g = (totalCy / totalLy * 100);
     const absG = g.toFixed(1);
-    const gColor = g < 100 ? '#dc2626' : '#166534';
+    const gColor = g < 100 ? 'var(--neg-fg)' : 'var(--pos-fg)';
     growthHtml = `<span style="font-weight:600;color:${gColor}">${absG}%</span>`;
   }
   document.getElementById('infoBar').innerHTML = `
-    <div class="info-box" style="border-left:3px solid #333"><div class="num">${fmt(totalLy)}</div><div><div class="lbl">${ly} Total VINs</div><div class="sub">LY policies</div></div></div>
-    <div class="info-box" style="border-left:3px solid #444"><div class="num">${fmt(totalCy)}</div><div><div class="lbl">${cy} Total VINs</div><div class="sub">CY policies</div></div></div>
-    <div class="info-box" style="border-left:3px solid #555"><div class="num">${growthHtml}</div><div><div class="lbl">Achieved %</div><div class="sub">CY vs LY</div></div></div>
-    <div class="info-box" style="border-left:3px solid #ccc"><div class="num">${fmt(totals.cy.notVisited)}</div><div><div class="lbl">Not Visited</div><div class="sub">In LY not in CY</div></div></div>
-    <div class="info-box" style="border-left:3px solid #ccc"><div class="num">${periodLabel}</div><div><div class="lbl">Period</div><div class="sub">${cy} vs ${ly}</div></div></div>
+    <div class="info-box" style="border-left:3px solid var(--fg-soft)"><div class="num">${fmt(totalLy)}</div><div><div class="lbl">${ly} Total VINs</div><div class="sub">LY policies</div></div></div>
+    <div class="info-box" style="border-left:3px solid var(--fg-muted)"><div class="num">${fmt(totalCy)}</div><div><div class="lbl">${cy} Total VINs</div><div class="sub">CY policies</div></div></div>
+    <div class="info-box" style="border-left:3px solid var(--accent)"><div class="num">${growthHtml}</div><div><div class="lbl">Achieved %</div><div class="sub">CY vs LY</div></div></div>
+    <div class="info-box" style="border-left:3px solid var(--border)"><div class="num">${fmt(totals.cy.notVisited)}</div><div><div class="lbl">Not Visited</div><div class="sub">In LY not in CY</div></div></div>
+    <div class="info-box" style="border-left:3px solid var(--border)"><div class="num">${periodLabel}</div><div><div class="lbl">Period</div><div class="sub">${cy} vs ${ly}</div></div></div>
   `;
 }
 
@@ -1026,7 +1028,7 @@ function renderTable(stats, totals, ly, cy, typeFilter, minMonth, maxMonth) {
   const filteredStats = isYtd ? stats : stats.filter(r => r.month >= minMonth && r.month <= maxMonth);
   const types = typeFilter === 'all' ? ['new','renewal','rollover','rolloverRenew','overall','notVisited'] : [typeFilter];
   const typeLabels = { new:'New', renewal:'Renewal', rollover:'Rollover', rolloverRenew:'Rollover→Renew', overall:'Overall', notVisited:'Not Visited' };
-  const typeColors = { new:'#333', renewal:'#333', rollover:'#333', rolloverRenew:'#333', overall:'#333', notVisited:'#333' };
+  const typeColors = { new:'var(--thead-bg)', renewal:'var(--thead-bg)', rollover:'var(--thead-bg)', rolloverRenew:'var(--thead-bg)', overall:'var(--thead-bg)', notVisited:'var(--thead-bg)' };
 
   if (filteredStats.length === 0) {
     document.getElementById('tableContainer').innerHTML = '<div class="empty">No data for selected date range</div>';
@@ -1038,15 +1040,15 @@ function renderTable(stats, totals, ly, cy, typeFilter, minMonth, maxMonth) {
   types.forEach((t, idx) => {
     const color = typeColors[t];
     const isLast = idx === types.length - 1;
-    html += `<th colspan="3" style="color:#fff;background:${color};border-bottom:2px solid ${color};${!isLast ? 'border-right:3px solid #ccc;' : ''}padding:2px 4px;font-size:7px;white-space:nowrap;min-width:60px">${typeLabels[t]}</th>`;
+    html += `<th colspan="3" style="color:var(--thead-fg);background:${color};border-bottom:2px solid ${color};${!isLast ? 'border-right:3px solid var(--border);' : ''}padding:2px 4px;font-size:7px;white-space:nowrap;min-width:60px">${typeLabels[t]}</th>`;
   });
   html += '</tr><tr>';
   html += '<th class="month-col" style="background:transparent"></th>';
   types.forEach((t) => {
     if (t === 'notVisited') {
-      html += `<th style="color:#fff;padding:2px 3px;font-size:7px;min-width:30px" colspan="3">Count</th>`;
+      html += `<th style="color:var(--thead-fg);padding:2px 3px;font-size:7px;min-width:30px" colspan="3">Count</th>`;
     } else {
-      html += `<th style="color:#fff;padding:2px 3px;font-size:7px;min-width:22px">LY #</th><th style="color:#fff;padding:2px 3px;font-size:7px;min-width:22px">CY #</th><th style="color:#fff;padding:2px 3px;font-size:7px;min-width:30px">Achieved %</th>`;
+      html += `<th style="color:var(--thead-fg);padding:2px 3px;font-size:7px;min-width:22px">LY #</th><th style="color:var(--thead-fg);padding:2px 3px;font-size:7px;min-width:22px">CY #</th><th style="color:var(--thead-fg);padding:2px 3px;font-size:7px;min-width:30px">Achieved %</th>`;
     }
   });
   html += '</tr></thead><tbody>';
@@ -1058,10 +1060,10 @@ function renderTable(stats, totals, ly, cy, typeFilter, minMonth, maxMonth) {
     html += `<td class="month-cell" style="padding:2px 4px;font-size:8px">${months[r.month - 1]}</td>`;
     types.forEach((t, ti) => {
       const isLastType = ti === types.length - 1;
-      const growthBorder = isLastType ? '' : 'border-right:2px solid #ccc;';
+      const growthBorder = isLastType ? '' : 'border-right:2px solid var(--border);';
       if (t === 'notVisited') {
         const cyVal = r.cy[t] || 0;
-html += `<td style="padding:2px 3px;${growthBorder}" colspan="3"><span class="val-box" style="font-size:8px;min-width:32px;padding:1px 3px;background:#fee2e2;color:#dc2626;border:none">${fmt(cyVal)}</span></td>`;
+html += `<td style="padding:2px 3px;${growthBorder}" colspan="3"><span class="val-box" style="font-size:8px;min-width:32px;padding:1px 3px;background:var(--nv-bg);color:var(--nv-fg);border:none">${fmt(cyVal)}</span></td>`;
       } else if (t === 'overall') {
         const lyGrowth = (r.ly ? (r.ly.new || 0) + (r.ly.renewal || 0) + (r.ly.rollover || 0) : 0);
         const cyVal = (r.cy.renewal || 0) + (r.cy.rollover || 0) + (r.cy.rolloverRenew || 0);
@@ -1088,10 +1090,10 @@ html += `<td style="padding:2px 3px;${growthBorder}" colspan="3"><span class="va
   html += '<td class="month-cell" style="padding:5px 4px;font-size:10px;font-weight:800">Total</td>';
   types.forEach((t, ti) => {
     const isLastType = ti === types.length - 1;
-    const growthBorder = isLastType ? '' : 'border-right:2px solid #ccc;';
+    const growthBorder = isLastType ? '' : 'border-right:2px solid var(--border);';
     if (t === 'notVisited') {
       const cyVal = ttl.cy[t] || 0;
-      html += `<td style="padding:5px 4px;${growthBorder}" colspan="3"><span class="val-box" style="font-size:10px;min-width:32px;padding:2px 4px;background:#fee2e2;color:#dc2626;border:none;font-weight:800">${fmt(cyVal)}</span></td>`;
+      html += `<td style="padding:5px 4px;${growthBorder}" colspan="3"><span class="val-box" style="font-size:10px;min-width:32px;padding:2px 4px;background:var(--nv-bg);color:var(--nv-fg);border:none;font-weight:800">${fmt(cyVal)}</span></td>`;
     } else if (t === 'overall') {
       const lyGrowth = ttl.ly.overall || 0;
       const cyVal = ttl.cy.overall || 0;
@@ -1165,8 +1167,8 @@ function buildDailyTable(data, filter, label, yesterday, yyy, yesterdayLabel) {
   const sorted = Object.entries(compMap).sort((a,b) => b[1].mtd - a[1].mtd);
   if (!sorted.length) return '';
   const mtdSum = sorted.reduce((s,[_,v]) => s + v.mtd, 0);
-  const labelColors = { all:'#333', New:'#333', Renewal:'#333' };
-  const color = labelColors[filter] || '#333';
+  const labelColors = { all:'var(--daily-head-bg)', New:'var(--daily-head-bg)', Renewal:'var(--daily-head-bg)' };
+  const color = labelColors[filter] || 'var(--daily-head-bg)';
   let h = `<div style="margin-top:${label==='All'?'0':'6px'};border:1px solid var(--border);overflow:hidden">
     <div style="display:flex;align-items:center;padding:2px 8px;background:${color};color:#fff;font-size:8px;font-weight:600">${label}</div>
     <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:7px;border:1px solid var(--border)">
@@ -1338,7 +1340,7 @@ function showDuplicates() {
       <td style="font-size:9px">${esc(group.length)}</td>
       <td style="font-size:10px">${esc(customer)}</td>
       <td style="font-size:10px">${esc(vins.join(', '))}</td>
-      <td style="font-size:10px">${companies.map(c => '<span style="background:#fee2e2;color:#dc2626;padding:0 5px;border-radius:3px;font-size:9px;margin:1px;display:inline-block">'+esc(c)+'</span>').join(' ')}</td>
+      <td style="font-size:10px">${companies.map(c => '<span style="background:var(--nv-bg);color:var(--nv-fg);padding:0 5px;border-radius:3px;font-size:9px;margin:1px;display:inline-block">'+esc(c)+'</span>').join(' ')}</td>
       <td style="font-size:9px">${esc(dates.join('<br>'))}</td>
     </tr>`;
   });
