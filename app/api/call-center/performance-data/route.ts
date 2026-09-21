@@ -52,7 +52,7 @@ export async function GET(req: Request) {
         netodpremiuma: Number(r.netodpremiuma) || 0,
         totalidv: Number(r.totalidv) || 0,
         policytype: r.policytype || null,
-        is_new: r.is_new || null,
+        is_new: r.policytype === 'New' ? 'Yes' : 'No',
         create_date: parsePortalDate(r.create_date),
         policy_expiry_date: parsePortalDate(r.policy_expiry_date),
         source: r.source || 'kia_safety',

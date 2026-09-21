@@ -1,8 +1,9 @@
 import pg from 'pg';
 const { Client } = pg;
 
+if (!process.env.DATABASE_URL) throw new Error('Set DATABASE_URL (Supabase connection string) before running this script');
 const client = new Client({
-  connectionString: 'postgresql://postgres:***REMOVED***@db.crreoeautoqzcgtlwlsd.supabase.co:5432/postgres'
+  connectionString: process.env.DATABASE_URL
 });
 
 await client.connect();

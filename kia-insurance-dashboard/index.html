@@ -270,6 +270,10 @@ Chart.register(labelPlugin);
 let allData=[], vinDetail=[], charts={};
 let curView='all', curChart='trend', curYear='all', curModel='all', curCompany='all';
 
+function esc(s) {
+  return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
 function getYear(s) {
   if (!s) return NaN;
   const m = s.match(/(\d{4})/);
@@ -318,22 +322,22 @@ async function loadData(bypassCache) {
     allData = allData.filter(r => r.cancelled !== 'Yes');
     const yrs = [...new Set(allData.map(r=>getYear(r.create_date)).filter(v=>!isNaN(v)).map(String))].sort();
     const sel = document.getElementById('yearSelect');
-    sel.innerHTML = '<option value="all">All Years</option>' + yrs.map(y=>'<option value="'+y+'">'+y+'</option>').join('');
+    sel.innerHTML = '<option value="all">All Years</option>' + yrs.map(y=>'<option value="'+esc(y)+'">'+esc(y)+'</option>').join('');
     const fromSel = document.getElementById('yearFrom'), toSel = document.getElementById('yearTo');
-    const opts = yrs.map(y=>'<option value="'+y+'">'+y+'</option>').join('');
+    const opts = yrs.map(y=>'<option value="'+esc(y)+'">'+esc(y)+'</option>').join('');
     fromSel.innerHTML = opts; toSel.innerHTML = opts;
     if(yrs.length>1) { fromSel.value=yrs[yrs.length-2]; toSel.value=yrs[yrs.length-1]; }
     const mths = [...new Set(allData.map(r=>getYm(r.create_date)).filter(Boolean))].sort();
     const mFrom = document.getElementById('monthFrom'), mTo = document.getElementById('monthTo');
-    const mOpts = mths.map(m=>'<option value="'+m+'">'+new Date(m+'-01').toLocaleString('en',{month:'short',year:'numeric'})+'</option>').join('');
+    const mOpts = mths.map(m=>'<option value="'+esc(m)+'">'+new Date(m+'-01').toLocaleString('en',{month:'short',year:'numeric'})+'</option>').join('');
     mFrom.innerHTML = mOpts; mTo.innerHTML = mOpts;
     if(mths.length>1) { mFrom.value=mths[mths.length-2]; mTo.value=mths[mths.length-1]; }
     const models = [...new Set(allData.map(r=>r.model).filter(Boolean))].sort();
     const mSel = document.getElementById('modelSelect');
-    mSel.innerHTML = '<option value="all">All Models</option>' + models.map(m=>'<option value="'+m+'">'+m+'</option>').join('');
+    mSel.innerHTML = '<option value="all">All Models</option>' + models.map(m=>'<option value="'+esc(m)+'">'+esc(m)+'</option>').join('');
     const companies = [...new Set(allData.map(r=>r.insurancecompany).filter(Boolean))].sort();
     const cSel = document.getElementById('companySelect');
-    cSel.innerHTML = '<option value="all">All Companies</option>' + companies.map(c=>'<option value="'+c+'">'+c+(c.length>25?'':'')+'</option>').join('');
+    cSel.innerHTML = '<option value="all">All Companies</option>' + companies.map(c=>'<option value="'+esc(c)+'">'+esc(c)+(c.length>25?'':'')+'</option>').join('');
     document.getElementById('updatedAt').textContent = new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
     render();
   } catch(e) {
@@ -759,7 +763,7 @@ function drawCalculations(d) {
   if (hasChartData) allRows.push(...['', '', '', ''], ['── Current Chart Data ──', chartTitle(), chartHint(), ''], ...chartRows);
   const closeBtn = '<button onclick="setChart(\'trend\')" style="float:right;padding:4px 12px;border:1px solid var(--border);border-radius:6px;background:var(--card);color:var(--muted);font-size:11px;cursor:pointer">✕ Close</button>';
   return `<div class="chart-section" style="overflow:auto"><h3>${closeBtn}🧮 Calculations & Logic <span class="hint">How each metric is derived</span></h3><div style="overflow:auto;max-height:500px"><table style="font-size:11px;width:100%"><thead><tr><th style="position:sticky;top:0;background:var(--panel);padding:6px 10px;text-align:left">Metric</th><th style="position:sticky;top:0;background:var(--panel);padding:6px 10px;text-align:left">Logic</th><th style="position:sticky;top:0;background:var(--panel);padding:6px 10px;text-align:left">Current Value</th><th style="position:sticky;top:0;background:var(--panel);padding:6px 10px;text-align:left">Formula</th></tr></thead><tbody>${
-    allRows.map(r=>r[0]?'<tr>'+r.map(c=>'<td style="padding:5px 10px;border-bottom:1px solid var(--border);color:'+(r[0].startsWith('──')?'#fff':r[0].startsWith('KPI')?'var(--accent)':'var(--text)')+';'+(r[0].startsWith('──')?'font-weight:700;':r[0].startsWith('Cancel')||r[0].startsWith('Due Policy')?'font-weight:600;':'')+'">'+c+'</td>').join('')+'</tr>':'').join('')
+    allRows.map(r=>r[0]?'<tr>'+r.map(c=>'<td style="padding:5px 10px;border-bottom:1px solid var(--border);color:'+(r[0].startsWith('──')?'#fff':r[0].startsWith('KPI')?'var(--accent)':'var(--text)')+';'+(r[0].startsWith('──')?'font-weight:700;':r[0].startsWith('Cancel')||r[0].startsWith('Due Policy')?'font-weight:600;':'')+'">'+esc(c)+'</td>').join('')+'</tr>':'').join('')
   }</tbody></table></div></div>`;
 }
 
@@ -781,10 +785,10 @@ function getTableData(d) {
     if(curView==='new') v=v.filter(r=>r.status==='New');
     else if(curView==='renewal') v=v.filter(r=>r.status==='Active');
     else if(curView==='high') v=v.filter(r=>r.lastPremium>=50000);
-    return v.slice(0,15).map(r=>`<tr><td style="font-family:monospace;font-size:10px">${r.vin}</td><td>${r.customer}</td><td>${r.model}</td><td><span class="badge ${r.status==='Active'?'green':r.status==='New'?'blue':'red'}">${r.status}</span></td><td>₹${fmt(r.lastPremium)}</td><td>${r.lastDate}</td></tr>`);
+    return v.slice(0,15).map(r=>`<tr><td style="font-family:monospace;font-size:10px">${esc(r.vin)}</td><td>${esc(r.customer)}</td><td>${esc(r.model)}</td><td><span class="badge ${r.status==='Active'?'green':r.status==='New'?'blue':'red'}">${esc(r.status)}</span></td><td>₹${fmt(r.lastPremium)}</td><td>${esc(r.lastDate)}</td></tr>`);
   }
   const sorted=[...d].sort((a,b)=>(Number(b.netodpremiuma)||0)-(Number(a.netodpremiuma)||0));
-  return sorted.slice(0,15).map(r=>`<tr><td style="font-family:monospace;font-size:10px">${r.policyno||'-'}</td><td>${r.customer_name||'-'}</td><td>${r.model||'-'}</td><td>${(r.insurancecompany||'-').substring(0,22)}</td><td><strong>₹${fmt(Number(r.netodpremiuma)||0)}</strong></td><td>${r.create_date||'-'}</td></tr>`);
+  return sorted.slice(0,15).map(r=>`<tr><td style="font-family:monospace;font-size:10px">${esc(r.policyno||'-')}</td><td>${esc(r.customer_name||'-')}</td><td>${esc(r.model||'-')}</td><td>${esc((r.insurancecompany||'-').substring(0,22))}</td><td><strong>₹${fmt(Number(r.netodpremiuma)||0)}</strong></td><td>${esc(r.create_date||'-')}</td></tr>`);
 }
 
 function toggleToolbar() {

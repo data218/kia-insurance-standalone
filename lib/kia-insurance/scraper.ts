@@ -273,6 +273,7 @@ function normalizeValue(value: string | null | undefined, colName: string): stri
   const trimmed = String(value).trim()
   if (DATE_DB_COLUMNS.has(colName)) return parseDateValue(trimmed)
   if (NUMERIC_DB_COLUMNS.has(colName)) return parseNumericValue(trimmed)
+  if (colName === 'policyno') return trimmed.replace(/^`+/, '') || null
   return trimmed || null
 }
 

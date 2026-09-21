@@ -32,7 +32,7 @@ export async function GET(req: Request) {
           model: r.model || '',
           lastPremium: Number(r.netodpremiuma) || 0,
           lastDate: d,
-          status: r.is_new === 'Yes' ? 'New' : 'Active',
+          status: r.policytype === 'New' ? 'New' : 'Active',
         }
       }
     }

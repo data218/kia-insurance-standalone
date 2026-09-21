@@ -561,6 +561,9 @@ let dropdownOptions = { models: [], insurers: [] };
 
 var storedAgents = [];
 function getAgents() { return storedAgents; }
+function esc(s) {
+  return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
 async function fetchAgents() {
   try {
     var res = await fetch(authUrl('/api/agents'), { cache: 'no-store' });
@@ -594,8 +597,8 @@ function renderAgentList() {
   agents.forEach(function(a) {
     var isCustom = stored.indexOf(a) !== -1;
     h += '<div class="agent-item">' +
-      '<span class="agent-name">' + a + (isCustom ? '' : ' <span style="font-size:8px;color:var(--muted)">(from leads)</span>') + '</span>' +
-      (isCustom ? '<button class="agent-remove" onclick="removeAgent(\'' + a.replace(/'/g,"\\'") + '\')">Remove</button>' : '') +
+      '<span class="agent-name">' + esc(a) + (isCustom ? '' : ' <span style="font-size:8px;color:var(--muted)">(from leads)</span>') + '</span>' +
+      (isCustom ? '<button class="agent-remove" onclick="removeAgent(\'' + esc(a).replace(/&#39;/g,"\\'") + '\')">Remove</button>' : '') +
       '</div>';
   });
   document.getElementById('agentList').innerHTML = h;
@@ -635,7 +638,7 @@ async function removeAgent(name) {
 function populateAgentDropdowns() {
   var agents = getAllAgentsList();
   var opts = '<option value="">Select agent...</option>';
-  agents.forEach(function(a) { opts += '<option value="' + a + '">' + a + '</option>'; });
+  agents.forEach(function(a) { opts += '<option value="' + esc(a) + '">' + esc(a) + '</option>'; });
   var sel = document.getElementById('agentName');
   var current = sel.value;
   sel.innerHTML = opts;
@@ -674,8 +677,8 @@ function renderSourceList() {
   sources.forEach(function(s) {
     var isCustom = stored.indexOf(s) !== -1;
     h += '<div class="agent-item">' +
-      '<span class="agent-name">' + s + (isCustom ? '' : ' <span style="font-size:8px;color:var(--muted)">(from leads)</span>') + '</span>' +
-      (isCustom ? '<button class="agent-remove" onclick="removeSource(\'' + s.replace(/'/g,"\\'") + '\')">Remove</button>' : '') +
+      '<span class="agent-name">' + esc(s) + (isCustom ? '' : ' <span style="font-size:8px;color:var(--muted)">(from leads)</span>') + '</span>' +
+      (isCustom ? '<button class="agent-remove" onclick="removeSource(\'' + esc(s).replace(/&#39;/g,"\\'") + '\')">Remove</button>' : '') +
       '</div>';
   });
   document.getElementById('sourceList').innerHTML = h;
@@ -715,7 +718,7 @@ async function removeSource(name) {
 function populateSourceDropdowns() {
   var sources = getAllSourcesList();
   var opts = '<option value="">Select source...</option>';
-  sources.forEach(function(s) { opts += '<option value="' + s + '">' + s + '</option>'; });
+  sources.forEach(function(s) { opts += '<option value="' + esc(s) + '">' + esc(s) + '</option>'; });
   ['alLeadSource', 'elLeadSource'].forEach(function(id) {
     var sel = document.getElementById(id);
     if (!sel) return;
@@ -815,7 +818,7 @@ function fmtDateShort(d) {
   var v = d.slice(0,10);
   if (v.indexOf('-') !== 2 && v.indexOf('-') !== 4) return v;
   var p = v.split('-');
-  if (p.length === 3) return p[1] + '-' + p[0];
+  if (p.length === 3) return p[2] + '-' + p[1];
   return v;
 }
 function fmtDT(d) {
@@ -823,7 +826,7 @@ function fmtDT(d) {
   var dt = new Date(d);
   if (isNaN(dt.getTime())) return d;
   var pad = function(n){ return String(n).padStart(2,'0'); };
-  return pad(dt.getDate()) + '-' + pad(dt.getMonth()+1) + ' ' + pad(dt.getHours()) + ':' + pad(dt.getMinutes());
+  return pad(dt.getDate()) + '-' + pad(dt.getMonth()+1) + '-' + dt.getFullYear() + ' ' + pad(dt.getHours()) + ':' + pad(dt.getMinutes());
 }
 
 function renderStats() {
@@ -848,32 +851,32 @@ function renderStats() {
   var byModel = {};
   allLeads.forEach(function(l){ var m = (l.model || '-').trim().toUpperCase(); byModel[m] = (byModel[m]||0) + 1; });
   var chips = '';
-  Object.keys(byModel).sort().forEach(function(m){ chips += '<span class="chip">' + m + ' <b>' + byModel[m] + '</b></span>'; });
+  Object.keys(byModel).sort().forEach(function(m){ chips += '<span class="chip">' + esc(m) + ' <b>' + byModel[m] + '</b></span>'; });
   document.getElementById('chipRow').innerHTML = chips || '';
 }
 
 function renderFilters() {
   var modelOpts = '<option value="all">All Models</option>';
   var modelKeys = new Set(allLeads.map(function(l){ return (l.model||'-').trim().toUpperCase(); }));
-  [...modelKeys].sort().forEach(function(m){ modelOpts += '<option value="' + m.replace(/"/g,'&quot;') + '"' + (filterModel===m?' selected':'') + '>' + m + '</option>'; });
+  [...modelKeys].sort().forEach(function(m){ modelOpts += '<option value="' + esc(m) + '"' + (filterModel===m?' selected':'') + '>' + esc(m) + '</option>'; });
   document.getElementById('filterModel').innerHTML = modelOpts;
 
   var insOpts = '<option value="all">All Insurers</option>';
-  [...new Set(allLeads.map(function(l){return l.insurancecompany||'-';}))].sort().forEach(function(ins){ insOpts += '<option value="' + ins.replace(/"/g,'&quot;') + '"' + (filterInsurer===ins?' selected':'') + '>' + ins + '</option>'; });
+  [...new Set(allLeads.map(function(l){return l.insurancecompany||'-';}))].sort().forEach(function(ins){ insOpts += '<option value="' + esc(ins) + '"' + (filterInsurer===ins?' selected':'') + '>' + esc(ins) + '</option>'; });
   document.getElementById('filterInsurer').innerHTML = insOpts;
 
   var agOpts = '<option value="all">All Agents</option>';
-  getAllAgentsList().forEach(function(a){ agOpts += '<option value="' + a.replace(/"/g,'&quot;') + '"' + (filterAgent===a?' selected':'') + '>' + a + '</option>'; });
+  getAllAgentsList().forEach(function(a){ agOpts += '<option value="' + esc(a) + '"' + (filterAgent===a?' selected':'') + '>' + esc(a) + '</option>'; });
   document.getElementById('filterAgent').innerHTML = agOpts;
 
   var srcOpts = '<option value="all">All Sources</option>';
-  getAllSourcesList().forEach(function(s){ srcOpts += '<option value="' + s.replace(/"/g,'&quot;') + '"' + (filterSource===s?' selected':'') + '>' + s + '</option>'; });
+  getAllSourcesList().forEach(function(s){ srcOpts += '<option value="' + esc(s) + '"' + (filterSource===s?' selected':'') + '>' + esc(s) + '</option>'; });
   document.getElementById('filterSource').innerHTML = srcOpts;
 
   var stOpts = '<option value="all">All Statuses</option>';
   var order = ['Pending','Connected','Not Reachable','Follow-up','Not Interested','Policy Done','Wrong Number'];
   [...new Set(allLeads.map(function(l){return l.call_status||'Pending';}))].sort().forEach(function(s){
-    stOpts += '<option value="' + s + '"' + (filterStatus===s?' selected':'') + '>' + s + '</option>';
+    stOpts += '<option value="' + esc(s) + '"' + (filterStatus===s?' selected':'') + '>' + esc(s) + '</option>';
   });
   document.getElementById('filterStatus').innerHTML = stOpts;
 
@@ -885,7 +888,7 @@ function renderFilters() {
     '<option value="scheduled"' + (filterFollowup==='scheduled'?' selected':'') + '>Scheduled</option>' +
     '<option value="none"' + (filterFollowup==='none'?' selected':'') + '>No Follow-up</option>';
   fuDates.forEach(function(dt){
-    fuOpts += '<option value="' + dt + '"' + (filterFollowup===dt?' selected':'') + '>' + dt + '</option>';
+    fuOpts += '<option value="' + esc(dt) + '"' + (filterFollowup===dt?' selected':'') + '>' + esc(dt) + '</option>';
   });
   document.getElementById('filterFollowup').innerHTML = fuOpts;
 }
@@ -935,7 +938,7 @@ function fuItemsHtml(dates) {
   var h = '';
   dates.forEach(function(dt){
     var checked = tFuTemp.indexOf(dt) !== -1 ? ' checked' : '';
-    h += '<label class="ms-item"><input type="checkbox" value="' + dt + '"' + checked + ' onchange="toggleFuTemp(this.value,this.checked)"> ' + fmtFuDate(dt) + '</label>';
+    h += '<label class="ms-item"><input type="checkbox" value="' + esc(dt) + '"' + checked + ' onchange="toggleFuTemp(this.value,this.checked)"> ' + esc(fmtFuDate(dt)) + '</label>';
   });
   return h || '<div style="padding:8px;font-size:9px;color:rgba(255,255,255,.5)">No follow-up dates</div>';
 }
@@ -1063,7 +1066,7 @@ function fuTag(l) {
   var dd = daysUntil(l.follow_up_date);
   var cls = dd === 0 ? 'fu-today' : (dd < 0 ? 'fu-overdue' : 'fu-normal');
   var txt = dd === 0 ? 'Today' : (dd < 0 ? (-dd) + 'd overdue' : 'In ' + dd + 'd');
-  return '<span class="fu-tag ' + cls + '">&#128197; ' + fmtFuFull(l.follow_up_date) + ' (' + txt + ')</span>';
+  return '<span class="fu-tag ' + cls + '">&#128197; ' + esc(fmtFuFull(l.follow_up_date)) + ' (' + txt + ')</span>';
 }
 
 function renderTable(preserveFocus) {
@@ -1101,24 +1104,24 @@ function renderTable(preserveFocus) {
     var exp = expiryInfo(l.policy_expiry_date);
     var created = l.created_at ? fmtDate(l.created_at) : '-';
     var lastCall = l.last_call_date ? fmtDate(l.last_call_date) : '-';
-    var nameHtml = l.customer_name + (l.source_agent ? '<div style="font-size:8px;color:#8b5cf6;font-weight:700">' + l.source_agent + '</div>' : '');
+    var nameHtml = esc(l.customer_name) + (l.source_agent ? '<div style="font-size:8px;color:#8b5cf6;font-weight:700">' + esc(l.source_agent) + '</div>' : '');
     h += '<tr>' +
       '<td style="color:var(--text);font-weight:700;font-size:9px">' + (start + i + 1) + '</td>' +
       '<td style="font-size:10px;font-weight:800">' + nameHtml + '</td>' +
-      '<td><span style="font-weight:800;color:#1d4ed8;font-size:10px">' + (l.mobile_no||'-') + '</span></td>' +
-      '<td style="font-size:9px;font-family:monospace;color:var(--text)">' + (l.vinno||'-') + '</td>' +
-      '<td style="font-size:9px;font-family:monospace;color:#0ea5e9;font-weight:700">' + (l.reg_no||'-') + '</td>' +
-      '<td style="font-size:9px;font-weight:800">' + (l.model||'-').toUpperCase() + '</td>' +
-      '<td style="font-size:9px;font-family:monospace;color:var(--text)">' + l.policyno + '</td>' +
-      '<td><span class="exp-badge ' + exp.cls + '">' + exp.txt + '</span><div style="font-size:9px;color:var(--text);margin-top:1px">' + fmtDate(l.policy_expiry_date) + '</div></td>' +
-      '<td style="font-size:8px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)" title="' + (l.insurancecompany||'').replace(/"/g,'&quot;') + '">' + (l.insurancecompany||'-') + '</td>' +
-      '<td><span class="src-tag">' + (l.lead_source||'-') + '</span></td>' +
-      '<td>' + (l.source_agent ? '<span class="agent-tag">&#128100; ' + l.source_agent + '</span>' : '-') + '</td>' +
+      '<td><span style="font-weight:800;color:#1d4ed8;font-size:10px">' + esc(l.mobile_no||'-') + '</span></td>' +
+      '<td style="font-size:9px;font-family:monospace;color:var(--text)">' + esc(l.vinno||'-') + '</td>' +
+      '<td style="font-size:9px;font-family:monospace;color:#0ea5e9;font-weight:700">' + esc(l.reg_no||'-') + '</td>' +
+      '<td style="font-size:9px;font-weight:800">' + esc((l.model||'-').toUpperCase()) + '</td>' +
+      '<td style="font-size:9px;font-family:monospace;color:var(--text)">' + esc(l.policyno) + '</td>' +
+      '<td><span class="exp-badge ' + exp.cls + '">' + exp.txt + '</span><div style="font-size:9px;color:var(--text);margin-top:1px">' + esc(fmtDate(l.policy_expiry_date)) + '</div></td>' +
+      '<td style="font-size:8px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)" title="' + esc(l.insurancecompany||'') + '">' + esc(l.insurancecompany||'-') + '</td>' +
+      '<td><span class="src-tag">' + esc(l.lead_source||'-') + '</span></td>' +
+      '<td>' + (l.source_agent ? '<span class="agent-tag">&#128100; ' + esc(l.source_agent) + '</span>' : '-') + '</td>' +
       '<td>' + fuTag(l) + '</td>' +
-      '<td style="font-size:10px;font-weight:800;color:var(--text)">' + created + '</td>' +
-      '<td><span class="status-badge ' + statusClass(sc) + '">' + statusIcon(sc) + ' ' + sc + '</span></td>' +
-      '<td style="font-size:10px;font-weight:800;color:var(--text)">' + lastCall + '</td>' +
-      '<td style="font-size:9px;max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)" title="' + ((l.remarks || l.last_remarks)||'').replace(/"/g,'&quot;') + '">' + (l.remarks || l.last_remarks || '-') + '</td>' +
+      '<td style="font-size:10px;font-weight:800;color:var(--text)">' + esc(created) + '</td>' +
+      '<td><span class="status-badge ' + statusClass(sc) + '">' + statusIcon(sc) + ' ' + esc(sc) + '</span></td>' +
+      '<td style="font-size:10px;font-weight:800;color:var(--text)">' + esc(lastCall) + '</td>' +
+      '<td style="font-size:9px;max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)" title="' + esc((l.remarks || l.last_remarks)||'') + '">' + esc(l.remarks || l.last_remarks || '-') + '</td>' +
       '<td><div style="display:flex;gap:4px">' +
         '<button class="act-btn call" onclick="openCallModal(' + absIdx + ')" title="Log a call">&#128222; Call</button>' +
         '<button class="act-btn edit" onclick="openEditModal(' + absIdx + ')" title="Edit lead">&#9998;&#65039;</button>' +
@@ -1160,15 +1163,15 @@ function openCallModal(idx) {
   var sc = l.call_status || 'Pending';
   document.getElementById('custInfo').innerHTML =
     '<div class="cust-card-row">' +
-      '<div class="ci"><div class="lbl">Customer</div><div class="val">' + l.customer_name + '</div></div>' +
-      '<div class="ci"><div class="lbl">Contact</div><div class="val" style="color:#1d4ed8">' + (l.mobile_no || '<span style="color:#94a3b8">Not available</span>') + '</div></div>' +
-      '<div class="ci"><div class="lbl">Model</div><div class="val">' + l.model + '</div></div>' +
-      '<div class="ci"><div class="lbl">Reg No</div><div class="val mono">' + (l.reg_no || '-') + '</div></div>' +
-      '<div class="ci"><div class="lbl">Policy No</div><div class="val mono" style="font-size:10px">' + l.policyno + '</div></div>' +
-      '<div class="ci"><div class="lbl">VIN No</div><div class="val mono" style="font-size:10px">' + l.vinno + '</div></div>' +
-      '<div class="ci"><div class="lbl">Insurance</div><div class="val">' + (l.insurancecompany || '-') + '</div></div>' +
-      '<div class="ci"><div class="lbl">Policy Expiry</div><div class="val">' + fmtDate(l.policy_expiry_date) + '</div></div>' +
-      '<div class="ci"><div class="lbl">Status</div><div class="val"><span class="status-badge ' + statusClass(sc) + '">' + statusIcon(sc) + ' ' + sc + '</span></div></div>' +
+      '<div class="ci"><div class="lbl">Customer</div><div class="val">' + esc(l.customer_name) + '</div></div>' +
+      '<div class="ci"><div class="lbl">Contact</div><div class="val" style="color:#1d4ed8">' + (l.mobile_no ? esc(l.mobile_no) : '<span style="color:#94a3b8">Not available</span>') + '</div></div>' +
+      '<div class="ci"><div class="lbl">Model</div><div class="val">' + esc(l.model) + '</div></div>' +
+      '<div class="ci"><div class="lbl">Reg No</div><div class="val mono">' + esc(l.reg_no || '-') + '</div></div>' +
+      '<div class="ci"><div class="lbl">Policy No</div><div class="val mono" style="font-size:10px">' + esc(l.policyno) + '</div></div>' +
+      '<div class="ci"><div class="lbl">VIN No</div><div class="val mono" style="font-size:10px">' + esc(l.vinno) + '</div></div>' +
+      '<div class="ci"><div class="lbl">Insurance</div><div class="val">' + esc(l.insurancecompany || '-') + '</div></div>' +
+      '<div class="ci"><div class="lbl">Policy Expiry</div><div class="val">' + esc(fmtDate(l.policy_expiry_date)) + '</div></div>' +
+      '<div class="ci"><div class="lbl">Status</div><div class="val"><span class="status-badge ' + statusClass(sc) + '">' + statusIcon(sc) + ' ' + esc(sc) + '</span></div></div>' +
     '</div>';
   populateAgentDropdowns();
   var agentSel = document.getElementById('agentName');
@@ -1216,16 +1219,16 @@ function openHistoryModal(idx) {
   var l = allLeads[idx];
   document.getElementById('histCustInfo').innerHTML =
     '<div class="cust-card-row">' +
-      '<div class="ci"><div class="lbl">Customer</div><div class="val">' + l.customer_name + '</div></div>' +
-      '<div class="ci"><div class="lbl">Contact</div><div class="val" style="color:#1d4ed8">' + (l.mobile_no || '-') + '</div></div>' +
-      '<div class="ci"><div class="lbl">Model</div><div class="val">' + l.model + '</div></div>' +
-      '<div class="ci"><div class="lbl">Policy No</div><div class="val mono" style="font-size:10px">' + l.policyno + '</div></div>' +
-      '<div class="ci"><div class="lbl">Status</div><div class="val"><span class="status-badge ' + statusClass(l.call_status||'Pending') + '">' + (l.call_status||'Pending') + '</span></div></div>' +
+      '<div class="ci"><div class="lbl">Customer</div><div class="val">' + esc(l.customer_name) + '</div></div>' +
+      '<div class="ci"><div class="lbl">Contact</div><div class="val" style="color:#1d4ed8">' + esc(l.mobile_no || '-') + '</div></div>' +
+      '<div class="ci"><div class="lbl">Model</div><div class="val">' + esc(l.model) + '</div></div>' +
+      '<div class="ci"><div class="lbl">Policy No</div><div class="val mono" style="font-size:10px">' + esc(l.policyno) + '</div></div>' +
+      '<div class="ci"><div class="lbl">Status</div><div class="val"><span class="status-badge ' + statusClass(l.call_status||'Pending') + '">' + esc(l.call_status||'Pending') + '</span></div></div>' +
     '</div>';
   if (l.history && l.history.length) {
     var hh = '<table class="history-table"><tr><th>Date</th><th>Outcome</th><th>Agent</th><th>Remarks</th><th>Next Follow-up</th></tr>';
     l.history.forEach(function(h) {
-      hh += '<tr><td>' + fmtDT(h.date) + '</td><td><span class="status-badge ' + statusClass(h.outcome) + '">' + statusIcon(h.outcome) + ' ' + h.outcome + '</span></td><td>' + (h.agent||'-') + '</td><td style="font-size:10px;color:var(--muted)">' + (h.remarks||'-') + '</td><td>' + (h.follow_up ? fmtDateShort(h.follow_up) : '-') + '</td></tr>';
+      hh += '<tr><td>' + esc(fmtDT(h.date)) + '</td><td><span class="status-badge ' + statusClass(h.outcome) + '">' + statusIcon(h.outcome) + ' ' + esc(h.outcome) + '</span></td><td>' + esc(h.agent||'-') + '</td><td style="font-size:10px;color:var(--muted)">' + esc(h.remarks||'-') + '</td><td>' + (h.follow_up ? esc(fmtDate(h.follow_up)) : '-') + '</td></tr>';
     });
     hh += '</table>';
     document.getElementById('histList').innerHTML = hh;
@@ -1585,7 +1588,7 @@ function handleCsvFile(file) {
       h += '<div class="upload-preview-wrap"><table class="upload-preview"><tr>' +
         result.headers.map(function(c){ return '<th>' + c + '</th>'; }).join('') + '</tr>';
       result.rows.slice(0, 5).forEach(function(r) {
-        h += '<tr>' + result.headers.map(function(c){ return '<td>' + (r[c]===null?'':r[c]) + '</td>'; }).join('') + '</tr>';
+        h += '<tr>' + result.headers.map(function(c){ return '<td>' + esc(r[c]===null?'':r[c]) + '</td>'; }).join('') + '</tr>';
       });
       if (result.rows.length > 5) {
         h += '<tr><td colspan="' + result.headers.length + '" style="text-align:center;color:var(--muted);padding:8px">... and ' + (result.rows.length - 5) + ' more</td></tr>';

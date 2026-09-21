@@ -122,6 +122,7 @@ tr.total td { font-weight:800; background:#e8f0fe; border-top:3px solid #ccc; pa
   <div style="flex:1;text-align:center">
     <h1 style="color:#fff;font-size:13px;font-weight:600;display:inline">Performance Dashboard</h1>
     <span id="liveClock" style="font-size:11px;color:#fff;margin-left:8px;font-family:'Courier New',monospace;background:rgba(255,255,255,0.15);padding:1px 6px;border-radius:3px;letter-spacing:1px"></span>
+    <span id="lastSynced" style="font-size:10px;color:#eaffea;margin-left:8px;background:rgba(0,102,0,0.55);padding:1px 6px;border-radius:3px" title="Last portal data sync (uploaded_at)"></span>
   </div>
   <button class="btn-refresh" id="refreshBtn" onclick="onRefresh()">&#x21BA; Refresh</button>
   <span id="welcomeUser" style="font-size:10px;color:#fff;font-weight:500;margin-right:8px"></span>
@@ -443,6 +444,31 @@ let dupData = [];
 
 function fmt(n) { return (n||0).toLocaleString('en-IN'); }
 
+function esc(s) {
+  return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+function fmtSynced(d) {
+  if (!d) return 'No data';
+  const t = new Date(d);
+  if (isNaN(t.getTime())) return '—';
+  return t.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true });
+}
+
+function setLastSynced(rows) {
+  const el = document.getElementById('lastSynced');
+  if (!el) return;
+  let max = null;
+  for (const r of rows || []) {
+    if (!r.uploaded_at) continue;
+    const ts = Date.parse(r.uploaded_at);
+    if (!max || ts > max) max = ts;
+  }
+  el.textContent = 'Last synced: ' + (max ? fmtSynced(max) : '—');
+  el.title = max ? new Date(max).toISOString() : 'No sync record';
+  el.style.background = max ? 'rgba(0,102,0,0.55)' : 'rgba(128,128,128,0.55)';
+}
+
 function pct(a,b) {
   if (!b) return '0%';
   return (a/b*100).toFixed(1)+'%';
@@ -576,6 +602,7 @@ async function loadData(bypassCache) {
     if (d.error) throw Error(d.error);
     allData = d.rows || [];
     allDataRaw = allData; // preserve unfiltered for export
+    setLastSynced(allDataRaw);
     // Exclude cancelled/dead policies
     allData = allData.filter(r => r.cancelled !== 'Yes');
     if (!allData.length) {
@@ -585,18 +612,18 @@ async function loadData(bypassCache) {
     const companies = [...new Set(allData.map(r=>r.insurancecompany).filter(Boolean))].sort();
     const cSel = document.getElementById('companyFilter');
     const prevComp = cSel.value;
-    cSel.innerHTML = '<option value="all">All</option>' + companies.map(c=>'<option value="'+c+'">'+c+'</option>').join('');
+    cSel.innerHTML = '<option value="all">All</option>' + companies.map(c=>'<option value="'+esc(c)+'">'+esc(c)+'</option>').join('');
     if (companies.includes(prevComp)) cSel.value = prevComp;
 
     const models = [...new Set(allData.map(r=>r.model).filter(Boolean))].sort();
     const mSel = document.getElementById('modelFilter');
     const prevModel = mSel.value;
-    mSel.innerHTML = '<option value="all">All</option>' + models.map(c=>'<option value="'+c+'">'+c+'</option>').join('');
+    mSel.innerHTML = '<option value="all">All</option>' + models.map(c=>'<option value="'+esc(c)+'">'+esc(c)+'</option>').join('');
     if (models.includes(prevModel)) mSel.value = prevModel;
 
     const mfgYears = [...new Set(allData.map(r=>String(r.mfg_year)).filter(Boolean))].sort();
     const mfgDropdown = document.getElementById('mfgDropdown');
-    mfgDropdown.innerHTML = mfgYears.map(y => '<label><input type="checkbox" value="'+y+'" onchange="onMfgChange()"> '+y+'</label>').join('');
+    mfgDropdown.innerHTML = mfgYears.map(y => '<label><input type="checkbox" value="'+esc(y)+'" onchange="onMfgChange()"> '+esc(y)+'</label>').join('');
 
     render();
   } catch (e) {
@@ -1058,7 +1085,7 @@ function buildDailyTable(data, filter, label, yesterday, yyy, yesterdayLabel) {
   sorted.forEach(([comp, vals], i) => {
     const share = mtdSum ? (vals.mtd / mtdSum * 100).toFixed(1) : 0;
     h += `<tr style="border-bottom:1px solid #ccc">
-      <td style="padding:1px 2px;font-weight:600;color:#000;font-size:6px;text-align:center;border:1px solid #ccc;white-space:nowrap">${comp}</td>
+      <td style="padding:1px 2px;font-weight:600;color:#000;font-size:6px;text-align:center;border:1px solid #ccc;white-space:nowrap">${esc(comp)}</td>
       <td style="padding:1px 2px;text-align:center;border:1px solid #ccc"><span style="background:#555;color:#fff;padding:0 3px;border-radius:3px;font-weight:700;font-size:7px">${fmt(vals.yesterday)}</span></td>
       <td style="padding:1px 2px;text-align:center;border:1px solid #ccc;font-weight:600;color:#000;font-size:6px;white-space:nowrap">${fmtRs(vals.yesterdayPremium)}</td>
       <td style="padding:1px 2px;text-align:center;border:1px solid #ccc"><span style="background:#166534;color:#fff;padding:0 3px;border-radius:3px;font-weight:700;font-size:7px">${fmt(vals.today)}</span></td>
@@ -1208,13 +1235,13 @@ function showDuplicates() {
     const year = getYear(group[0].create_date);
     dupData.push({ policy, year, vins: vins.join(', '), customer, companies: companies.join(' | '), dates: dates.join(', '), count: group.length });
     html += `<tr>
-      <td style="font-size:9px;font-weight:600">${policy}</td>
-      <td style="font-size:9px">${year}</td>
-      <td style="font-size:9px">${group.length}</td>
-      <td style="font-size:10px">${customer}</td>
-      <td style="font-size:10px">${vins.join(', ')}</td>
-      <td style="font-size:10px">${companies.map(c => '<span style="background:#fee2e2;color:#dc2626;padding:0 5px;border-radius:3px;font-size:9px;margin:1px;display:inline-block">'+c+'</span>').join(' ')}</td>
-      <td style="font-size:9px">${dates.join('<br>')}</td>
+      <td style="font-size:9px;font-weight:600">${esc(policy)}</td>
+      <td style="font-size:9px">${esc(year)}</td>
+      <td style="font-size:9px">${esc(group.length)}</td>
+      <td style="font-size:10px">${esc(customer)}</td>
+      <td style="font-size:10px">${esc(vins.join(', '))}</td>
+      <td style="font-size:10px">${companies.map(c => '<span style="background:#fee2e2;color:#dc2626;padding:0 5px;border-radius:3px;font-size:9px;margin:1px;display:inline-block">'+esc(c)+'</span>').join(' ')}</td>
+      <td style="font-size:9px">${esc(dates.join('<br>'))}</td>
     </tr>`;
   });
   
@@ -1332,7 +1359,7 @@ function showVinTrack() {
     const statusBg = '#fef3c7';
     html += '<tr>' +
       '<td style="font-size:10px;font-weight:600;color:#333">'+r.lyName+' '+ly+'</td>' +
-      '<td style="font-size:10px;font-family:monospace">'+r.vin+'</td>' +
+      '<td style="font-size:10px;font-family:monospace">'+esc(r.vin)+'</td>' +
       '<td style="font-size:10px">'+r.cyMonths+'</td>' +
       '<td style="font-size:10px">'+r.cyPolicy+'</td>' +
       '<td style="font-size:10px"><span style="background:'+statusBg+';color:'+statusColor+';padding:1px 8px;border-radius:4px;font-weight:600">'+r.status+'</span></td>' +
@@ -1565,11 +1592,11 @@ function loadExportData() {
       const ptColor = r.policytype==='New' ? '#333' : (r.policytype==='Renewal' ? '#059669' : '#000');
       html += '<tr>' +
         '<td style="font-size:8px;color:#666;text-align:center">'+idx+'</td>' +
-        '<td style="font-size:9px">'+r.create_date+'</td>' +
-        '<td style="font-size:9px;font-family:monospace">'+r.vinno+'</td>' +
-        '<td style="font-size:9px;color:'+ptColor+';font-weight:600">'+r.policytype+'</td>' +
-        '<td style="font-size:9px">'+(r.insurancecompany||'')+'</td>' +
-        '<td style="font-size:9px">'+(r.customer_name||'')+'</td>' +
+        '<td style="font-size:9px">'+esc(r.create_date)+'</td>' +
+        '<td style="font-size:9px;font-family:monospace">'+esc(r.vinno)+'</td>' +
+        '<td style="font-size:9px;color:'+ptColor+';font-weight:600">'+esc(r.policytype)+'</td>' +
+        '<td style="font-size:9px">'+esc(r.insurancecompany||'')+'</td>' +
+        '<td style="font-size:9px">'+esc(r.customer_name||'')+'</td>' +
         '<td style="font-size:9px;text-align:right">'+(r.netodpremiuma?Number(r.netodpremiuma).toLocaleString('en-IN'):'')+'</td>' +
       '</tr>';
     });
@@ -1905,7 +1932,7 @@ async function onDailyRefresh() {
   try {
     await fetch('/api/refresh', { method: 'POST' });
     const d = await cachedFetch('/api/data', 120000, true);
-    if (d.rows) allData = d.rows.filter(r => r.cancelled !== 'Yes');
+    if (d.rows) { allData = d.rows.filter(r => r.cancelled !== 'Yes'); setLastSynced(d.rows); }
     renderDailyPerformance(allData);
   } catch (e) {}
   if (btn) { btn.style.opacity = '.7'; btn.style.pointerEvents = ''; }

@@ -1,6 +1,6 @@
 import crypto from 'crypto'
 
-const TOKEN_HMAC_SECRET = process.env.TOKEN_HMAC_SECRET || 'kia-token-hmac-2025-xK9mP2vL'
+const TOKEN_HMAC_SECRET: string = process.env.TOKEN_HMAC_SECRET ?? (() => { throw new Error('TOKEN_HMAC_SECRET environment variable is required') })()
 const TOKEN_MAX_AGE_MS = 24 * 60 * 60 * 1000 // 24 hours
 
 export interface TokenPayload {

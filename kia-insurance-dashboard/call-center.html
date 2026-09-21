@@ -715,6 +715,11 @@ let dropdownOptions = { models: [], insurers: [] };
 
 var storedAgents = [];
 function getAgents() { return storedAgents; }
+
+function esc(s) {
+  return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
 async function fetchAgents() {
   try {
     var d = await cachedFetch('/api/agents', 60000);
@@ -747,7 +752,7 @@ function renderSourceList() {
   var el = document.getElementById('sourceList');
   if (!sources.length) { el.innerHTML = '<div style="font-size:10px;color:var(--muted)">No sources added yet</div>'; return; }
   el.innerHTML = sources.map(function(s) {
-    return '<span class="agent-tag">' + s + ' <span class="rm" onclick="removeSource(\'' + s.replace(/'/g,"\\'") + '\')">&times;</span></span>';
+    return '<span class="agent-tag">' + esc(s) + ' <span class="rm" onclick="removeSource(\'' + esc(s).replace(/&#39;/g,"\\'") + '\')">&times;</span></span>';
   }).join('');
 }
 async function addSource() {
@@ -789,7 +794,7 @@ async function removeSource(name) {
 function populateSourceDropdowns() {
   var sources = getSources();
   var opts = '<option value="">Select source...</option>';
-  sources.forEach(function(s) { opts += '<option value="' + s + '">' + s + '</option>'; });
+  sources.forEach(function(s) { opts += '<option value="' + esc(s) + '">' + esc(s) + '</option>'; });
   opts += '<option value="__add__">+ Add New Source...</option>';
   var sel = document.getElementById('meSource');
   if (sel) {
@@ -801,7 +806,7 @@ function populateSourceDropdowns() {
 function populateAgentDropdowns() {
   var agents = getAgents();
   var opts = '<option value="">Select agent...</option>';
-  agents.forEach(function(a) { opts += '<option value="' + a + '">' + a + '</option>'; });
+  agents.forEach(function(a) { opts += '<option value="' + esc(a) + '">' + esc(a) + '</option>'; });
   opts += '<option value="__add__">+ Add New Agent...</option>';
   document.querySelectorAll('select#agentName, select#meAgentName').forEach(function(sel) {
     var current = sel.value;
@@ -884,6 +889,13 @@ function fmtDateShort(d) {
   const dt = new Date(d);
   if (isNaN(dt.getTime())) return d;
   return dt.toLocaleDateString('en-IN', { day:'2-digit', month:'short' });
+}
+function fmtDateN(d) {
+  if (!d) return '-';
+  const v = String(d).slice(0,10);
+  const p = v.split('-');
+  if (p.length === 3 && p[0].length === 4) return p[2] + '-' + p[1] + '-' + p[0];
+  return v;
 }
 
 function statusClass(s) {
@@ -975,7 +987,7 @@ function renderStats() {
   const byModel = {};
   allDue.forEach(function(r){ var m = (r.model || '-').trim().toUpperCase(); byModel[m] = (byModel[m]||0) + 1; });
   var chips = '';
-  Object.keys(byModel).sort().forEach(function(m){ chips += '<span class="chip">' + m + ' <b>' + byModel[m] + '</b></span>'; });
+  Object.keys(byModel).sort().forEach(function(m){ chips += '<span class="chip">' + esc(m) + ' <b>' + byModel[m] + '</b></span>'; });
   document.getElementById('chipRow').innerHTML = chips || '';
 }
 
@@ -1023,14 +1035,14 @@ function renderTable() {
   var insurers = [...new Set(allDue.map(function(r){return r.insurancecompany||'-';}))].sort();
   var fuDates = [...new Set(allDue.filter(function(r){return r.follow_up_date;}).map(function(r){return r.follow_up_date.slice(0,10);}))].sort();
   var modelOpts = '<option value="all">All</option>';
-  models.forEach(function(m){ modelOpts += '<option value="'+m.replace(/"/g,'&quot;')+'"'+(filterModel===m?' selected':'')+'>'+m+'</option>'; });
+  models.forEach(function(m){ modelOpts += '<option value="'+esc(m)+'"'+(filterModel===m?' selected':'')+'>'+esc(m)+'</option>'; });
   var insurerOpts = '<option value="all">All</option>';
-  insurers.forEach(function(ins){ insurerOpts += '<option value="'+ins.replace(/"/g,'&quot;')+'"'+(filterInsurer===ins?' selected':'')+'>'+ins+'</option>'; });
+  insurers.forEach(function(ins){ insurerOpts += '<option value="'+esc(ins)+'"'+(filterInsurer===ins?' selected':'')+'>'+esc(ins)+'</option>'; });
   var fuDateItems = '';
   fuDates.forEach(function(dt){
     var checked = filterFollowupDates.indexOf(dt) !== -1 ? ' checked' : '';
     var label = fmtDateShort(dt);
-    fuDateItems += '<label class="ms-item"><input type="checkbox" value="'+dt+'"'+checked+' onchange="toggleFollowupDate(this.value,this.checked)"> ' + label + '</label>';
+    fuDateItems += '<label class="ms-item"><input type="checkbox" value="'+esc(dt)+'"'+checked+' onchange="toggleFollowupDate(this.value,this.checked)"> ' + esc(label) + '</label>';
   });
   var fuDateCount = filterFollowupDates.length > 0 ? ' (' + filterFollowupDates.length + ')' : '';
   var fuDateLabel = filterFollowupDates.length > 0 ? filterFollowupDates.length + ' selected' : 'All';
@@ -1058,23 +1070,23 @@ function renderTable() {
     var displayRemarks = fullRemarks.length > 25 ? fullRemarks.substring(0,22)+'...' : fullRemarks;
     h += '<tr>' +
       '<td style="color:var(--muted);font-weight:500;font-size:9px">' + (start + i + 1) + '</td>' +
-      '<td style="font-size:9px">' + r.customer_name + (r.source === 'manual' ? '<span class="manual-tag">MANUAL</span>' : '') + '</td>' +
-      '<td><span style="font-weight:500;color:var(--blue);font-size:9px">' + mob + '</span>' +
-        (r.follow_up_date ? '<br><span style="font-size:8px;color:var(--orange)">&#128197; ' + fmtDateShort(r.follow_up_date) + '</span>' : '') +
+      '<td style="font-size:9px">' + esc(r.customer_name) + (r.source === 'manual' ? '<span class="manual-tag">MANUAL</span>' : '') + '</td>' +
+      '<td><span style="font-weight:500;color:var(--blue);font-size:9px">' + esc(mob) + '</span>' +
+        (r.follow_up_date ? '<br><span style="font-size:8px;color:var(--orange)">&#128197; ' + esc(fmtDateShort(r.follow_up_date)) + '</span>' : '') +
       '</td>' +
-      '<td style="font-size:9px;font-family:monospace;color:var(--muted)">' + r.vinno + '</td>' +
-      '<td style="font-size:9px">' + r.model + '</td>' +
-      '<td style="font-size:9px;font-family:monospace;color:var(--muted)">' + r.policyno + '</td>' +
-      '<td style="color:' + (isExpired(r.policy_expiry_date) ? 'var(--red)' : 'var(--muted)') + ';font-size:9px;font-weight:' + (isExpired(r.policy_expiry_date) ? '600' : '400') + '">' + (r.policy_expiry_date ? fmtDate(r.policy_expiry_date) : '-') + '</td>' +
-      '<td style="font-size:9px">' + r.insurancecompany + '</td>' +
-      '<td style="color:var(--muted);font-size:9px">' + (r.policy_effective_date ? fmtDate(r.policy_effective_date) : '-') + '</td>' +
-      '<td style="color:var(--muted);font-size:9px">' + fmtDate(r.create_date) + '</td>' +
+      '<td style="font-size:9px;font-family:monospace;color:var(--muted)">' + esc(r.vinno) + '</td>' +
+      '<td style="font-size:9px">' + esc(r.model) + '</td>' +
+      '<td style="font-size:9px;font-family:monospace;color:var(--muted)">' + esc(r.policyno) + '</td>' +
+      '<td style="color:' + (isExpired(r.policy_expiry_date) ? 'var(--red)' : 'var(--muted)') + ';font-size:9px;font-weight:' + (isExpired(r.policy_expiry_date) ? '600' : '400') + '">' + (r.policy_expiry_date ? esc(fmtDate(r.policy_expiry_date)) : '-') + '</td>' +
+      '<td style="font-size:9px">' + esc(r.insurancecompany) + '</td>' +
+      '<td style="color:var(--muted);font-size:9px">' + (r.policy_effective_date ? esc(fmtDate(r.policy_effective_date)) : '-') + '</td>' +
+      '<td style="color:var(--muted);font-size:9px">' + esc(fmtDate(r.create_date)) + '</td>' +
       '<td style="text-align:right;font-weight:600;font-size:9px">\u20B9' + Number(r.netodpremiuma).toLocaleString('en-IN') + '</td>' +
       '<td style="text-align:center"><span class="attempt-badge ' + attemptClass(r.attempt_count || 0) + '">' + (r.attempt_count || 0) + '</span></td>' +
-      '<td><span class="status-badge ' + statusClass(sc) + '">' + statusIcon(sc) + ' ' + sc + '</span></td>' +
-      '<td style="color:var(--muted);font-size:9px">' + callDate + '</td>' +
-      '<td style="max-width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted);font-size:9px" title="' + fullRemarks.replace(/"/g,'&quot;') + '">' + displayRemarks + '</td>' +
-      '<td style="font-size:9px;font-weight:500;color:' + (r.follow_up_date ? 'var(--blue)' : 'var(--muted)') + '">' + (r.follow_up_date ? fmtDate(r.follow_up_date) : '-') + '</td>' +
+      '<td><span class="status-badge ' + statusClass(sc) + '">' + statusIcon(sc) + ' ' + esc(sc) + '</span></td>' +
+      '<td style="color:var(--muted);font-size:9px">' + esc(callDate) + '</td>' +
+      '<td style="max-width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted);font-size:9px" title="' + esc(fullRemarks) + '">' + esc(displayRemarks) + '</td>' +
+      '<td style="font-size:9px;font-weight:500;color:' + (r.follow_up_date ? 'var(--blue)' : 'var(--muted)') + '">' + (r.follow_up_date ? esc(fmtDate(r.follow_up_date)) : '-') + '</td>' +
       '<td><button class="call-btn" onclick="openCallModal(' + absIdx + ')" title="Customer details &amp; call log">&#128222; Call</button></td>' +
       '<td><button class="hist-btn" onclick="openHistoryModal(' + absIdx + ')" title="View calling history">&#128196; History</button></td>' +
       '</tr>';
@@ -1116,16 +1128,16 @@ function openCallModal(idx) {
   const sc = item.call_status||'Pending';
   document.getElementById('custInfo').innerHTML =
     '<div class="cust-card-row">' +
-      '<div class="ci"><div class="lbl">Customer</div><div class="val">' + item.customer_name + '</div></div>' +
-      '<div class="ci"><div class="lbl">Contact</div><div class="val" style="color:var(--blue)">' + (item.mobile||'<span style="color:#9ca3af;font-weight:400">Not available</span>') + '</div></div>' +
-      '<div class="ci"><div class="lbl">Model</div><div class="val">' + item.model + '</div></div>' +
-      '<div class="ci"><div class="lbl">Insurance</div><div class="val">' + item.insurancecompany + '</div></div>' +
-      '<div class="ci"><div class="lbl">Policy No</div><div class="val mono" style="font-size:11px">' + item.policyno + '</div></div>' +
-      '<div class="ci"><div class="lbl">VIN No</div><div class="val mono" style="font-size:11px">' + item.vinno + '</div></div>' +
+      '<div class="ci"><div class="lbl">Customer</div><div class="val">' + esc(item.customer_name) + '</div></div>' +
+      '<div class="ci"><div class="lbl">Contact</div><div class="val" style="color:var(--blue)">' + (item.mobile ? esc(item.mobile) : '<span style="color:#9ca3af;font-weight:400">Not available</span>') + '</div></div>' +
+      '<div class="ci"><div class="lbl">Model</div><div class="val">' + esc(item.model) + '</div></div>' +
+      '<div class="ci"><div class="lbl">Insurance</div><div class="val">' + esc(item.insurancecompany) + '</div></div>' +
+      '<div class="ci"><div class="lbl">Policy No</div><div class="val mono" style="font-size:11px">' + esc(item.policyno) + '</div></div>' +
+      '<div class="ci"><div class="lbl">VIN No</div><div class="val mono" style="font-size:11px">' + esc(item.vinno) + '</div></div>' +
       '<div class="ci"><div class="lbl">Last Net OD Premium</div><div class="val" style="color:var(--green)">\u20B9' + Number(item.netodpremiuma).toLocaleString('en-IN') + '</div></div>' +
-      '<div class="ci"><div class="lbl">Policy Date</div><div class="val" style="color:' + (isExpired(item.policy_expiry_date) ? 'var(--red)' : 'var(--text)') + '">' + fmtDate(item.policy_expiry_date) + '</div></div>' +
-      '<div class="ci"><div class="lbl">State</div><div class="val">' + (item.state||'-') + '</div></div>' +
-      '<div class="ci"><div class="lbl">Status</div><div class="val"><span class="status-badge ' + statusClass(sc) + '">' + statusIcon(sc) + ' ' + sc + '</span></div></div>' +
+      '<div class="ci"><div class="lbl">Policy Date</div><div class="val" style="color:' + (isExpired(item.policy_expiry_date) ? 'var(--red)' : 'var(--text)') + '">' + esc(fmtDate(item.policy_expiry_date)) + '</div></div>' +
+      '<div class="ci"><div class="lbl">State</div><div class="val">' + esc(item.state || '-') + '</div></div>' +
+      '<div class="ci"><div class="lbl">Status</div><div class="val"><span class="status-badge ' + statusClass(sc) + '">' + statusIcon(sc) + ' ' + esc(sc) + '</span></div></div>' +
     '</div>';
 
   document.getElementById('lastRemarksBox').style.display = 'none';
@@ -1155,21 +1167,21 @@ function openHistoryModal(idx) {
   const item = allDue[idx];
   document.getElementById('histCustInfo').innerHTML =
     '<div class="cust-card-row">' +
-      '<div class="ci"><div class="lbl">Customer</div><div class="val">' + item.customer_name + '</div></div>' +
-      '<div class="ci"><div class="lbl">Contact</div><div class="val" style="color:var(--blue)">' + (item.mobile||'<span style="color:#9ca3af;font-weight:400">Not available</span>') + '</div></div>' +
-      '<div class="ci"><div class="lbl">Model</div><div class="val">' + item.model + '</div></div>' +
-      '<div class="ci"><div class="lbl">Policy No</div><div class="val mono" style="font-size:11px">' + item.policyno + '</div></div>' +
-      '<div class="ci"><div class="lbl">VIN No</div><div class="val mono" style="font-size:11px">' + item.vinno + '</div></div>' +
-      '<div class="ci"><div class="lbl">Current Status</div><div class="val"><span class="status-badge ' + statusClass(item.call_status||'Pending') + '">' + statusIcon(item.call_status||'Pending') + ' ' + (item.call_status||'Pending') + '</span></div></div>' +
+      '<div class="ci"><div class="lbl">Customer</div><div class="val">' + esc(item.customer_name) + '</div></div>' +
+      '<div class="ci"><div class="lbl">Contact</div><div class="val" style="color:var(--blue)">' + (item.mobile ? esc(item.mobile) : '<span style="color:#9ca3af;font-weight:400">Not available</span>') + '</div></div>' +
+      '<div class="ci"><div class="lbl">Model</div><div class="val">' + esc(item.model) + '</div></div>' +
+      '<div class="ci"><div class="lbl">Policy No</div><div class="val mono" style="font-size:11px">' + esc(item.policyno) + '</div></div>' +
+      '<div class="ci"><div class="lbl">VIN No</div><div class="val mono" style="font-size:11px">' + esc(item.vinno) + '</div></div>' +
+      '<div class="ci"><div class="lbl">Current Status</div><div class="val"><span class="status-badge ' + statusClass(item.call_status||'Pending') + '">' + statusIcon(item.call_status||'Pending') + ' ' + esc(item.call_status||'Pending') + '</span></div></div>' +
     '</div>';
 
   if (item.history && item.history.length > 0) {
     var hh = '<table class="history-table"><tr><th>Date</th><th>Outcome</th><th>Agent</th><th>Remarks</th><th>Next Follow-up</th></tr>';
     for (var h of item.history) {
       var fuHtml = h.follow_up 
-        ? '<span style="color:var(--blue);cursor:pointer;text-decoration:underline" onclick="openFuDateModal(\'' + h.follow_up + '\', \'' + item.policyno + '\')">' + fmtDateShort(h.follow_up) + '</span>'
-        : '<span style="color:var(--orange);cursor:pointer" onclick="openFuDateModal(\'\', \'' + item.policyno + '\')">+ Add</span>';
-      hh += '<tr><td>' + fmtDateShort(h.date) + '</td><td><span class="status-badge ' + statusClass(h.outcome) + '">' + h.outcome + '</span></td><td>' + (h.agent||'-') + '</td><td style="font-size:11px">' + (h.remarks||'-') + '</td><td>' + fuHtml + '</td></tr>';
+        ? '<span style="color:var(--blue);cursor:pointer;text-decoration:underline" onclick="openFuDateModal(\'' + esc(h.follow_up).replace(/&#39;/g,"\\'") + '\', \'' + esc(item.policyno).replace(/&#39;/g,"\\'") + '\')">' + esc(fmtDateN(h.follow_up)) + '</span>'
+        : '<span style="color:var(--orange);cursor:pointer" onclick="openFuDateModal(\'\', \'' + esc(item.policyno).replace(/&#39;/g,"\\'") + '\')">+ Add</span>';
+      hh += '<tr><td>' + esc(fmtDateN(h.date)) + '</td><td><span class="status-badge ' + statusClass(h.outcome) + '">' + esc(h.outcome) + '</span></td><td>' + esc(h.agent||'-') + '</td><td style="font-size:11px">' + esc(h.remarks||'-') + '</td><td>' + fuHtml + '</td></tr>';
     }
     hh += '</table>';
     document.getElementById('histList').innerHTML = hh;
@@ -1330,7 +1342,7 @@ function renderAgentList() {
   var el = document.getElementById('agentList');
   if (!agents.length) { el.innerHTML = '<div style="font-size:10px;color:var(--muted)">No agents added yet</div>'; return; }
   el.innerHTML = agents.map(function(a) {
-    return '<span class="agent-tag">' + a + ' <span class="rm" onclick="removeAgent(\'' + a.replace(/'/g,"\\'") + '\')">&times;</span></span>';
+    return '<span class="agent-tag">' + esc(a) + ' <span class="rm" onclick="removeAgent(\'' + esc(a).replace(/&#39;/g,"\\'") + '\')">&times;</span></span>';
   }).join('');
 }
 
@@ -1507,7 +1519,7 @@ async function loadApData() {
     var sel = document.getElementById('apAgentFilter');
     var cur = sel.value;
     sel.innerHTML = '<option value="all">All Agents</option>' + Object.keys(agentNames).sort().map(function(n) {
-      return '<option value="' + n + '">' + n + '</option>';
+      return '<option value="' + esc(n) + '">' + esc(n) + '</option>';
     }).join('');
     sel.value = cur || 'all';
 
@@ -1578,7 +1590,7 @@ function renderTopAgent(agents) {
   var bc = t.rate >= 60 ? '#22c55e' : t.rate >= 30 ? '#f59e0b' : '#ef4444';
   return '<div class="ap-top">' +
     '<div class="trophy">&#127942;</div>' +
-    '<div class="top-info"><h3>' + t.name + '</h3><p>Best performing agent — highest connection rate</p></div>' +
+    '<div class="top-info"><h3>' + esc(t.name) + '</h3><p>Best performing agent — highest connection rate</p></div>' +
     '<div class="top-stats">' +
       '<div class="top-stat"><div class="ts-num" style="color:' + bc + '">' + t.rate + '%</div><div class="ts-lbl">Connect Rate</div></div>' +
       '<div class="top-stat"><div class="ts-num">' + t.connected + '</div><div class="ts-lbl">Connected</div></div>' +
@@ -1600,7 +1612,7 @@ function renderAgentSummaryTable(agents) {
     var bc = a.rate >= 60 ? '#22c55e' : a.rate >= 30 ? '#f59e0b' : '#ef4444';
     h += '<tr>' +
       '<td><span class="rank-badge ' + rc + '">' + rank + '</span></td>' +
-      '<td class="agent-name-cell">' + a.name + '</td>' +
+      '<td class="agent-name-cell">' + esc(a.name) + '</td>' +
       '<td style="font-weight:700">' + a.total + '</td>' +
       '<td style="color:#22c55e;font-weight:600">' + a.connected + '</td>' +
       '<td style="color:#f59e0b;font-weight:600">' + a.followup + '</td>' +
@@ -1625,7 +1637,7 @@ function renderAgentAvgPerDay(agents) {
   agents.forEach(function(a, i) {
     var bc = a.avgCalls >= 20 ? '#22c55e' : a.avgCalls >= 10 ? '#f59e0b' : '#ef4444';
     h += '<div style="flex:1;min-width:120px;background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:10px;text-align:center;border-top:3px solid ' + bc + '">' +
-      '<div style="font-size:9px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.3px">' + a.name + '</div>' +
+      '<div style="font-size:9px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.3px">' + esc(a.name) + '</div>' +
       '<div style="font-size:22px;font-weight:800;color:' + bc + ';margin:4px 0">' + a.avgCalls + '</div>' +
       '<div style="font-size:8px;color:#64748b">calls/day</div>' +
       '<div style="margin-top:4px;font-size:8px;color:#475569">' + a.days + ' active days</div>' +
@@ -1650,7 +1662,7 @@ function renderAgentDetailCards(agents) {
     h += '<div class="ap-agent-card">' +
       '<div class="ac-head">' +
         '<span class="ac-rank ' + rc + '">' + (i + 1) + '</span>' +
-        '<span class="ac-name">' + a.name + '</span>' +
+        '<span class="ac-name">' + esc(a.name) + '</span>' +
         '<span class="ac-rate" style="color:' + bc + '">' + a.rate + '%</span>' +
       '</div>' +
       '<div class="ac-stats">' +
@@ -1710,15 +1722,15 @@ function renderNotConnectedTable(filteredLogs) {
     else if (o === 'Not Interested') sc = 's-not-interested';
     else if (o === 'Follow-up') sc = 's-follow-up';
     else if (o === 'Wrong Number') sc = 's-wrong-number';
-    h += '<tr data-name="' + (l.customer_name || '').toLowerCase() + '">' +
-      '<td style="font-size:9px;white-space:nowrap">' + (l.call_date || '-') + '</td>' +
-      '<td style="font-weight:600">' + (l.agent_name || '-') + '</td>' +
-      '<td style="font-weight:600">' + (l.customer_name || '-') + '</td>' +
-      '<td style="font-weight:600;white-space:nowrap">' + (l.mobile_no || '-') + '</td>' +
-      '<td>' + (l.model || '-') + '</td>' +
-      '<td>' + (l.insurancecompany || '-') + '</td>' +
-      '<td><span class="status-badge ' + sc + '">' + o + '</span></td>' +
-      '<td style="font-size:9px;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + (l.remarks || '-') + '</td>' +
+    h += '<tr data-name="' + esc(String(l.customer_name || '').toLowerCase()) + '">' +
+      '<td style="font-size:9px;white-space:nowrap">' + esc(l.call_date || '-') + '</td>' +
+      '<td style="font-weight:600">' + esc(l.agent_name || '-') + '</td>' +
+      '<td style="font-weight:600">' + esc(l.customer_name || '-') + '</td>' +
+      '<td style="font-weight:600;white-space:nowrap">' + esc(l.mobile_no || '-') + '</td>' +
+      '<td>' + esc(l.model || '-') + '</td>' +
+      '<td>' + esc(l.insurancecompany || '-') + '</td>' +
+      '<td><span class="status-badge ' + sc + '">' + esc(o) + '</span></td>' +
+      '<td style="font-size:9px;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(l.remarks || '-') + '</td>' +
       '</tr>';
   });
   h += '</tbody></table></div>';
@@ -1831,7 +1843,7 @@ function buildDayDetailBody(agents, filteredLogs) {
     hasData = true;
     var sortedDays = Object.keys(days).sort().reverse();
     var agentId = 'agentDD_' + idx;
-    h += '<div style="margin-bottom:10px"><div style="font-size:10px;font-weight:700;color:#1e293b;margin-bottom:3px;padding-left:2px;display:flex;align-items:center">' + a.name +
+    h += '<div style="margin-bottom:10px"><div style="font-size:10px;font-weight:700;color:#1e293b;margin-bottom:3px;padding-left:2px;display:flex;align-items:center">' + esc(a.name) +
       '<span class="agent-hamburger" onclick="toggleSection(\'' + agentId + '\',this)" title="Collapse/Expand"><span class="hamburger-icon">&#9660;</span></span></div>';
     h += '<div id="' + agentId + '">';
     h += '<div class="ap-table-wrap"><table class="ap-table"><thead><tr><th>Date</th><th>Calls</th><th>Connected</th><th>Follow-up</th><th>Not Reachable</th><th>Not Interested</th><th>Pending</th><th>Rate</th></tr></thead><tbody>';
@@ -1839,7 +1851,7 @@ function buildDayDetailBody(agents, filteredLogs) {
       var d = days[dt];
       var rate = d.total > 0 ? Math.round(d.connected / d.total * 100) : 0;
       var bc = rate >= 60 ? '#22c55e' : rate >= 30 ? '#f59e0b' : '#ef4444';
-      h += '<tr><td style="font-weight:600">' + dt + '</td>' +
+      h += '<tr><td style="font-weight:600">' + esc(dt) + '</td>' +
         '<td style="font-weight:700">' + d.total + '</td>' +
         '<td style="color:#22c55e;font-weight:600">' + d.connected + '</td>' +
         '<td style="color:#f59e0b">' + d.followup + '</td>' +

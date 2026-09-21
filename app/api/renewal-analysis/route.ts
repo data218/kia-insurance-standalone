@@ -35,7 +35,7 @@ export async function GET(req: Request) {
       if (!year || !month) continue
       const key = year + '-' + month
       if (!months[key]) months[key] = { new: 0, renewal: 0 }
-      if (r.is_new === 'Yes') months[key].new++
+      if (r.policytype === 'New') months[key].new++
       else months[key].renewal++
     }
     if (Object.keys(months).length === 0) {
